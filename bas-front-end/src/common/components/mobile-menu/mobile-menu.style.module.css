@@ -1,0 +1,48 @@
+.container {
+  background: var(--left-menu-background);
+  height: 100vh;
+  border-right: 2px solid #eeeeee;
+  z-index: 2;
+  flex-basis: 306px;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.header {
+  border-bottom: 1px solid #dadada;
+  height: var(--page-header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  height: 98vh;
+}
+
+.title {
+  color: #3699ff;
+  font-size: 1.6rem;
+}
+
+.sectionTitle {
+  color: #9c9c9c;
+  padding: 16px 24px;
+  font-size: 0.8rem;
+}
+
+.sections {
+  flex: 1;
+}
+
+.backLink {
+  color: #3699ff;
+  margin: 0 32px 0 24px;
+  user-select: none;
+  text-decoration: underline;
+  font-weight: bold;
+  position: fixed;
+  bottom: 24px;
+}

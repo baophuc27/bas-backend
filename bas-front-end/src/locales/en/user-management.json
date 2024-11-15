@@ -1,0 +1,59 @@
+{
+  "title": "Accounts Management",
+  "change-password": "Change Password",
+  "password": "Password",
+  "new-password": "New Password",
+  "confirm-password": "Confirm Password",
+  "reset-password": "Reset Password",
+  "username": "Account",
+  "account": "Account",
+  "phone-number": "Phone Number",
+  "permission": "Permission",
+  "created-at": "Created At",
+  "full-name": "Full Name",
+  "button": {
+    "add": "Add New Account"
+  },
+  "account-type": "Account Type",
+  "account-option": {
+    "manual": "Manual",
+    "ad-account": "AD Account"
+  },
+  "edit-title": "Edit Account",
+  "add-title": "Add New Account",
+  "placeholder": {
+    "account": "Choose Account",
+    "permission": "Choose Permission",
+    "phone-number": "Enter Phone Number",
+    "email": "Enter Email",
+    "full-name": "Enter Full Name",
+    "password": "At least 3 characters",
+    "new-password": "At least 3 characters",
+    "confirm-password": "At least 3 characters",
+    "username": "Enter Account"
+  },
+  "page-title": {
+    "list": "Accounts Management"
+  },
+  "messages": {
+    "new_change_password": "You need to change your password before continuing.",
+    "add_success": "Add a new account successfully!",
+    "add_failed": "Failed to add a new account!",
+    "edit_success": "Update account's details successfully!",
+    "edit_failed": "Failed to update account's details!",
+    "delete_success": "Delete account successfully!",
+    "delete_failed": "Failed to delete account!",
+    "change_password_failed": "Failed to change password!",
+    "change_password_success": "Change password successfully!",
+    "invalid_username": "Account must contain at least 3 characters and must not contain whitespace",
+    "invalid_password": "Password must contain at least 3 characters",
+    "password_not_match": "Password not matching",
+    "duplicated-email": "This email already exists",
+    "duplicated-phone": "This phone number already exists",
+    "duplicated-username": "This username already exists"
+  },
+  "dialog": {
+    "delete_title": "Delete Account",
+    "delete_description": "Are you sure to delete the account \"{{ fullName }}\"?"
+  }
+}

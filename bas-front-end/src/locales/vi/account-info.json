@@ -1,0 +1,37 @@
+{
+  "page-title": {
+    "update": "Thông Tin Tài Khoản"
+  },
+  "label": {
+    "avatar": "Ảnh Đại Diện",
+    "account": "Tài Khoản",
+    "full-name": "Họ Và Tên",
+    "phone-number": "Số Điện Thoại",
+    "avatar-validate": "Kích thước ảnh tối đa là 1MB (.jpg, .jpeg, .png, .webp)",
+    "role": "Quyền"
+  },
+  "placeholder": {
+    "phone-number": "Nhập Số Điện Thoại"
+  },
+  "button": {
+    "upload": "Tải Ảnh Lên",
+    "reset-password": "Đổi Mật Khẩu"
+  },
+  "dialog": {
+    "success-title": "Cập nhật tài khoản",
+    "success-message": "Tài khoản của bạn đã được cập nhật thành công",
+    "failed-title": "Cập nhật tài khoản thất bại",
+    "failed-message": "Có lỗi xảy ra trong quá trình cập nhật tài khoản của bạn. Vui lòng thử lại sau.",
+    "large-size-message": "Ảnh quá lớn. Kích thước ảnh không được vượt quá 1MB.",
+    "file-format-message": "Định dạng ảnh không hợp lệ. Vui lòng chọn ảnh có định dạng .jpg, .jpeg, .png, .tif hoặc .tiff."
+  },
+  "messages": {
+    "phone-number": "Số điện thoại không hợp lệ",
+    "email": "Email không hợp lệ",
+    "type": "Vui lòng chọn ảnh hợp lệ",
+    "size": "Vui lòng chọn ảnh có kích thước nhỏ hơn 1MB",
+    "duplicated-email": "Địa chỉ email này đã tồn tại",
+    "duplicated-phone": "Số điện thoại này đã tồn tại",
+    "duplicated-username": "Tên đăng nhập này đã tồn tại"
+  }
+}

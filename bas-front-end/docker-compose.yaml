@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  bas_frontend:
+    image: bas-fe-dev-test
+    build:
+      context: .
+      dockerfile: Dockerfile # Path to Dockerfile
+    ports:
+      - "3010:3000" # Port mapping from <host>:<container>
+    networks:
+      - bas-dev # Network name
+    restart: always # auto restart the container when server is down
+networks:
+  bas-dev:
+    driver: bridge

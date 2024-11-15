@@ -1,0 +1,127 @@
+{
+  "app": {
+    "name": "BAS"
+  },
+  "button": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "apply": "Apply",
+    "clear": "Clear",
+    "sign-in-with-microsoft": "Sign in with Microsoft",
+    "back-to-map": "Port Dashboard",
+    "spm-management": "SPM Management",
+    "notifications": "Notifications",
+    "log-out": "Logout",
+    "log-in": "Log In",
+    "ok": "OK",
+    "fixed": "Fixed",
+    "go-to-homepage": "Go to Homepage",
+    "search": "Search",
+    "change-password": "Change Password",
+    "yes": "Yes",
+    "no": "No",
+    "add": "Add New",
+    "delete_all": "Delete All",
+    "management": "Management"
+  },
+  "menu": {
+    "sections": {
+      "mine": "Mine",
+      "management": "Management",
+      "menu": "Menu"
+    },
+    "items": {
+      "account-info": "Account Information",
+      "users-management": "Accounts Management",
+      "notifications": "My Notifications",
+      "system-notifications": "System Notifications",
+      "spm-management": "SPM Management",
+      "detection-devices": "Detection Devices",
+      "detection-histories": "Detection Histories",
+      "back-up-data": "Back-up Data",
+      "record_management": "Record Management",
+      "log-out": "Log Out",
+      "berth_management": "Berth Management",
+      "port-info": "Port Information",
+      "alarm-history": "Alarm History"
+    }
+  },
+  "language": {
+    "english": "English",
+    "vietnamese": "Vietnamese"
+  },
+  "table": {
+    "actions": "Actions",
+    "rows-per-page": "Rows Per Page",
+    "page-text": "of",
+    "next-page": "Next Page",
+    "previous-page": "Previous Page",
+    "no-data": "No Data To Display"
+  },
+  "input": {
+    "keyword": "Keyword",
+    "keyword-hint": "Enter Keyword...",
+    "no-options": "No Options",
+    "all-items": "All Items"
+  },
+  "note": {
+    "required-field": "Required Fields",
+    "required-message": "This field is required",
+    "max-length": "Maximum length is {{length}} characters",
+    "invalid-number": "Invalid number",
+    "desktop-only": "This feature is only available on desktop",
+    "range": "Value must be between {{min}} and {{max}}"
+  },
+  "label": {
+    "or": "Or",
+    "no-data": "No Data Available"
+  },
+  "placeholder": {
+    "enter-keyword": "Enter Keyword"
+  },
+  "date-range-picker": {
+    "all": "All",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "this-week": "This Week",
+    "last-week": "Last Week",
+    "last-7-days": "Last 7 Days",
+    "this-month": "This Month",
+    "last-month": "Last Month",
+    "start-date": "Start Date",
+    "end-date": "End Date",
+    "sunday": "Su",
+    "monday": "Mo",
+    "tuesday": "Tu",
+    "wednesday": "We",
+    "thursday": "Th",
+    "friday": "Fr",
+    "saturday": "Sa",
+    "january": "Ja",
+    "february": "Feb",
+    "march": "Mar",
+    "april": "Apr",
+    "may": "May",
+    "june": "Jun",
+    "july": "Jul",
+    "august": "Aug",
+    "september": "Sep",
+    "october": "Oct",
+    "november": "Nov",
+    "december": "Dec"
+  },
+  "toast": {
+    "'error": "Error. Please try again"
+  },
+  "left": "Left",
+  "right": "Right",
+  "back": "Back",
+  "role": {
+    "admin": "Administrator",
+    "config": "Configurator",
+    "viewer": "Viewer"
+  },
+  "player": {
+    "loading": "Loading data"
+  }
+}

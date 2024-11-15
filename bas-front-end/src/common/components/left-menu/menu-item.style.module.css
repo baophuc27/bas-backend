@@ -1,0 +1,51 @@
+.container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0 16px;
+  user-select: none;
+}
+
+.icon {
+  width: 60px;
+  text-align: center;
+}
+
+.label {
+  flex: 1;
+  display: block;
+  padding: 20px 0;
+  white-space: nowrap;
+}
+
+.container:hover {
+  background: var(--menu-item-hovered-background);
+}
+
+.container:hover svg path {
+  fill: var(--menu-item-hovered-icon-color);
+}
+
+.container:hover svg line {
+  stroke: var(--menu-item-hovered-icon-color);
+}
+
+.label:hover {
+  color: var(--menu-item-hovered-text-color);
+}
+
+.containerActive {
+  background: var(--menu-item-active-background) !important;
+}
+
+.containerActive svg path {
+  fill: var(--menu-item-active-icon-color) !important;
+}
+
+.containerActive svg line {
+  stroke: var(--menu-item-active-icon-color) !important;
+}
+
+.labelActive {
+  color: var(--menu-item-active-text-color) !important;
+}

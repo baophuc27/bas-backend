@@ -1,0 +1,69 @@
+.fullScreenContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  z-index: 9;
+}
+
+.header {
+  display: flex;
+  box-shadow: 0 0 20px 0 rgba(29, 31, 89, 0.1);
+  padding: 6px 12px;
+}
+
+.mainTitle {
+  font-size: 20px;
+  font-weight: 500;
+  color: #000;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Data Table */
+.dataTableContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 720px;
+}
+
+.dataTableHeaderRow {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  min-width: 720px;
+}
+
+.dataTableHeaderCell {
+  background: #eee;
+  text-align: left;
+  padding: 6px 6px;
+  user-select: none;
+}
+
+.dataTableBody {
+  flex: 1;
+  min-width: 720px;
+}
+
+.dataTableBodyRow {
+  border-bottom: 1px solid #eee;
+}
+
+.dataTableBodyCell {
+  background: white;
+  padding: 6px 12px;
+  user-select: none;
+  border-right: 1px solid #eee;
+}
+
+.noDataContainer {
+  padding: 12px;
+}

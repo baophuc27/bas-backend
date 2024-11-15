@@ -1,0 +1,30 @@
+{
+  "page-title": {
+    "update": "Port Information"
+  },
+  "label": {
+    "name": "Name",
+    "english-name": "English Name",
+    "address": "Address",
+    "description": "Description",
+    "weather-widget-dashboard-url": "Weather Widget Dashboard URL",
+    "weather-widget-url": "Weather Widget URL"
+  },
+  "placeholder": {
+    "name": "Enter Name",
+    "english-name": "Enter English Name",
+    "address": "Enter Address",
+    "description": "Enter Description",
+    "weather-widget-dashboard-url": "Enter Weather Widget Dashboard URL",
+    "weather-widget-url": "Enter Weather Widget URL"
+  },
+  "dialog": {
+    "success-title": "Port updated",
+    "success-message": "Port has been updated successfully.",
+    "failed-title": "Port update failed",
+    "failed-message": "Port has not been updated. Please try again later."
+  },
+  "messages": {
+    "invalid-url": "Invalid URL"
+  }
+}

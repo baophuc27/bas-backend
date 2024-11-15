@@ -1,0 +1,11 @@
+.mobileButtons {
+  bottom: 0;
+  background-color: white;
+  border-top: 1px solid #dadada;
+  position: fixed;
+  width: 100%;
+  padding: 16px 24px;
+  left: 50%;
+  max-width: 420px;
+  transform: translateX(-50%);
+}

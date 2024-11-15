@@ -1,0 +1,60 @@
+{
+  "title": "Quản Lý Bản Ghi",
+  "detail_title": "Chi Tiết Bản Ghi",
+
+  "page-title": {
+    "list": "Quản Lý Bản Ghi"
+  },
+
+  "general_information": "Thông Tin Chung",
+  "history": "Dữ Liệu Lịch Sử",
+  "time": "Thời Gian",
+  "zone": "Vùng",
+  "distance": "Khoảng Cách",
+  "speed": "Vận Tốc",
+  "angle": "Góc",
+  "berth": "Bến",
+  "vessel": "Tàu",
+  "view_departing": "Xem Chi Tiết Rời Bến",
+  "start_time": "Thời gian bắt đầu",
+  "end_time": "Thời gian kết thúc",
+  "anchoring_status": "Loại",
+  "sync_status": "Tình trạng đồng bộ",
+  "session_id": "ID Phiên cập bến",
+
+  "messages": {
+    "delete_success": "Xóa bản ghi thành công!",
+    "delete_failed": "Xóa bản ghi thất bại!",
+    "resync_success": "Đồng bộ lại bản ghi thành công!",
+    "resync_failed": "Đồng bộ lại bản ghi thất bại!",
+    "error": "Lỗi",
+    "no_replay_data": "Không có dữ liệu để phát lại!"
+  },
+  "dialog": {
+    "delete_title": "Xóa Bản Ghi",
+    "delete_description": "Bạn có chắc chắn muốn xóa bản ghi hay không?",
+    "resync_title": "Đồng Bộ Lại Bản Ghi",
+    "resync_description": "Bạn có muốn đồng bộ lại bản ghi của phiên {{sessionId}} hay không?",
+    "export_success_message": "Xuất dữ liệu ra tệp Excel thành công!",
+    "export_error_message": "Xuất dữ liệu ra tệp Excel thất bại!"
+  },
+  "record_not_found": "Không tìm thấy bản ghi",
+  "aggregate-table": {
+    "title": "Dữ Liệu Thống Kê",
+    "speed": "Vận Tốc",
+    "angle": "Góc",
+    "left-sensor": "Cảm Biến Trái",
+    "right-sensor": "Cảm Biến Phải",
+    "max": "Lớn Nhất",
+    "average": "Trung Bình",
+    "min": "Nhỏ Nhất"
+  },
+  "charts": {
+    "title": "Biểu Đồ Dữ Liệu Cảm Biến",
+    "left-sensor": "Cảm Biến Trái",
+    "right-sensor": "Cảm Biến Phải",
+    "speed": "Tốc Độ (cm/s)",
+    "distance": "Khoảng Cách (m)"
+  },
+  "export": "Xuất Tệp Excel"
+}

@@ -1,0 +1,57 @@
+{
+  "title": "Record Management",
+  "detail_title": "Record Detail",
+  "page-title": {
+    "list": "Record Management"
+  },
+  "general_information": "General Information",
+  "history": "History",
+  "time": "Time",
+  "zone": "Zone",
+  "distance": "Distance",
+  "speed": "Speed",
+  "angle": "Angle",
+  "berth": "Berth",
+  "vessel": "Vessel",
+  "start_time": "Start Time",
+  "end_time": "End Time",
+  "view_departing": "View Departing Details",
+  "anchoring_status": "Anchoring Status",
+  "sync_status": "Sync Status",
+  "session_id": "Session ID",
+  "messages": {
+    "delete_success": "Delete record successfully!",
+    "delete_failed": "Failed to delete record!",
+    "resync_success": "Resync record successfully!",
+    "resync_failed": "Failed to resync record!",
+    "error": "Error",
+    "no_replay_data": "No data to replay!"
+  },
+  "dialog": {
+    "delete_title": "Delete Record",
+    "delete_description": "Are you sure you want to delete?",
+    "resync_title": "Resync Record",
+    "resync_description": "Are you sure you want to resync data for the record session {{sessionId}}?",
+    "export_success_message": "Export data to Excel file successfully!",
+    "export_error_message": "Failed to export data to Excel file!"
+  },
+  "record_not_found": "Record not found",
+  "aggregate-table": {
+    "title": "Statistical Data",
+    "speed": "Speed",
+    "angle": "Angle",
+    "left-sensor": "Left Sensor",
+    "right-sensor": "Right Sensor",
+    "max": "Maximum",
+    "average": "Average",
+    "min": "Minimum"
+  },
+  "charts": {
+    "title": "Sensor Data Charts",
+    "left-sensor": "Left Sensor",
+    "right-sensor": "Right Sensor",
+    "speed": "Speed (cm/s)",
+    "distance": "Distance (m)"
+  },
+  "export": "Export Excel File"
+}

@@ -1,0 +1,28 @@
+.dateRangePickerWrapper {
+  position: relative;
+}
+
+.dateRangePicker {
+  border: 1px solid #ccc;
+  padding: 10px 16px;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+  height: 52.43px;
+}
+
+.dateRangePicker:hover {
+  border: 1px solid #111;
+}
+
+.dateRangePickerIcon {
+  color: #757575;
+}
+
+.dateRangePickerValue {
+  display: block;
+}

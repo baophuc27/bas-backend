@@ -1,0 +1,40 @@
+.container {
+  grid-template-columns: var(--left-menu-width) 1fr;
+  background: var(--page-background);
+  display: flex;
+  height: 100dvh;
+}
+
+.content {
+  padding: 15px;
+  height: calc(100vh - 130px);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileContainer {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.mobileHeader {
+  padding: 14px;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  position: sticky;
+  z-index: 999;
+  background: white;
+}
+
+.mobileTitle {
+  font-weight: bold;
+  font-size: 1rem;
+}

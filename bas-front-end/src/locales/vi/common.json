@@ -1,0 +1,127 @@
+{
+  "app": {
+    "name": "Hệ Thống BAS"
+  },
+  "button": {
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "apply": "Tìm Kiếm",
+    "clear": "Trở Lại",
+    "sign-in-with-microsoft": "Đăng Nhập Với Microsoft",
+    "back-to-map": "Bảng Điều Khiển Cảng",
+    "spm-management": "Quản Lý SPM",
+    "notifications": "Thông Báo",
+    "log-out": "Đăng Xuất",
+    "log-in": "Đăng Nhập",
+    "ok": "Đồng Ý",
+    "fixed": "Đã Sửa Chữa",
+    "go-to-homepage": "Quay Về Trang Chủ",
+    "search": "Tìm Kiếm",
+    "change-password": "Đổi Mật Khẩu",
+    "yes": "Có",
+    "no": "Không",
+    "add": "Thêm Mới",
+    "delete_all": "Xóa Tất Cả",
+    "management": "Quản Lý"
+  },
+  "menu": {
+    "sections": {
+      "mine": "Của Tôi",
+      "management": "Quản Lý",
+      "menu": "Menu"
+    },
+    "items": {
+      "account-info": "Thông Tin Tài Khoản",
+      "users-management": "Quản Lý Tài Khoản",
+      "notifications": "Thông Báo Của Tôi",
+      "system-notifications": "Quản Lý Thông Báo",
+      "spm-management": "Quản Lý SPM",
+      "detection-devices": "Thiết Bị Định Vị",
+      "detection-histories": "Lịch Sử Định Vị",
+      "back-up-data": "Back-up Dữ Liệu",
+      "record_management": "Quản Lý Bản Ghi",
+      "log-out": "Đăng Xuất",
+      "berth_management": "Quản lý Bến",
+      "port-info": "Thông Tin Cảng",
+      "alarm-history": "Lịch Sử Cảnh Báo"
+    }
+  },
+  "language": {
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt"
+  },
+  "table": {
+    "actions": "Thao Tác",
+    "rows-per-page": "Số Hàng Trên Trang",
+    "page-text": "trên",
+    "next-page": "Trang Sau",
+    "previous-page": "Trang Trước",
+    "no-data": "Không Có Dữ Liệu Để Hiển Thị"
+  },
+  "input": {
+    "keyword": "Từ Khóa",
+    "keyword-hint": "Tìm Kiếm Từ Khóa...",
+    "no-options": "Không Có Lựa Chọn",
+    "all-items": "Tất Cả"
+  },
+  "note": {
+    "required-field": "Đây là trường bắt buộc",
+    "required-message": "Đây là trường bắt buộc",
+    "max-length": "Độ dài tối đa là {{length}} ký tự",
+    "invalid-number": "Số nhập vào không hợp lệ",
+    "desktop-only": "Hãy xem trang này trên desktop",
+    "range": "Giá trị phải nằm trong khoảng từ {{min}} đến {{max}}"
+  },
+  "label": {
+    "or": "Hoặc",
+    "no-data": "Không Có Dữ Liệu"
+  },
+  "placeholder": {
+    "enter-keyword": "Nhập Từ Khóa"
+  },
+  "date-range-picker": {
+    "all": "Tất Cả",
+    "today": "Hôm Nay",
+    "yesterday": "Hôm Qua",
+    "this-week": "Tuần Này",
+    "last-week": "Tuần Trước",
+    "last-7-days": "7 Ngày Trước",
+    "this-month": "Tháng Này",
+    "last-month": "Tháng Trước",
+    "start-date": "Ngày Bắt Đầu",
+    "end-date": "Ngày Kết Thúc",
+    "sunday": "CN",
+    "monday": "T2",
+    "tuesday": "T3",
+    "wednesday": "T4",
+    "thursday": "T5",
+    "friday": "T6",
+    "saturday": "T7",
+    "january": "Tháng 1",
+    "february": "Tháng 2",
+    "march": "Tháng 3",
+    "april": "Tháng 4",
+    "may": "Tháng 5",
+    "june": "Tháng 6",
+    "july": "Tháng 7",
+    "august": "Tháng 8",
+    "september": "Tháng 9",
+    "october": "Tháng 10",
+    "november": "Tháng 11",
+    "december": "Tháng 12"
+  },
+  "toast": {
+    "'error": "Lỗi. Vui lòng thử lại"
+  },
+  "left": "Trái",
+  "right": "Phải",
+  "back": "Quay lại",
+  "role": {
+    "admin": "Quản Lý",
+    "config": "Cấu Hình",
+    "viewer": "Xem Dữ Liệu"
+  },
+  "player": {
+    "loading": "Đang tải dữ liệu"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "hud": {
+    "left-sensor": "Cảm Biến Trái",
+    "right-sensor": "Cảm Biến Phải",
+    "speed": "Vận Tốc",
+    "distance": "Khoảng Cách",
+    "angle": "Góc"
+  }
+}

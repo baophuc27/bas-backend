@@ -1,0 +1,30 @@
+{
+  "page-title": {
+    "update": "Thông Tin Cảng"
+  },
+  "label": {
+    "name": "Tên",
+    "english-name": "Tên Tiếng Anh",
+    "address": "Địa Chỉ",
+    "description": "Mô Tả",
+    "weather-widget-dashboard-url": "URL Bảng Điều Khiển Widget Thời Tiết",
+    "weather-widget-url": "URL Widget Thời Tiết"
+  },
+  "placeholder": {
+    "name": "Nhập Tên",
+    "english-name": "Nhập Tên Tiếng Anh",
+    "address": "Nhập Địa Chỉ",
+    "description": "Nhập Mô Tả",
+    "weather-widget-dashboard-url": "Nhập URL Bảng Điều Khiển Widget Thời Tiết",
+    "weather-widget-url": "Nhập URL Widget Thời Tiết"
+  },
+  "dialog": {
+    "success-title": "Cập nhật thành công",
+    "success-message": "Cập nhật thông tin cảng thành công.",
+    "failed-title": "Cập nhật thất bại",
+    "failed-message": "Thông tin cảng chưa được cập nhật. Vui lòng thử lại sau."
+  },
+  "messages": {
+    "invalid-url": "URL không hợp lệ"
+  }
+}

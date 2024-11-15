@@ -1,0 +1,31 @@
+.container {
+  background-color: #404040;
+  width: 350px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  border-radius: 2px;
+  cursor: pointer;
+  margin: 0 auto;
+}
+
+.leftPart {
+  background-color: #fff;
+  width: 47px;
+  height: 47px;
+  margin-left: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.2px;
+}
+
+.leftPartIcon {
+  width: 32px;
+}
+
+.rightPart {
+  color: white;
+  font-weight: 600;
+  margin-left: 20px;
+}

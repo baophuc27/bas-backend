@@ -1,0 +1,49 @@
+{
+  "alarm_setting": "Alarm Setting",
+  "sensor": "Sensor",
+  "zone": "Zone",
+  "condition": "Condition",
+  "speed": "Speed",
+  "angle": "Angle",
+  "type": "Type",
+  "distance": "Distance",
+  "distance_tooltip": "Distance measured from vessel to fender",
+  "level": "Level",
+  "operator": "Operator",
+  "warning": "Warning",
+  "emergency": "Emergency",
+  "alarm_message": "Alarm Message",
+  "alarm_detail_message": "Alarm Detail Message",
+  "action": "Action",
+  "warning_value": "Warning Value",
+  "value": "Value",
+  "input_content": "Input content",
+  "no_data": "No data",
+  "value_required": "Value is required",
+  "update_success": "Update success",
+  "update_fail": "Update fail",
+  "value_less": "Value must less than {{number}}",
+  "value_greater": "Value must greater than {{number}}",
+  "left": "Left",
+  "right": "Right",
+
+  "title": "Alarm History",
+  "page-title": {
+    "list": "Alarm History"
+  },
+  "messages": {
+    "delete_success": "Delete alarm successfully!",
+    "delete_failed": "Failed to delete alarm!",
+    "error": "Error",
+    "delete_all_success": "Delete all successfully!",
+    "delete_all_error": "Failed to delete all!"
+  },
+  "dialog": {
+    "delete_title": "Delete alarm",
+    "delete_description": "Are you sure you want to delete?",
+
+    "delete_all_title": "Delete all alarm",
+    "delete_all_description": "Are you sure you want to delete all alarm?"
+  },
+  "alarm_value": "Alarm Value"
+}

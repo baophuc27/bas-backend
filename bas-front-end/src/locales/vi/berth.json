@@ -1,0 +1,53 @@
+{
+  "berth_setting": "Cài đặt thông tin bến",
+  "general_information": {
+    "general_information": "Thông tin chung",
+    "berth_name": "Tên bến",
+    "berth_direction": "Hướng Bến (độ)",
+    "zone": "Vùng",
+    "limit_zone": "Giới Hạn Vùng",
+    "ZONE": "VÙNG",
+    "berth_status": "Trạng thái bến"
+  },
+
+  "parameter_berth_layout": {
+    "parameter_berth_layout": "Thông số bố trí mặt bằng",
+    "distance_between_two_sensors": "Khoảng cách giữa 2 cảm biến",
+    "distance_from_left_sensor_to_left_edge": "Khoảng cách cảm biến trái đến viền trái",
+    "preview_berth": "Xem trước bến",
+    "berth_length": "Độ dài bến"
+  },
+
+  "dock_information": {
+    "dock_information": "Thông tin bến",
+    "left_sensor": "Cảm biến trái",
+    "right_sensor": "Cảm biến phải",
+    "distance_from_left_sensor_to_fender": "Khoảng cách cảm biến trái với fender (m)",
+    "distance_from_right_sensor_to_fender": "Khoảng cách cảm biến phải với fender (m)"
+  },
+
+  "update_berth_success": "Cập nhật bến thành công",
+  "update_berth_failed": "Cập nhật bến thất bại",
+  "create_berth_failed": "Tạo bến thất bại",
+  "create_berth_success": "Tạo bến thành công",
+
+  "title": "Quản Lý Bến",
+  "detail_title": "Chi Tiết Bến",
+  "page-title": {
+    "list": "Quản Lý Bến"
+  },
+  "create_time": "Ngày tạo",
+  "messages": {
+    "delete_success": "Xóa bến thành công!",
+    "delete_failed": "Xóa bến thất bại!",
+    "error": "Lỗi"
+  },
+  "dialog": {
+    "delete_title": "Xóa bến",
+    "delete_description": "Bạn có chắc chắn muốn xóa bến hay không?"
+  },
+  "record_not_found": "Không tìm thấy bến",
+
+  "create_new": "Tạo bến mới",
+  "update": "Chỉnh sửa"
+}

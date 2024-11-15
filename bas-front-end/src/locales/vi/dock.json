@@ -1,0 +1,52 @@
+{
+  "stop-recording": "KẾT THÚC BẢN GHI",
+  "weather-widget": {
+    "button": "Màn Hình Quan Trắc"
+  },
+  "alarm-history": {
+    "title": "Lịch Sử Cảnh Báo",
+    "type": "Loại",
+    "sensor": "Cảm Biến",
+    "value": "Giá Trị",
+    "zone": "Vùng",
+    "start-time": "Bắt Đầu",
+    "end-time": "Kết Thúc"
+  },
+  "dialogs": {
+    "device-error": {
+      "title": "Lỗi Thiết Bị",
+      "message": "Đã xảy ra lỗi thiết bị. Bản ghi sẽ được kết thúc.",
+      "ok": "Đồng Ý",
+      "cancel": "Hủy Bỏ"
+    },
+    "session-completed": {
+      "title": "Hoàn Thành Phiên",
+      "message": "Phiên đã hoàn thành. Bản ghi sẽ được kết thúc. Bạn muốn chuyển sang trạng thái nào?",
+      "ok": "Đồng Ý",
+      "cancel": "Hủy Bỏ",
+      "available": "Trống",
+      "mooring": "Neo đậu"
+    },
+    "stop-recording": {
+      "title": "Kết Thúc Bản Ghi",
+      "message": "Bản ghi sẽ được dừng lại. Bạn muốn chuyển sang trạng thái nào?",
+      "ok": "Đồng ý",
+      "cancel": "Hủy",
+      "available": "Trống",
+      "mooring": "Neo đậu"
+    }
+  },
+  "messages": {
+    "stop-success": "Kết thúc bản ghi thành công!",
+    "stop-error": "Kết thúc bản ghi thất bại!",
+    "sync-success": "Đồng bộ bản ghi thành công!",
+    "sync-error": "Đồng bộ bản ghi thất bại!"
+  },
+  "hud": {
+    "left-sensor": "Cảm Biến Trái",
+    "right-sensor": "Cảm Biến Phải",
+    "speed": "Vận Tốc",
+    "distance": "Khoảng Cách",
+    "angle": "Góc"
+  }
+}

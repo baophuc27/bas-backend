@@ -1,0 +1,24 @@
+.avatarImageWrapper {
+  position: relative;
+  border: 1px solid #ccc;
+  border: 1px solid lightgray;
+  border-radius: 10px;
+  width: 100%;
+  margin-top: 15px;
+  height: 215px;
+}
+
+.avatarImageWrapper img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  opacity: 1;
+}
+
+.invalid {
+  border-color: red;
+}

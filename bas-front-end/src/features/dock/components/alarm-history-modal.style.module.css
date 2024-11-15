@@ -1,0 +1,27 @@
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  box-shadow: 0 0 20px 0 rgba(29, 31, 89, 0.1);
+  padding: 6px 12px;
+}
+
+.mainTitle {
+  font-size: 20px;
+  font-weight: 500;
+  color: #000;
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+}

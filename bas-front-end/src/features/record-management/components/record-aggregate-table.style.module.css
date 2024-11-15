@@ -1,0 +1,17 @@
+.sectionPrimaryTitle {
+  font-size: 24px;
+}
+
+.sectionSecondaryTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #3f4254;
+}
+
+.tableCell {
+  border: 1px solid white;
+  background: #eaeaea;
+  font-weight: bold;
+  text-align: center;
+}

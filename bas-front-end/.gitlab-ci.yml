@@ -1,0 +1,25 @@
+stages:
+  - deploy
+
+deploy:
+    stage: deploy
+    before_script:
+      - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )'
+      - eval $(ssh-agent -s)
+      - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+      - mkdir -p ~/.ssh
+      - chmod 700 ~/.ssh
+      - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
+      - chmod 644 ~/.ssh/known_hosts
+      - echo "HOST *" > ~/.ssh/config
+      - echo "StrictHostKeyChecking no" >> ~/.ssh/config
+    script:
+      - ssh -t -t -p 2244 $SERVER_USER@$SERVER_IP<<EOF
+      - cd bas-dev/bas-front-end
+      - git pull
+      - sudo docker compose down
+      - sudo docker compose up -d --build
+      - sudo docker image prune -f
+      - exit
+    only:
+        - develop

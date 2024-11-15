@@ -1,0 +1,19 @@
+{
+  "title": "Đăng Nhập",
+  "description": "Đăng nhập vào hệ thống",
+  "placeholder": {
+    "email": "Nhập Email",
+    "account": "Nhập Tài Khoản",
+    "password": "Nhập Mật Khẩu"
+  },
+  "label": {
+    "email": "Email",
+    "account": "Tài Khoản",
+    "password": "Mật Khẩu"
+  },
+  "message": {
+    "invalid_email_format": "Email không đúng định dạng",
+    "login_successfully": "Đăng nhập thành công!",
+    "login_failed": "Đăng nhập thất bại!"
+  }
+}

@@ -1,0 +1,197 @@
+.modalContainer {
+  padding: 0 20px 20px;
+  background-color: #fff;
+  min-width: 1100px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+}
+.closeButton {
+  margin-top: -16px;
+  flex: none;
+}
+
+.modalTitle {
+  font-weight: bold;
+  font-size: 20px;
+  line-height: 20px;
+}
+.modalSubTitle {
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 16px;
+  margin-top: 4px;
+}
+
+.dialogContent {
+  padding: 0;
+}
+
+.levelBox {
+  width: 60px;
+  height: 30px;
+  border-radius: 5px;
+  margin-right: 12px;
+}
+
+.noBorderRow td {
+  border-bottom: 0;
+  padding-top: 10px;
+  padding-bottom: 6px;
+}
+.noPaddingRow td {
+  padding-top: 10px;
+  padding-bottom: 16px;
+}
+
+.saveButton {
+  margin-right: 20px;
+}
+
+.zoneTitle {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 18px;
+  margin-top: 30px;
+}
+.zoneNoMargin {
+  margin-top: 0;
+}
+
+.actionTitle {
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 0.875rem;
+  letter-spacing: 0.01071em;
+  line-height: 1.2 !important;
+  font-weight: 600;
+  /* height: 50.3px; */
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+  font-family: Roboto;
+}
+.actionContainer {
+  width: 120px;
+  background-color: #eeeeee;
+  position: absolute;
+  top: 0;
+  right: 0px;
+  z-index: 1;
+}
+.editContainer {
+  height: 148.5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+}
+.editIcon {
+  width: 20;
+  height: 20;
+}
+
+.noData {
+  text-align: center;
+  padding: 20px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.inputValueContainer {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.inputValue {
+  border: none;
+  border-bottom: 1px solid #dadada;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  width: 25px;
+  font-size: 14px !important;
+  line-height: 16px !important;
+  color: rgba(0, 0, 0, 0.87);
+}
+.inputMessage:focus-within,
+.inputValue:focus-within {
+  outline: none;
+}
+
+.inputMessage {
+  border: none;
+  border-bottom: 1px solid #dadada;
+  min-width: 200px;
+  padding: 0;
+  padding-bottom: 2px;
+  margin: 0;
+  font-size: 14px !important;
+  line-height: 16px !important;
+  color: rgba(0, 0, 0, 0.87);
+}
+.inputError {
+  border-color: red;
+  color: red;
+}
+
+.loading {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.inputErrorText {
+  color: red;
+  position: absolute;
+  bottom: -1.5em;
+  left: 0;
+  white-space: nowrap;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.tooltip {
+  margin-left: 4px;
+}
+.infoIcon {
+  height: 18px;
+  width: 18px;
+}
+
+.messageText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+.placeholderMessageText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  color: #9e9e9e;
+}
+
+.conditionText {
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 1100px) {
+  .modalContainer {
+    min-width: 100%;
+    width: 100%;
+  }
+}

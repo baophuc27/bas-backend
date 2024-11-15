@@ -1,0 +1,19 @@
+{
+  "title": "Login",
+  "description": "Login into the system",
+  "placeholder": {
+    "email": "Enter Email",
+    "account": "Enter Account",
+    "password": "Enter Password"
+  },
+  "label": {
+    "email": "Email",
+    "account": "Account",
+    "password": "Password"
+  },
+  "message": {
+    "invalid_email_format": "Invalid email format",
+    "login_successfully": "Login successfully!",
+    "login_failed": "Login failed!"
+  }
+}

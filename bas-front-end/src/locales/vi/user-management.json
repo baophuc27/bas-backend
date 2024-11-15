@@ -1,0 +1,59 @@
+{
+  "title": "Quản Lý Tài Khoản",
+  "change-password": "Đổi Mật Khẩu",
+  "password": "Mật Khẩu",
+  "new-password": "Mật Khẩu Mới",
+  "confirm-password": "Xác Nhận Mật Khẩu",
+  "reset-password": "Đặt Lại Mật Khẩu",
+  "username": "Tài Khoản",
+  "account": "Tài Khoản",
+  "phone-number": "Số Điện Thoại",
+  "permission": "Quyền",
+  "created-at": "Ngày Tạo",
+  "full-name": "Họ Và Tên",
+  "button": {
+    "add": "Thêm Mới"
+  },
+  "account-type": "Loại Tài Khoản",
+  "account-option": {
+    "manual": "Thủ Công",
+    "ad-account": "Tài Khoản AD"
+  },
+  "edit-title": "Chỉnh Sửa Tài Khoản",
+  "add-title": "Thêm Tài Khoản",
+  "placeholder": {
+    "account": "Chọn Tài Khoản",
+    "permission": "Chọn Quyền",
+    "phone-number": "Nhập Số Điện Thoại",
+    "email": "Nhập Email",
+    "full-name": "Nhập Họ Và Tên",
+    "password": "Ít nhất 3 kí tự",
+    "username": "Nhập Tài Khoản",
+    "new-password": "Ít nhất 3 kí tự",
+    "confirm-password": "Ít nhất 3 kí tự"
+  },
+  "page-title": {
+    "list": "Quản Lý Tài Khoản"
+  },
+  "messages": {
+    "new_change_password": "Bạn cần thay đổi mật khẩu trước khi tiếp tục.",
+    "add_success": "Thêm tài khoản mới thành công!",
+    "add_failed": "Thêm tài khoản mới thất bại!",
+    "edit_success": "Cập nhật thông tin tài khoản thành công!",
+    "edit_failed": "Cập nhật thông tin tài khoản thất bại!",
+    "delete_success": "Xóa tài khoản thành công!",
+    "delete_failed": "Xóa tài khoản thất bại!",
+    "change_password_failed": "Đổi mật khẩu thất bại!",
+    "change_password_success": "Đổi mật khẩu thành công!",
+    "invalid_username": "Tài khoản phải có ít nhất 3 ký tự và không được chứa khoảng trắng",
+    "invalid_password": "Mật khẩu phải có ít nhất 3 ký tự",
+    "password_not_match": "Mật khẩu không khớp",
+    "duplicated-email": "Địa chỉ email này đã tồn tại",
+    "duplicated-phone": "Số điện thoại này đã tồn tại",
+    "duplicated-username": "Tên đăng nhập này đã tồn tại"
+  },
+  "dialog": {
+    "delete_title": "Xóa Tài Khoản",
+    "delete_description": "Bạn có chắc chắn muốn xóa tài khoản \"{{ fullName }}\" hay không?"
+  }
+}

@@ -1,0 +1,23 @@
+.loginButton {
+  width: 100%;
+  height: 50px;
+  color: white !important;
+  background-color: #3699ff !important;
+  font-size: 14px;
+  font-weight: 500 !important;
+  border-radius: 2px !important;
+  margin-bottom: 20px !important;
+  margin-top: 10px !important;
+}
+
+.loginButton:hover {
+  color: #ffffff;
+  background-color: #187de4 !important;
+  border-color: #187de4;
+  box-shadow: none;
+}
+
+.loginButton.MuiButton-root.Mui-disabled {
+  opacity: 0.6;
+  color: #fff;
+}

@@ -1,0 +1,21 @@
+.container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-row-gap: 24px;
+  z-index: 9000;
+}
+
+.compassPointer {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.globeIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}

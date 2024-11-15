@@ -1,0 +1,30 @@
+.mobileContainer {
+  padding: 24px;
+  padding-bottom: 72px;
+  min-height: 110vh;
+}
+
+@media screen and (max-height: 599px) {
+  .mobileContainer {
+    min-height: 167vh;
+  }
+}
+
+@media screen and (min-height: 600px) and (max-height: 680px) {
+  .mobileContainer {
+    min-height: 139vh;
+  }
+}
+
+@media screen and (min-height: 719px) and (max-height: 743px) {
+  .mobileContainer {
+    min-height: 128vh;
+  }
+}
+
+@media screen and (min-height: 1024px) {
+  .mobileContainer {
+    min-height: 100vh;
+    overflow-y: hidden;
+  }
+}

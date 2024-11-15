@@ -1,0 +1,84 @@
+{
+  "berthing_aid_setting": "Berthing Aid Setting",
+  "berth_status": {
+    "berth_status": "Berth Status",
+    "current_status": "Current status",
+    "upcoming_status": "Upcoming status",
+    "berthing_message": "The vessel is berthing.",
+    "unberthing_message": "The vessel is unberthing.",
+    "anchoring_message": "The vessel is anchored.",
+    "change_status_message": "Do you want to change the status? Berth information will be reset to default.",
+    "reset_message": "Berth information has been reset."
+  },
+
+  "berth_information": {
+    "berth_information": "Berth Information",
+    "left_sensor": "Left sensor",
+    "right_sensor": "Right sensor",
+    "display_sensor_value": "Display Sensor value",
+    "distance_between_right_sensor_and_fender": "Right sensor to fender - fender to vessel (m)",
+    "distance_between_left_sensor_and_fender": "Left sensor to fender - fender to vessel (m)",
+    "status": "Status"
+  },
+
+  "vessel_information": {
+    "vessel_information": "Vessel’s information",
+    "bas_system": "BAS",
+    "vessel_name": "Vessel Name",
+    "vessel_flag": "Flag",
+    "length": "Length",
+    "beam": "Beam",
+    "type": "Type",
+    "vessel_direction": "Vessel Direction",
+    "builder": "Builder",
+    "built": "Built",
+    "owner": "Owner",
+    "manager": "Manager",
+    "maxdraught": "Maxdraught",
+    "class": "Class",
+    "gas": "Gas",
+    "longitude": "Longitude",
+    "latitude": "Latitude",
+    "heading": "Heading",
+    "speed": "Speed",
+    "callsign": "Callsign",
+    "show_more": "Show more",
+    "collapse": "Collapse"
+  },
+
+  "status": {
+    "available": "Available",
+    "berthing": "Berthing",
+    "departing": "Departing",
+    "mooring": "Mooring"
+  },
+
+  "sync_status": {
+    "success": "Success",
+    "failed": "Failed",
+    "pending": "Pending"
+  },
+
+  "sensor_status": {
+    "lost_target": "Lost target",
+    "weak_signal": "Weak signal",
+    "data_noise": "Data noise",
+    "lost_connect": "Lost Connect",
+    "disconnected": "Disconnected",
+    "normal": "Normal"
+  },
+
+  "confirm": {
+    "confirm": "Confirm",
+    "vessel_is_berthing.": "The vessel is berthing.",
+    "vessel_is_departing.": "The vessel is departing.",
+    "vessel_is_mooring.": "The vessel is mooring.",
+    "reset_confirm": "Do you want to change the status? Berth information will be reset to default.",
+    "reset_success": "Berth information has been reset.",
+    "error": "Error. Please try again!",
+    "error_occur": "Device Error. Some devices were error. Recording will be stopped!",
+    "sync_success": "The recording has been synced successfully!",
+    "sync_error": "Failed to sync the recording!",
+    "update_success": "Update information successfully"
+  }
+}

@@ -1,0 +1,11 @@
+.sharedSelectField {
+    width: 100%;
+}
+
+.select {
+    width: 100%;
+}
+
+.selectDropdown {
+    z-index: 9999;
+}

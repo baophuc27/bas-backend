@@ -1,0 +1,20 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.image {
+  max-width: 40%;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-top: -40px;
+}
+
+.message {
+  margin: 12px 0;
+  margin-bottom: 24px;
+}

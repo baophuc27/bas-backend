@@ -1,0 +1,183 @@
+.modalContainer {
+  padding: 20px;
+  background-color: #fff;
+  min-width: 900px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+}
+.closeButton {
+  margin-top: -16px;
+  flex: none;
+}
+
+.modalTitle {
+  font-weight: bold;
+  font-size: 20px;
+  line-height: 20px;
+}
+.modalSubTitle {
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 16px;
+  margin-top: 4px;
+}
+
+.dialogContent {
+  padding: 0;
+}
+
+.section {
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f0eded;
+}
+.sectionTitle {
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 18px;
+  margin: 8px 0;
+}
+
+.zoneTitle {
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 16px;
+  margin: 8px 0;
+}
+
+.vesselRadioGroup {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
+.groupInput {
+  margin-top: 12px;
+}
+
+.vesselRouteSelect {
+  border: 1px solid #b8b6b6;
+  border-radius: 4px;
+  width: 100%;
+}
+.vesselRouteSelect::before,
+.vesselRouteSelect::after {
+  display: none;
+}
+.vesselRouteSelect :global(.MuiSelect-select.MuiSelect-select) {
+  height: 37px;
+  padding-left: 12px;
+}
+.vesselRouteSelectDisplay {
+  padding: 6px 20px 6px 0px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  background-color: #fff;
+}
+
+.vesselRouteImgContainer {
+  background-color: white;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+}
+.vesselRouteImg {
+  height: 36px;
+  max-width: 300px;
+  width: 100%;
+  padding-inline: 8px;
+}
+
+.selectUpcomingStatus {
+  background-color: #fff;
+}
+
+.sensorContainer {
+  display: flex;
+  align-items: center;
+}
+.sensorStatus {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: 8px;
+}
+
+.distanceInput {
+  flex: 1;
+  height: 200%;
+}
+.currentDistanceBlock {
+  margin-left: 8px;
+  flex: 1;
+  background-color: #606060;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  height: 52.44px;
+}
+
+.saveButton {
+  margin-right: 20px;
+}
+
+.loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9;
+}
+
+.showMoreLine {
+  width: 100%;
+  height: 1px;
+  background-color: #000;
+  margin-top: 40px;
+  margin-bottom: 28px;
+  position: relative;
+}
+.showMore {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  background-color: #98b5df;
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.showMore:hover {
+  background-color: #5990c8;
+}
+
+.sensorDistanceGroup {
+  margin-top: 6px;
+}
+
+.sensorStatusText {
+  color: #3f4254;
+  font-size: 0.9rem;
+}
+@media screen and (max-width: 900px) {
+  .modalContainer {
+    min-width: 100%;
+  }
+}

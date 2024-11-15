@@ -1,0 +1,24 @@
+{
+  "dialogs": {
+    "device-error": {
+      "title": "Lỗi Thiết Bị",
+      "message": "Đã xảy ra lỗi thiết bị. Bản ghi sẽ được kết thúc.",
+      "ok": "Đồng Ý",
+      "cancel": "Hủy Bỏ"
+    },
+    "session-completed": {
+      "title": "Hoàn Thành Phiên",
+      "message": "[{{berthName}}] Phiên đã hoàn thành. Bản ghi sẽ được kết thúc. Bạn muốn chuyển sang trạng thái nào?",
+      "ok": "Đồng Ý",
+      "cancel": "Hủy Bỏ",
+      "available": "Trống",
+      "mooring": "Neo đậu"
+    }
+  },
+  "messages": {
+    "stop-success": "Kết thúc bản ghi thành công!",
+    "stop-error": "Kết thúc bản ghi thất bại!",
+    "sync-success": "Đồng bộ bản ghi thành công!",
+    "sync-error": "Đồng bộ bản ghi thất bại!"
+  }
+}

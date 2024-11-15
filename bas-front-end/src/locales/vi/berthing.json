@@ -1,0 +1,88 @@
+{
+  "berthing_aid_setting": "Cài Đặt Thông Tin Cập Bến/Rời Bến",
+  "berth_status": {
+    "berth_status": "Trạng thái bến",
+    "current_status": "Trạng thái hiện tại",
+    "upcoming_status": "Trạng thái sắp tới",
+    "available": "Trống",
+    "berthing": "Đang cập bến",
+    "anchoring": "Neo đậu",
+    "unberthing": "Đang rời bến",
+    "berthing_message": "Tàu đang cập bến",
+    "unberthing_message": "Tàu đang rời bến.",
+    "anchoring_message": "Tàu đang neo đậu.",
+    "change_status_message": "Bạn có muốn thay đổi trạng thái? Thông tin bến sẽ được đặt lại về mặc định.",
+    "reset_message": "Thông tin bến đã được đặt lại."
+  },
+
+  "berth_information": {
+    "berth_information": "Thông tin Bến",
+    "left_sensor": "Cảm biến trái",
+    "right_sensor": "Cảm biến phải",
+    "display_sensor_value": "Hiển thị giá trị",
+    "distance_between_right_sensor_and_fender": "Cảm biến phải với fender - fender tới tàu (m)",
+    "distance_between_left_sensor_and_fender": "Cảm biến trái với fender - fender tới tàu (m)",
+    "status": "Trạng thái"
+  },
+
+  "sensor_status": {
+    "lost_target": "Mất target",
+    "weak_signal": "Tín hiệu yếu",
+    "data_noise": "Dữ liệu nhiễu",
+    "lost_connect": "Mất kết nối",
+    "disconnected": "Mất kết nối",
+    "normal": "Bình thường"
+  },
+
+  "vessel_information": {
+    "vessel_information": "Thông tin tàu",
+    "bas_system": "Hệ thống",
+    "vessel_name": "Tên tàu",
+    "vessel_flag": "Cờ",
+    "length": "Chiều dài",
+    "beam": "Chiều Rộng Khoang Tàu",
+    "type": "Loại",
+    "vessel_direction": "Hướng tàu",
+    "builder": "Nhà sản xuất",
+    "built": "Năm sản xuất",
+    "owner": "Chủ sở hữu",
+    "manager": "Quản lý",
+    "maxdraught": "Maxdraught",
+    "class": "Hạng",
+    "gas": "Gas",
+    "longitude": "Kinh độ",
+    "latitude": "Vĩ độ",
+    "heading": "Hướng tàu",
+    "speed": "Vận tốc",
+    "callsign": "Callsign",
+    "show_more": "Hiển thị thêm",
+    "collapse": "Thu gọn"
+  },
+
+  "sync_status": {
+    "success": "Thành công",
+    "failed": "Thất bại",
+    "pending": "Đang giải quyết"
+  },
+
+  "status": {
+    "available": "Trống",
+    "berthing": "Đang cập bến",
+    "departing": "Đang rời bến",
+    "mooring": "Neo đậu"
+  },
+
+  "confirm": {
+    "confirm": "Xác nhận",
+    "vessel_is_berthing.": "Tàu đang cập bến.",
+    "vessel_is_departing.": "Tàu đang rời bến.",
+    "vessel_is_mooring.": "Tàu đang neo đậu.",
+    "reset_confirm": "Bạn có muốn thay đổi trạng thái? Thông tin bến sẽ được đặt lại về mặc định.",
+    "reset_success": "Thông tin bến đã được đặt lại.",
+    "reset_error": "Lỗi. Vui lòng thử lại!",
+    "error_occur": "Lỗi thiết bị. Một số thiết bị bị lỗi. Việc ghi âm sẽ bị dừng!",
+    "sync_success": "Đồng bộ bản ghi thành công!",
+    "sync_error": "Đồng bộ bản ghi thất bại!",
+    "update_success": "Cập nhật thông tin thành công"
+  }
+}

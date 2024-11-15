@@ -1,0 +1,53 @@
+{
+  "berth_setting": "Details Setting",
+  "general_information": {
+    "general_information": "General Information",
+    "berth_name": "Berth name",
+    "berth_direction": "Berth direction (degree)",
+    "zone": "Zone",
+    "limit_zone": "Limit Zone",
+    "ZONE": "ZONE",
+    "berth_status": "Berth status"
+  },
+
+  "dock_information": {
+    "dock_information": "Dock Information",
+    "left_sensor": "Left sensor",
+    "right_sensor": "Right sensor",
+    "distance_from_left_sensor_to_fender": "Distance between Left sensor and fender",
+    "distance_from_right_sensor_to_fender": "Distance between Right sensor and fender"
+  },
+
+  "parameter_berth_layout": {
+    "parameter_berth_layout": "Parameter of Berth Layout",
+    "distance_between_two_sensors": "Distance between two sensors",
+    "distance_from_left_sensor_to_left_edge": "Distance from Left sensor to left edge",
+    "preview_berth": "Preview berth",
+    "berth_length": "Berth length"
+  },
+
+  "update_berth_success": "Update berth successfully",
+  "update_berth_failed": "Update berth failed",
+  "create_berth_failed": "Create berth failed",
+  "create_berth_success": "Create berth successfully",
+
+  "create_time": "Created date",
+  "title": "Berth Management",
+  "detail_title": "Berth Detail",
+  "page-title": {
+    "list": "Berth Management"
+  },
+  "messages": {
+    "delete_success": "Delete berth successfully!",
+    "delete_failed": "Failed to delete berth!",
+    "error": "Error"
+  },
+  "dialog": {
+    "delete_title": "Delete berth",
+    "delete_description": "Are you sure you want to delete?"
+  },
+  "record_not_found": "Berth not found",
+
+  "create_new": "Create new berth",
+  "update": "Update"
+}

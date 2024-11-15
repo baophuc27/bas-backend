@@ -1,0 +1,12 @@
+.label {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.message {
+  text-align: center;
+  margin-top: 8px;
+  color: red;
+  font-size: 0.75rem;
+}

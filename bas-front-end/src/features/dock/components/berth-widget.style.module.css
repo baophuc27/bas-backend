@@ -1,0 +1,45 @@
+.container {
+}
+
+.zoneRow {
+  /* background-color: #80bdfb; */
+  /* border-bottom: 2px solid #54a1f5; */
+}
+
+.berthRow {
+  /* background-color: #d9d9d9; */
+  /* border-bottom: 2px solid #bfbfbf; */
+}
+
+.header {
+  /* background-color: #3699ff; */
+  /* border-top-left-radius: 5px; */
+  /* border-top-right-radius: 5px; */
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  /* border-bottom: none; */
+  border-left: none;
+  border-right: none;
+}
+
+.nameText {
+  /* color: white; */
+  font-weight: bold;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: 4px;
+}
+.minimizeButton {
+  margin-right: 4px;
+}
+
+.content {
+  overflow: hidden;
+  height: 333px;
+  transition: height 0.5s;
+}
+.minimized {
+  height: 0;
+}

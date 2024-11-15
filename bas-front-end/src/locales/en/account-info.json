@@ -1,0 +1,37 @@
+{
+  "page-title": {
+    "update": "Account Info"
+  },
+  "label": {
+    "avatar": "Avatar",
+    "account": "Account",
+    "full-name": "Full Name",
+    "phone-number": "Phone Number",
+    "avatar-validate": "Maximum file size is 1MB (.jpg, .jpeg, .png, .webp)",
+    "role": "Role"
+  },
+  "placeholder": {
+    "phone-number": "Enter Phone Number"
+  },
+  "button": {
+    "upload": "Upload Your Image",
+    "reset-password": "Change Password"
+  },
+  "dialog": {
+    "success-title": "Account updated",
+    "success-message": "Your account has been updated successfully.",
+    "failed-title": "Account update failed",
+    "failed-message": "Your account has not been updated. Please try again later.",
+    "large-size-message": "The image size is too large. Please upload an image smaller than 1MB.",
+    "file-format-message": "The image format is not supported. Please upload a JPG, JPEG, TIF, TIFF or PNG image."
+  },
+  "messages": {
+    "phone-number": "Invalid phone number",
+    "email": "Invalid email address",
+    "type": "Please upload a valid image",
+    "size": "Please upload an image smaller than 1MB",
+    "duplicated-email": "This email already exists",
+    "duplicated-phone": "This phone number already exists",
+    "duplicated-username": "This username already exists"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "alarm_setting": "Cài Đặt Cảnh Báo",
+  "sensor": "Cảm biến",
+  "left_sensor": "Cảm Biến Trái",
+  "right_sensor": "Cảm Biến Phải",
+  "zone": "Vùng",
+  "condition": "Điều kiện",
+  "speed": "Vận tốc",
+  "angle": "Góc",
+  "type": "Loại",
+  "distance": "Khoảng cách",
+  "distance_tooltip": "Khoảng cách đo từ mạn tàu đến fender",
+  "level": "Mức cảnh báo",
+  "operator": "Vận hành",
+  "warning": "Cảnh báo",
+  "emergency": "Khẩn cấp",
+  "alarm_message": "Nội Dung Cảnh Báo",
+  "alarm_detail_message": "Nội Dung Chi Tiết Mô Tả Cảnh Báo",
+  "action": "Thao Tác",
+  "warning_value": "Giá trị cảnh báo",
+  "value": "Giá trị",
+  "input_content": "Nhập nội dung",
+  "no_data": "Không có dữ liệu",
+  "value_required": "Giá trị không được để trống",
+  "update_success": "Cập nhật thành công",
+  "update_fail": "Cập nhật thất bại",
+  "value_less": "Giá trị phải nhỏ hơn {{number}}",
+  "value_greater": "Giá trị phải lớn hơn {{number}}",
+  "left": "Trái",
+  "right": "Phải",
+
+  "title": "Lịch Sử Cảnh Báo",
+  "page-title": {
+    "list": "Lịch Sử Cảnh Báo"
+  },
+  "messages": {
+    "delete_success": "Xóa cảnh báo thành công!",
+    "delete_failed": "Xóa cảnh báo thất bại!",
+    "error": "Lỗi",
+    "delete_all_success": "Xóa tất cả thành công!",
+    "delete_all_error": "Xóa tất cả thất bại!"
+  },
+  "dialog": {
+    "delete_title": "Xóa cảnh báo",
+    "delete_description": "Bạn có chắc chắn muốn xóa?",
+
+    "delete_all_title": "Xóa tất cả cảnh báo",
+    "delete_all_description": "Bạn có chắc chắn muốn xóa tất cả cảnh báo?"
+  },
+  "alarm_value": "Mức cảnh báo"
+}

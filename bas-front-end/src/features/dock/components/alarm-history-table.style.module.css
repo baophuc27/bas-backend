@@ -1,0 +1,119 @@
+.status {
+  border-radius: 2px !important;
+  margin-bottom: 4px;
+}
+
+.paramInfo {
+  display: flex;
+  align-items: center;
+}
+
+.paramIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.parameters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #ccc;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.mainTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #000;
+  /* margin-bottom: 2px; */
+}
+
+.subTitle {
+  font-size: 15px;
+  font-weight: 400;
+  color: #9c9c9c;
+  margin-bottom: 4px;
+}
+
+.notificationTable {
+  height: 90%;
+}
+
+.notificationTable table {
+  min-width: 375px;
+}
+
+.notificationTable th,
+td {
+  font-size: 13px !important;
+}
+
+.notificationTable thead tr th {
+  background-color: #f5f5f5;
+}
+
+.notificationTable tbody td {
+  border-right: 2px solid #f5f5f5;
+  border-bottom: 2px solid #f5f5f5;
+}
+
+.notificationTable tbody td:last-child {
+  border-right: none;
+}
+
+.notificationTable thead tr th {
+  border-bottom: none;
+  padding-left: 0 !important;
+}
+
+.notificationTable table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.noData {
+  position: absolute;
+  top: 50%;
+  left: 38%;
+  color: #9c9c9c;
+}
+
+.table {
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  background: #eee;
+  text-align: left;
+  padding: 6px 12px;
+  user-select: none;
+}
+
+.tableRow {
+  border-bottom: 1px solid #eee;
+}
+
+.tableCell {
+  background: white;
+  padding: 6px 12px;
+  user-select: none;
+  border-right: 1px solid #eee;
+}
+
+.noDataContainer {
+  text-align: center;
+  padding-top: 16px;
+}
+
+.noDataImage {
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.noDataText {
+  /* margin-top: -32px; */
+  color: gray;
+}

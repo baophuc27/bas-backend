@@ -1,0 +1,9 @@
+{
+  "hud": {
+    "left-sensor": "Left Sensor",
+    "right-sensor": "Right Sensor",
+    "speed": "Speed",
+    "distance": "Distance",
+    "angle": "Angle"
+  }
+}

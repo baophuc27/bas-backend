@@ -1,0 +1,27 @@
+.container {
+  background: var(--page-background);
+  padding: 36px 42px;
+}
+
+.habourDetails {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.habourIcon {
+  width: 54px;
+  height: 54px;
+  margin-right: 12px;
+}
+
+.habourName {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.habourAddress {
+  color: gray;
+  font-size: 1.1rem;
+}

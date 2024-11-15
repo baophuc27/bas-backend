@@ -1,0 +1,14 @@
+.sharedInputField {
+  width: 100%;
+}
+.shared-input-field > .MuiTextField-root {
+  width: 100%;
+}
+
+.hint {
+  font-style: italic;
+  font-size: 0.9rem;
+  margin-top: -6px;
+  margin-bottom: 12px;
+  color: #3f4254;
+}

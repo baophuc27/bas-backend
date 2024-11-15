@@ -1,0 +1,24 @@
+{
+  "dialogs": {
+    "device-error": {
+      "title": "Device Error",
+      "message": "Some devices have errors. Recording will stop.",
+      "ok": "OK",
+      "cancel": "Cancel"
+    },
+    "session-completed": {
+      "title": "Session Completed",
+      "message": "[{{berthName}}] The session has completed. Recording will stop. Which state do you want to update?",
+      "ok": "OK",
+      "cancel": "Cancel",
+      "mooring": "Mooring",
+      "available": "Available"
+    }
+  },
+  "messages": {
+    "stop-success": "The recording has been saved successfully!",
+    "stop-error": "Failed to stop the recording!",
+    "sync-success": "The recording has been synced successfully!",
+    "sync-error": "Failed to sync the recording!"
+  }
+}

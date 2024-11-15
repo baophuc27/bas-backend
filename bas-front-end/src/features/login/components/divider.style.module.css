@@ -1,0 +1,22 @@
+.container {
+  position: relative;
+  margin-bottom: 32px;
+}
+
+.text {
+  font-weight: 500;
+  display: inline-block;
+  background: white;
+  z-index: 2;
+  position: absolute;
+}
+
+.line {
+  height: 1px;
+  width: 100%;
+  background: #ccc;
+  display: block;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}

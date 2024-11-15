@@ -1,0 +1,16 @@
+.container {
+  position: fixed;
+}
+
+.zoomButtons {
+  border-radius: 99px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.buttonContainer {
+  border-radius: 99px;
+  background: white;
+  /* margin-bottom: 12px; */
+}

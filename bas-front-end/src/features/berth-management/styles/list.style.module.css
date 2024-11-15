@@ -1,0 +1,20 @@
+.title {
+  font-size: 30px;
+  font-weight: 500;
+}
+.titleId {
+  font-weight: 400;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  color: #0a0200;
+  margin: 20px 0 8px;
+}
+
+.buttonGroup {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  gap: 20px;
+}

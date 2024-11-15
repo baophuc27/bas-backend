@@ -1,0 +1,14 @@
+.logoutButton {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.loginAnother {
+  text-transform: none;
+  color: #3699ff;
+}
+
+.loginAnother:hover {
+  text-transform: none;
+  background: none;
+}

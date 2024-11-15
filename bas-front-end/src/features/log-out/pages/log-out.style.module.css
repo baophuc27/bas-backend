@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  height: 70vh;
+}
+
+.card {
+  display: flex;
+  background-color: #fff;
+  padding: 25px 50px;
+  margin: auto;
+  text-align: center;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px 0 rgb(0 0 0 / 10%);
+}
+
+.cardBody {
+  max-width: 450px;
+  margin: auto;
+}
+
+.mobile {
+  box-shadow: none;
+  position: absolute;
+  top: 72px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+}

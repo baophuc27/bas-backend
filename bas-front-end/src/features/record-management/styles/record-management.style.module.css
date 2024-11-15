@@ -1,0 +1,71 @@
+.title {
+  font-size: 30px;
+  font-weight: 500;
+}
+.titleId {
+  font-weight: 400;
+}
+
+.generalInfo {
+  font-size: 24px;
+  color: #0a0200;
+  margin-top: 12px;
+}
+
+.infoItem {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 20px;
+  color: #3f4254;
+}
+
+.linkToDeparting {
+  display: flex;
+  justify-content: end;
+  align-items: end;
+}
+.linkToDepartingText {
+  color: #3699ff;
+  font-size: 16px;
+  line-height: 20px;
+  text-decoration: underline;
+}
+
+.historyTitle {
+  margin: 36px 0 8px;
+  font-size: 24px;
+  color: #0a0200;
+}
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  width: 300px;
+}
+.table {
+  min-width: 800px;
+}
+.tableHead {
+  background-color: "#E5E5E5";
+}
+
+.sensorHeader {
+  border-left: 1px solid #f5f5f5;
+  border-right: 1px solid #f5f5f5;
+}
+.headerSeparator {
+  height: 1px;
+  background-color: #f5f5f5;
+  width: 100%;
+  padding: 0;
+}
+.headerItem {
+  border-left: 1px solid #f5f5f5;
+  border-right: 1px solid #f5f5f5;
+}
+
+.backText {
+  color: #3699ff;
+  text-decoration: underline;
+  font-weight: bold;
+  background: white;
+}

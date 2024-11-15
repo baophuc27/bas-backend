@@ -1,0 +1,103 @@
+.sticky {
+  background-color: #eeeeee;
+  border-bottom: 1px solid rgba(224, 224, 224, 1);
+  min-width: 120px;
+  right: 0;
+  position: sticky;
+  z-index: 20;
+}
+.shared-data-grid .icon-wrapper .MuiSvgIcon-root {
+  font-size: 1.25rem;
+}
+.MuiTableCell-root {
+  line-height: 1.2 !important;
+}
+
+.MuiDataGrid-root {
+  display: table !important;
+  width: 100% !important;
+}
+.MuiDataGrid-root .MuiDataGrid-columnsContainer {
+  display: table-header-group !important;
+}
+.MuiDataGrid-root .MuiDataGrid-columnHeaderWrapper {
+  color: inherit;
+  display: table-row !important;
+  outline: 0;
+  vertical-align: middle;
+}
+.shared-data-grid {
+  width: 100%;
+}
+
+.shared-data-grid .cell-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.shared-data-grid .MuiDataGrid-root {
+  border: none;
+  font-size: 13px;
+}
+
+.shared-data-grid .icons-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-top: 8 !important;
+}
+
+.shared-data-grid .icon-wrapper {
+  color: #b6b6b6;
+  cursor: pointer;
+  padding: 0px 4px;
+}
+
+.shared-data-grid .icon-wrapper:hover {
+  color: gray;
+}
+
+.shared-data-grid .MuiDataGrid-row:hover {
+  background-color: white !important;
+}
+
+.shared-data-grid .MuiDataGrid-columnHeader,
+.shared-data-grid .MuiDataGrid-cell {
+  outline: none !important;
+  user-select: none;
+}
+
+.MuiDataGrid-root .MuiDataGrid-columnHeaderTitleContainer {
+  padding: 0 !important;
+}
+
+.MuiDataGrid-root .MuiDataGrid-iconSeparator {
+  display: none;
+}
+
+.shared-data-grid .shared-data-grid-empty {
+  text-align: center;
+}
+
+.shared-data-grid .icon-wrapper--disabled {
+  color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.shared-data-grid .icon-wrapper--disabled:hover {
+  color: #e0e0e0;
+}
+
+.shared-data-grid-spinner {
+  text-align: center;
+}
+
+.shared-data-grid .icon-wrapper--disabled svg {
+  cursor: not-allowed !important;
+}
+
+.shared-data-grid .icon-wrapper--disabled svg path {
+  fill: #e0e0e0;
+}

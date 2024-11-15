@@ -1,0 +1,47 @@
+.container {
+  background: white;
+  padding: 24px;
+  cursor: pointer;
+  border: 2px solid white;
+  border-radius: 12px;
+  display: flex;
+  height: 100%;
+}
+
+.container:hover {
+  border-color: #3699ff;
+}
+
+.name {
+  text-transform: uppercase;
+  color: gray;
+  margin-bottom: 3px;
+}
+
+.shipName {
+  font-size: 1.5rem;
+  margin: 6px 0;
+  font-weight: bold;
+}
+
+.shipIcon {
+  width: 42px;
+  height: 42px;
+}
+
+.details {
+  flex: 1;
+  padding-left: 12px;
+}
+
+.status {
+  display: inline-block;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 6px;
+  border-radius: 3px;
+  margin-top: 3px;
+  font-size: 11px;
+  text-transform: uppercase;
+}

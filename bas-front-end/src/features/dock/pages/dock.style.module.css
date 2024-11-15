@@ -1,0 +1,88 @@
+.container {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  overflow: hidden;
+}
+
+.fullScreenContainer {
+  composes: container;
+  grid-template-columns: 1fr;
+}
+
+.main {
+  position: relative;
+  border-right: 1px solid #ccc;
+}
+
+.sideBar {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.generalInfo {
+  /* background: white; */
+  border-radius: 12px;
+  position: fixed;
+  top: 24px;
+  left: 24px;
+}
+
+.generalInfoMain {
+  display: flex;
+  align-items: flex-start;
+}
+
+.generalInfoDetails {
+  margin-left: 12px;
+}
+
+.shipName {
+  text-transform: uppercase;
+  color: gray;
+  margin-bottom: 3px;
+}
+
+.dockName {
+  font-size: 1.5rem;
+  margin: 6px 0;
+  font-weight: bold;
+}
+
+.status {
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.compass {
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  user-select: none;
+  padding: 20px;
+}
+.compassImg {
+  width: 120px;
+  height: 120px;
+}
+.compassText {
+  position: absolute;
+  font-size: 14px;
+}
+
+.status {
+  display: inline-block;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: 3px;
+  margin-top: 6px;
+}
+
+.buttonContainer {
+  background: white;
+  border-radius: 100px;
+}

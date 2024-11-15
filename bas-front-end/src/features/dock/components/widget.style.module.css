@@ -1,0 +1,39 @@
+.container {
+}
+
+.name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nameText {
+  margin-left: 6px;
+}
+
+.address {
+  color: gray;
+}
+
+.button {
+  display: "block";
+  width: "100%";
+  text-align: "center";
+}
+
+.iframeContainer {
+  overflow-y: auto;
+  height: 300px;
+  /* border: 1px solid #ccc; */
+}
+
+.iframeContainer .widget-container {
+  max-width: 100% !important;
+}
+
+.iframeContainer .last-recorded-time {
+  display: none;
+}

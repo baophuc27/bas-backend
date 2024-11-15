@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  bas_backend_test_test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bas_backend_test_test
+    network_mode: host
+    command: ['/bin/bash', '-c', '/app/wait-for-it.sh ${KAFKA_HOST} && npm start']
+    volumes:
+      - ./public:/app/public
+      - '/etc/timezone:/etc/timezone:ro'
+      - '/etc/localtime:/etc/localtime:ro'
+    restart: always

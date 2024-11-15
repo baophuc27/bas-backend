@@ -1,0 +1,259 @@
+I . Phần Tài liệu cho BAS API source code
+
+1. Library và Framework:
+a. Framework chính:
+    - NodeJS 18.20.0
+    - ExpressJS 4.17.1
+    - Typescript 4.5.5
+    - Sequelize 6.20.13
+b. Các thư viện hỗ trợ các dịch vụ:
+    - kafka-js 0.0.0 : sử dụng để gửi và nhận message từ kafka
+    - kue 0.11.0 : sử dụng để quản lý job
+    - jsonwebtoken 8.5.1 : sử dụng để tạo và xác thực token
+    - socket.io 4.6.1 : sử dụng để tạo và quản lý socket
+    - canvas 2.11.2 : sử dụng để xử lí đồ thị trên excel
+    - exceljs 4.3.0 : sử dụng để xử lí file excel
+    - echarts 5.5.1 : sử dụng để vẽ đồ thị
+    - crypto-js 4.1.1 : sử dụng để mã hóa thông điệp
+    - node-cron 3.0.0 : sử dụng để tạo cron job
+
+2. Database:
+- Postgres 13.2
+  file docker-compose.yml:
+```
+
+- Redis 6.2.6
+    file docker-compose.yml:
+```
+version: '3.8'
+
+```
+Một số lỗi khi chạy docker-compose khi chạy redis run :
+```
+
+```
+
+
+
+3. Thiết lập môi trường:
+- Tạo file .env trong thư mục gốc của project với nội dung như sau:
+```
+APP_NAME='local' # local, dev, prod
+KAFKA_HOST='localhost:29092' # Địa chỉ của kafka
+APP_HOST='http://14.161.47.208:8000' # domain của backend
+PORT=8000 # port của backend
+
+DB_HOST="14.161.47.208" # Địa chỉ của database
+DB_PORT=55432 # port của database
+DB_USERNAME='postgres' # username của database
+DB_PASSWORD='postgres' # password của database
+DB_NAME='bas_dev' # tên database
+
+SECRET_KEY='2QR8T0p-241837jdfs8uehnjasd' # secret key
+JWT_EXPIRES='1h' # thời gian hết hạn của token
+SOCKET_EXPIRES='1d' # thời gian hết hạn của socket token
+# 1 week
+REFRESH_TERM=604800000 # thời gian hết hạn của refresh token
+
+CLOUD_HOST='http://localhost:9000' # domain của cloud
+ORGANIZATION_ID='1' # id của tổ chức
+CLOUD_API_KEY_EXPIRES=600000 # thời gian hết hạn của api key
+
+REDIS_HOST='localhost' # Địa chỉ của redis
+REDIS_PORT=6379 # port của redis
+REDIS_DB=0 # db của redis
+REDIS_PASSWORD='123456' # password của redis
+```
+
+4. Bảo mật:
+- Sử dụng JWT để xác thực người dùng và bảo mật API
+- Sử dụng bcrypt để mã hóa mật khẩu người dùng
+- Sử dụng Mã hóa RSA để mã hóa thông điệp giữa các service
+
+5. Cấu trúc thư mục:
+ Source code được nằm trong thư mục src, bao gồm các package sau:
+    - config: chứa các file cấu hình cho project
+    - api : chứa các file về giao diện API :
+        + routes: chứa các file route
+        + controllers: chứa các file controller
+        + middlewares: chứa các file middleware
+        + validators: chứa các file validator cho request
+        + errors: chứa các file định nghĩa lỗi cho project
+    - constants: chứa các file constant cho project
+    - db: chứa các file liên quan đến database như :
+        + models: chứa các file model
+        + dto: chứa các file DTO
+        + init: chứa các file khởi tạo database
+        + dao: chứa các file thao tác với database
+        + master-data: chứa các file data mẫu
+        + mapper: chứa các file mapper giữa model và dto
+    - services: chứa các file service cho project
+    - utils: chứa các file utility cho project
+    - templates: chứa các file template cho project
+    - locales: chứa các file ngôn ngữ cho project
+    - app.ts: file cấu hình express
+    - server.ts: file khởi chạy server
+
+6. Cách chạy project:
+- Trong source code có sử dụng canvas để xử lí đồ thị trên excel nên cần cài đặt thêm các package để chạy được source code : https://github.com/Automattic/node-canvas/wiki/Installation:-Windows
+- Chạy lệnh yarn install để cài đặt các package cần thiết
+- Chạy lệnh yarn start để khởi chạy project
+
+
+II. Phần Tài liệu cho BAS API document
+III. Phần Tài liệu cụ thể các model
+- Account : định nghĩa thông tin đăng nhập của người dùng
+  + id : id của account
+    + username : tên đăng nhập
+    + passwordHash : mật khẩu đã mã hóa
+    + userId : id của người dùng
+- Alarm : định nghĩa thông tin lịch sủ cảnh báo
+    + id : id của cảnh báo
+    + recordId : id của bảng ghi
+    + startTime : thời gian bắt đầu
+    + endTime : thời gian kết thúc
+    + zone : vùng cảnh báo
+    + type : loại đơn vị cảnh báo (vận tốc, khoảng cách, góc)
+    + value : giá trị cảnh báo
+    + alarm : loai cảnh báo (operator, warning, emergency)
+    + side : phía cảnh báo (trái hoặc phải)
+    + sensorId : id của cảm biến
+- AlarmSetting : định nghĩa thông tin cài đặt cảnh báo
+    + id : id của cài đặt cảnh báo
+    + berthId : id của bến
+    + alarmZone : vùng cảnh báo
+    + alarmSensor : cảm biến cảnh báo
+    + alarmType : loại cảnh báo
+    + operator : toán tử
+    + value : giá trị cảnh báo
+    + defaultValue : giá trị mặc định
+    + message : thông điệp cảnh báo
+- Berth : định nghĩa thông tin Bến
+    + id : id của bến
+    + name : tên bến
+    + nameEn : tên bến tiếng anh
+    + description : mô tả bến
+    + shape : hình dạng bến
+    + status : trạng thái bến
+    + limitZone1 : giới hạn vùng 1
+    + limitZone2 : giới hạn vùng 2
+    + limitZone3 : giới hạn vùng 3
+    + directionCompass : hướng của bến
+    + vesselDirection : hướng của tàu khi đang cập bến hoặc rời bến
+    + vesselId : id của tàu khi đang cập bến hoặc rời bến
+    + leftDeviceId : id của thiết bị bên trái
+    + rightDeviceId : id của thiết bị bên phải
+    + distanceFender : Khoảng cách cảm biến trái đến viền trái
+    + distanceDevice : khoảng cách của 2 thiết bị
+    + distanceToLeft : khoảng cách từ thiết bị trái tới fender
+    + distanceToRight : khoảng cách từ thiết bị phải tới fender
+- Harbor : định nghĩa thông tin Cảng
+    + id : id của cảng
+    + name : tên cảng
+    + nameEn : tên cảng tiếng anh
+    + description : mô tả cảng
+    + address : địa chỉ cảng
+    + weatherWidgetUrl : url của widget thời tiết từ vnemisoft
+    + weatherWidgetDashboardUrl : url của dashboard từ vnemisoft
+- Record : định nghĩa thông tin Bảng ghi
+    + id : id của bảng ghi
+    + vesselId : id của tàu
+    + berthId : id của bến
+    + vesselDirection : hướng của tàu
+    + distanceFender : khoảng cách cảm biến trái đến viền trái
+    + distanceDevice : khoảng cách của 2 thiết bị
+    + distanceToLeft : khoảng cách từ thiết bị trái tới fender
+    + distanceToRight : khoảng cách từ thiết bị phải tới fender
+    + directionCompass : hướng của bến
+    + sessionId : id của phiên (được tạo unique từ tàu và bến và thời gian)
+    + startTime : thời gian bắt đầu
+    + endTime : thời gian kết thúc
+    + limitZone1 : giới hạn vùng 1 ở thời điểm bản ghi
+    + limitZone2 : giới hạn vùng 2 ở thời điểm bản ghi
+    + limitZone3 : giới hạn vùng 3 ở thời điểm bản ghi
+    + doneAlarm : cờ lưu tất cả cảnh báo đã được xử lí hay chưa
+    + mooringStatus : loại bản ghi (berthing, departing)
+    + syncStatus : trạng thái đồng bộ(pending, success, fail)
+- RecordHistory : định nghĩa thông tin các điểm dữ liệu của bảng ghi
+    + id : id của điểm dữ liệu
+    + recordId : id của bảng ghi
+    + leftDistance : khoảng cách từ tàu đen thiết bị trái
+    + rightDistance : khoảng cách từ tàu đến thiết bị phải
+    + leftSpeed : vận tốc của tàu ở bên trái
+    + rightSpeed : vận tốc của tàu ở bên phải
+    + angle : góc của tàu
+    + time : thời gian của điểm dữ liệu
+    + leftStatus : trạng thái của cảm biến trái
+    + rightStatus : trạng thái của cảm biến phải
+    + RDistanceAlarm : cảnh báo khoảng cách từ tàu đến thiết bị phải
+    + LDistanceAlarm : cảnh báo khoảng cách từ tàu đến thiết bị trái
+    + LSpeedAlarm : cảnh báo vận tốc của tàu ở bên trái
+    + RSpeedAlarm : cảnh báo vận tốc của tàu ở bên phải
+    + angleAlarm : cảnh báo góc của tàu
+    + LDistanceZone : vùng cảnh báo khoảng cách từ tàu đến thiết bị trái
+    + RDistanceZone : vùng cảnh báo khoảng cách từ tàu đến thiết bị phải
+    + LSpeedZone : vùng cảnh báo vận tốc của tàu ở bên trái
+    + RSpeedZone : vùng cảnh báo vận tốc của tàu ở bên phải
+    + angleZone : vùng cảnh báo góc của tàu
+- RefreshToken : định nghĩa thông tin refresh token
+    + id : id của refresh token
+    + userId : id của người dùng
+    + token : token
+    + expires : thời gian hết hạn
+    + revoked : cờ token đã bị thu hồi hay chưa
+    + revokedByIp : ip đã thu hồi token
+    + replacedByToken : token đã thay thế
+    + createdByIp : ip đã tạo token
+- Role : định nghĩa thông tin vai trò
+    + id : id của vai trò
+    + name : tên của vai trò
+    + code : mã của vai trò
+    + description : mô tả của vai trò
+- User : định nghĩa thông tin người dùng
+    + id : id của người dùng
+    + fullName : họ và tên
+    + email : email
+    + phone : số điện thoại
+    + avatar : ảnh đại diện
+    + roleId : id của vai trò
+- Vessel : định nghĩa thông tin tàu
+    + id : id của tàu
+    + name : tên tàu
+    + nameEn : tên tàu tiếng anh
+    + shape : hình dạng tàu
+    + beam : chiều rộng tàu
+    + code : mã tàu
+    + length : chiều dài tàu
+    + flag : quốc tịch
+    + type : loại tàu
+    + builder : nhà sản xuất
+    + built : năm sản xuất
+    + owner : chủ sở hữu
+    + manager : quản lý
+    + maxDraught : độ sâu tối đa
+    + class : hạng tàu
+    + nt : thông số nt
+    + gt : thông số gt
+    + teu : thông số teu
+    + dwt : thông số dwt
+    + gas : thông số gas
+    + crude : thông số crude
+    + longitude : kinh độ
+    + latitude : vĩ độ
+    + heading : hướng
+    + speed : vận tốc
+    + callSign : số call sign
+- Sensor : định nghĩa thông tin cảm biến
+    + id : id của cảm biến
+    + name : tên cảm biến
+    + status : trạng thái cảm biến
+    + realValue : giá trị thực
+
+IV. Xử lý lỗi và logging trong project
+- Xử lý lỗi:
+    + Định nghĩa các loại lỗi trong file api/errors/index.ts
+    + Sử dụng middleware để xử lý lỗi trong file api/middlewares/error-handler.ts
+    + Sử dụng try catch để bắt lỗi trong các controller
+- Logging:
+    + Sử dụng log trong file utils/logger.ts để ghi log
+    + Để đọc log trên môi trường chạy docker cần chạy lệnh docker logs <container_id> -f

@@ -1,0 +1,57 @@
+{
+  "record-export": {
+    "title": {
+      "general": "Thông tin chung",
+      "berth-name": "Bến: ",
+      "anchoring-status": "Trạng thái neo đậu: ",
+      "vessel-name": "Tàu: ",
+      "start-time": "Thời gian bắt đầu: ",
+      "end-time": "Thời gian kết thúc: ",
+      "session-id": "Session ID: "
+    },
+    "sheet": {
+      "general-information": "Thông tin chung + Thông tin ghi chú",
+      "line-chart": "Biểu đồ đường",
+      "aggregate": "Bảng tổng hợp"
+    },
+    "name": {
+      "history": "Lịch sử",
+      "left-sensor": "Cảm biến trái",
+      "right-sensor": "Cảm biến phải",
+      "min": "Tối thiểu",
+      "max": "Tối đa",
+      "avg": "Trung bình",
+      "time": "Thời gian",
+      "zone": "Khu vực",
+      "distance": "Khoảng cách (m)",
+      "speed": "Tốc độ (cm/s)",
+      "angle": "Góc (°)",
+      "BERTHING": "Neo đậu",
+      "DEPARTING": "Rời bến"
+    },
+    "column": {
+      "distance": "Khoảng cách",
+      "speed": "Tốc độ",
+      "angle": "Góc"
+    }
+  },
+  "alarm-export": {
+    "title": {
+      "alarm": "Lịch sử cảnh báo"
+    },
+    "name": {
+      "start-time": "Thời gian bắt đầu",
+      "end-time": "Thời gian kết thúc",
+      "berth": "Bến",
+      "sensor": "Cảm biến",
+      "zone": "Khu vực",
+      "type": "Loại",
+      "value": "Giá trị",
+      "alarm": "Giá trị cảnh báo",
+      "message": "Thông báo cảnh báo",
+      "warning": "Cảnh báo",
+      "emergency": "Khẩn cấp",
+      "sessionId": "Mã phiên"
+    }
+  }
+}

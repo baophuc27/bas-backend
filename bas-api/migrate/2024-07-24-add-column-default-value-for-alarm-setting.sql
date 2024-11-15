@@ -1,0 +1,2 @@
+ALTER TABLE "AlarmSetting" ADD COLUMN
+    "defaultValue" DOUBLE PRECISION NULL DEFAULT 0.0;

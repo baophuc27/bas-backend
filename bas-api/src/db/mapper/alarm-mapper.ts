@@ -1,0 +1,18 @@
+export const alarmMapper = {
+  id: 'id',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  value: 'value',
+  alarm: 'alarm',
+  type: 'type',
+  side: 'side',
+  zone: 'zone',
+  message: 'message',
+  'sensor.id': 'sensor.id',
+  'sensor.name': 'sensor.name',
+  'record.id': 'record.id',
+  'record.sessionId': 'record.sessionId',
+  'record.berth.id': 'record.berth.id',
+  'record.berth.name': 'record.berth.name',
+  'record.berth.nameEn': 'record.berth.nameEn',
+};

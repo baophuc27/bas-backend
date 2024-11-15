@@ -1,0 +1,57 @@
+{
+  "record-export": {
+    "title": {
+      "general": "General Information",
+      "berth-name": "Berth: ",
+      "anchoring-status": "Anchoring Status: ",
+      "vessel-name": "Vessel: ",
+      "start-time": "Start Time: ",
+      "end-time": "End Time: ",
+      "session-id": "Session ID: "
+    },
+    "sheet": {
+      "general-information": "General Information + Record Information",
+      "line-chart": "Line Chart",
+      "aggregate": "Aggregate Table"
+    },
+    "name": {
+      "history": "History",
+      "left-sensor": "Left Sensor",
+      "right-sensor": "Right Sensor",
+      "min": "Minimum",
+      "max": "Maximum",
+      "avg": "Average",
+      "time": "Time",
+      "zone": "Zone",
+      "distance": "Distance (m)",
+      "speed": "Speed (cm/s)",
+      "angle": "Angle (°)",
+      "BERTHING": "BERTHING",
+      "DEPARTING": "DEPARTING"
+    },
+    "column": {
+      "distance": "Distance",
+      "speed": "Speed",
+      "angle": "Angle"
+    }
+  },
+  "alarm-export": {
+    "title": {
+      "alarm": "Alarm History"
+    },
+    "name": {
+      "start-time": "Start Time",
+      "end-time": "End Time",
+      "berth": "Berth",
+      "sensor": "Sensor",
+      "zone": "Zone",
+      "type": "Type",
+      "value": "Value",
+      "alarm": "Alarm Value",
+      "message": "Alarm Message",
+      "warning": "Warning",
+      "emergency": "Emergency",
+      "sessionId": "Session ID"
+    }
+  }
+}

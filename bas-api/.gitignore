@@ -1,0 +1,11 @@
+/node_modules
+.vscode/settings.json
+build
+
+public/*
+.env.*
+.env
+
+.idea
+
+./redis_data

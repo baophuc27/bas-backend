@@ -32,7 +32,7 @@ const createDefaultAuth = async () => {
       username: role.toLowerCase(),
       originalId: 0,
       permission: '',
-      orgId: 0,
+      orgId: 1,
     });
 
     await Account.create({

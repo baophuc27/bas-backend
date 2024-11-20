@@ -7,6 +7,7 @@ import { revokeTokenService } from '@bas/service';
 
 declare module 'express-serve-static-core' {
   interface Request {
+    orgId?: number;
     identification: {
       userId: string;
       roleId: number;
@@ -24,6 +25,7 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
+
     if (!token) {
       return next(new Unauthorized('Unauthorized'));
     }
@@ -34,6 +36,7 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
 
     const { userId } = verifyToken(token);
     const user = await getOneUserById(userId);
+
     if (!user) return next(new Unauthorized('Unauthorized'));
 
     req.identification = {

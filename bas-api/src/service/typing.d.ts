@@ -7,6 +7,7 @@ export interface BaseQueryParams {
   mode?: 'ASC' | 'DESC';
   amount?: number;
   page?: number;
+  orgId?: number;
 }
 
 export interface UserUpdatePayload {
@@ -61,6 +62,7 @@ export interface BerthFilter extends BaseQueryParams {
   vesselId?: number;
   page?: number | null | undefined;
   amount?: number | null | undefined;
+  orgId?: number;
 }
 
 export interface RecordFilter extends BaseQueryParams {

@@ -4,10 +4,10 @@ import recordController from '../controllers/record-controller';
 import { recordLatestValidator } from '../validators/record-validator';
 import { SystemPermission } from '@bas/constant/system-permission';
 import { usePermissions } from '../middleware/use-permissions';
-const router = express.Router();
+import { attachOrgId } from '../middleware/attach-orgid';
 
-// Record
-router.use(authorization);
+const router = express.Router();
+router.use(attachOrgId);    
 router.get('/aggregates/:id',usePermissions([SystemPermission.RECORDING_MANAGEMENT_VIEW]), recordController.getAggregates);
 router.get('/export-data/:id', usePermissions([SystemPermission.RECORDING_MANAGEMENT_VIEW]), recordController.exportData);
 router.get('/chart/:id',usePermissions([SystemPermission.RECORDING_MANAGEMENT_VIEW]), recordController.getChart);

@@ -108,6 +108,7 @@ export const createBerth = async (data: any, creator: string, t?: Transaction) =
     },
     {
       ...(t && { transaction: t }),
+      context: { orgId: data.orgId }
     }
   );
 };

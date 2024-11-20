@@ -133,8 +133,15 @@ const deleteBerth = async (req: Request, res: Response, next: NextFunction) => {
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId } = req.identification;
-    const data = await berthService.createBerth(req.body, userId);
+    const { userId, orgId } = req.identification;
+
+    const data = await berthService.createBerth(
+      {
+        ...req.body,
+        orgId,
+      },
+      userId
+    );
     return res.success({ data }, 'Berth created successfully');
   } catch (error: any) {
     next(error);

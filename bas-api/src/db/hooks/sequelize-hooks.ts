@@ -5,16 +5,21 @@ import { Sequelize } from 'sequelize';
 /**
  * Thêm orgId vào điều kiện where của các truy vấn Sequelize.
  */
-const addOrgIdToQuery = (options: any) => {
+export const addOrgIdToQuery = (options: any) => {
   const context = AsyncContext.getContext();
-  if (context && context.orgId) {
-    console.log(`[addOrgIdToQuery] Adding orgId: ${context.orgId}`);
-    options.where = {
-      ...options.where,
-      orgId: context.orgId,
-    };
+  if (context) {
+    if (context.orgId !== undefined) {
+      // Chỉ thêm orgId vào query nếu không có quyền truy cập toàn cục
+      console.log(`[addOrgIdToQuery] Adding orgId: ${context.orgId}`);
+      options.where = {
+        ...options.where,
+        orgId: context.orgId,
+      };
+    } else {
+      console.log('[addOrgIdToQuery] Global access, no orgId filtering applied');
+    }
   } else {
-    console.warn('[addOrgIdToQuery] No orgId found in context');
+    console.warn('[addOrgIdToQuery] No context found');
   }
 };
 

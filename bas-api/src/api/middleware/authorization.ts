@@ -24,21 +24,32 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
-    }
-
-    if (!token) {
+    } else {
+      console.warn('[Authorization] Missing Authorization header');
       return next(new Unauthorized('Unauthorized'));
     }
 
+    // Kiểm tra token có bị thu hồi
     if (revokeTokenService.isTokenRevoked(token)) {
+      console.warn('[Authorization] Token revoked');
       return next(new Forbidden('Token revoked', internalErrorCode.TOKEN_EXPIRES));
     }
 
+    // Xác minh token
     const { userId } = verifyToken(token);
+    if (!userId) {
+      console.error('[Authorization] Token verification failed');
+      return next(new Unauthorized('Unauthorized'));
+    }
+
+    // Lấy thông tin người dùng
     const user = await getOneUserById(userId);
+    if (!user) {
+      console.warn('[Authorization] User not found');
+      return next(new Unauthorized('Unauthorized'));
+    }
 
-    if (!user) return next(new Unauthorized('Unauthorized'));
-
+    // Gắn thông tin vào req.identification
     req.identification = {
       userId: user.id,
       permissions: user.permission,
@@ -48,6 +59,7 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
       originalId: user.originalId,
     };
 
+    console.log(`[Authorization] User authenticated: ${user.fullName} (orgId: ${user.orgId})`);
     next();
   } catch (error) {
     logError(error);

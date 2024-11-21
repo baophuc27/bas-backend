@@ -996,23 +996,27 @@
     "@babel/helper-validator-identifier" "^7.22.5"
     to-fast-properties "^2.0.0"
 
-"@bas/api@file:/home/dev/project/cloud-services/backend/bas-api/src/api":
+"@bas/api@file:/home/dev/project/bas-cloud-service/bas-api/src/api":
   version "1.0.0"
   resolved "file:src/api"
 
-"@bas/config@file:/home/dev/project/cloud-services/backend/bas-api/src/config":
+"@bas/config@file:/home/dev/project/bas-cloud-service/bas-api/src/config":
   version "1.0.0"
   resolved "file:src/config"
 
-"@bas/constant@file:/home/dev/project/cloud-services/backend/bas-api/src/constant":
+"@bas/constant@file:/home/dev/project/bas-cloud-service/bas-api/src/constant":
   version "1.0.0"
   resolved "file:src/constant"
+
+"@bas/context@file:/home/dev/project/bas-cloud-service/bas-api/src/context":
+  version "1.0.0"
+  resolved "file:src/context"
 
 "@bas/controllers@./src/api/controllers":
   version "1.0.0"
   resolved "file:src/api/controllers"
 
-"@bas/database@file:/home/dev/project/cloud-services/backend/bas-api/src/db":
+"@bas/database@file:/home/dev/project/bas-cloud-service/bas-api/src/db":
   version "1.0.0"
   resolved "file:src/db"
 
@@ -1023,11 +1027,11 @@
   version "1.0.0"
   resolved "file:src/api/routes"
 
-"@bas/service@file:/home/dev/project/cloud-services/backend/bas-api/src/service":
+"@bas/service@file:/home/dev/project/bas-cloud-service/bas-api/src/service":
   version "1.0.0"
   resolved "file:src/service"
 
-"@bas/temlate@file:/home/dev/project/cloud-services/backend/bas-api/src/template":
+"@bas/temlate@file:/home/dev/project/bas-cloud-service/bas-api/src/template":
   version "1.0.0"
   resolved "file:src/template"
 
@@ -1035,11 +1039,11 @@
   version "1.0.0"
   resolved "file:src/template"
 
-"@bas/types@file:/home/dev/project/cloud-services/backend/bas-api/src/types":
+"@bas/types@file:/home/dev/project/bas-cloud-service/bas-api/src/types":
   version "1.0.0"
   resolved "file:src/types"
 
-"@bas/utils@file:/home/dev/project/cloud-services/backend/bas-api/src/utils":
+"@bas/utils@file:/home/dev/project/bas-cloud-service/bas-api/src/utils":
   version "1.0.0"
   resolved "file:src/utils"
 
@@ -1271,6 +1275,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/bluebird@*":
+  version "3.5.42"
+  resolved "https://registry.npmjs.org/@types/bluebird/-/bluebird-3.5.42.tgz"
+  integrity sha512-Jhy+MWRlro6UjVi578V/4ZGNfeCOcNCp0YaFNIUGFKlImowqwb1O/22wDVk3FDGMLqxdpOV3qQHD5fPEH4hK6A==
+
 "@types/body-parser@*":
   version "1.19.2"
   resolved "https://registry.npmjs.org/@types/body-parser/-/body-parser-1.19.2.tgz"
@@ -1279,10 +1288,24 @@
     "@types/connect" "*"
     "@types/node" "*"
 
+"@types/cls-hooked@^4.3.9":
+  version "4.3.9"
+  resolved "https://registry.npmjs.org/@types/cls-hooked/-/cls-hooked-4.3.9.tgz"
+  integrity sha512-CMtHMz6Q/dkfcHarq9nioXH8BDPP+v5xvd+N90lBQ2bdmu06UvnLDqxTKoOJzz4SzIwb/x9i4UXGAAcnUDuIvg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/connect@*":
   version "3.4.35"
   resolved "https://registry.npmjs.org/@types/connect/-/connect-3.4.35.tgz"
   integrity sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==
+  dependencies:
+    "@types/node" "*"
+
+"@types/continuation-local-storage@*":
+  version "3.2.7"
+  resolved "https://registry.npmjs.org/@types/continuation-local-storage/-/continuation-local-storage-3.2.7.tgz"
+  integrity sha512-Q7dPOymVpRG5Zpz90/o26+OAqOG2Sw+FED7uQmTrJNCF/JAPTylclZofMxZKd6W7g1BDPmT9/C/jX0ZcSNTQwQ==
   dependencies:
     "@types/node" "*"
 
@@ -1358,7 +1381,7 @@
     "@types/node" "*"
     "@types/redis" "^2.8.0"
 
-"@types/lodash@^4.14.191":
+"@types/lodash@*", "@types/lodash@^4.14.191":
   version "4.14.195"
   resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.195.tgz"
   integrity sha512-Hwx9EUgdwf2GLarOjQp5ZH8ZmblzcbTBC2wtQWNKARBSxM9ezRIAUpeDTgoQRAFB0+8CNWXVA9+MaSOzOF3nPg==
@@ -1437,6 +1460,16 @@
     "@types/mime" "^1"
     "@types/node" "*"
 
+"@types/sequelize@^4.28.20":
+  version "4.28.20"
+  resolved "https://registry.npmjs.org/@types/sequelize/-/sequelize-4.28.20.tgz"
+  integrity sha512-XaGOKRhdizC87hDgQ0u3btxzbejlF+t6Hhvkek1HyphqCI4y7zVBIVAGmuc4cWJqGpxusZ1RiBToHHnNK/Edlw==
+  dependencies:
+    "@types/bluebird" "*"
+    "@types/continuation-local-storage" "*"
+    "@types/lodash" "*"
+    "@types/validator" "*"
+
 "@types/serve-static@*":
   version "1.15.2"
   resolved "https://registry.npmjs.org/@types/serve-static/-/serve-static-1.15.2.tgz"
@@ -1451,7 +1484,7 @@
   resolved "https://registry.npmjs.org/@types/uuid/-/uuid-9.0.2.tgz"
   integrity sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==
 
-"@types/validator@^13.7.17":
+"@types/validator@*", "@types/validator@^13.7.17":
   version "13.7.17"
   resolved "https://registry.npmjs.org/@types/validator/-/validator-13.7.17.tgz"
   integrity sha512-aqayTNmeWrZcvnG2MG9eGYI6b7S5fl+yKgPs6bAjOTwPS316R5SxBGKvtSExfyoJU7pIeHJfsHI0Ji41RVMkvQ==
@@ -1661,6 +1694,13 @@ asap@~2.0.3:
   version "2.0.6"
   resolved "https://registry.npmjs.org/asap/-/asap-2.0.6.tgz"
   integrity sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==
+
+async-hook-jl@^1.7.6:
+  version "1.7.6"
+  resolved "https://registry.npmjs.org/async-hook-jl/-/async-hook-jl-1.7.6.tgz"
+  integrity sha512-gFaHkFfSxTjvoxDMYqDuGHlcRyUuamF8s+ZTtJdDzqjws4mCt7v0vuV79/E2Wr2/riMQgtG4/yUtXWs1gZ7JMg==
+  dependencies:
+    stack-chain "^1.3.7"
 
 async@^3.2.3:
   version "3.2.4"
@@ -2108,6 +2148,15 @@ clone-deep@^4.0.1:
     kind-of "^6.0.2"
     shallow-clone "^3.0.0"
 
+cls-hooked@^4.2.2:
+  version "4.2.2"
+  resolved "https://registry.npmjs.org/cls-hooked/-/cls-hooked-4.2.2.tgz"
+  integrity sha512-J4Xj5f5wq/4jAvcdgoGsL3G103BtWpZrMo8NEinRltN+xpTZdI+M38pyQqhuFU/P792xkMFvnKSf+Lm81U1bxw==
+  dependencies:
+    async-hook-jl "^1.7.6"
+    emitter-listener "^1.0.1"
+    semver "^5.4.1"
+
 code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.npmjs.org/code-point-at/-/code-point-at-1.1.0.tgz"
@@ -2474,7 +2523,7 @@ dotenv@^16.0.3:
   resolved "https://registry.npmjs.org/dotenv/-/dotenv-16.3.1.tgz"
   integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
 
-dottie@^2.0.4:
+dottie@^2.0.6:
   version "2.0.6"
   resolved "https://registry.npmjs.org/dottie/-/dottie-2.0.6.tgz"
   integrity sha512-iGCHkfUc5kFekGiqhe8B/mdaurD+lakO9txNnTvKtA6PISrw86LgqHvRzWYPyoE2Ph5aMIrCw9/uko6XHTKCwA==
@@ -2525,6 +2574,13 @@ electron-to-chromium@^1.4.431:
   version "1.4.450"
   resolved "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.450.tgz"
   integrity sha512-BLG5HxSELlrMx7dJ2s+8SFlsCtJp37Zpk2VAxyC6CZtbc+9AJeZHfYHbrlSgdXp6saQ8StMqOTEDaBKgA7u1sw==
+
+emitter-listener@^1.0.1:
+  version "1.1.2"
+  resolved "https://registry.npmjs.org/emitter-listener/-/emitter-listener-1.1.2.tgz"
+  integrity sha512-Bt1sBAGFHY9DKY+4/2cV6izcKJUf5T7/gkdmkxzX/qv9CcGH8xSwVRW5mtX03SWJtRTWSOpzCuWN9rBFYZepZQ==
+  dependencies:
+    shimmer "^1.2.0"
 
 emoji-regex@^8.0.0:
   version "8.0.0"
@@ -4531,7 +4587,7 @@ pg-cloudflare@^1.1.1:
   resolved "https://registry.npmjs.org/pg-cloudflare/-/pg-cloudflare-1.1.1.tgz"
   integrity sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==
 
-pg-connection-string@^2.6.0, pg-connection-string@^2.6.4:
+pg-connection-string@^2.6.1, pg-connection-string@^2.6.4:
   version "2.6.4"
   resolved "https://registry.npmjs.org/pg-connection-string/-/pg-connection-string-2.6.4.tgz"
   integrity sha512-v+Z7W/0EO707aNMaAEfiGnGL9sxxumwLl2fJvCQtMn9Fxsg+lPpPkdcyBSv/KFgpGdYkMfn+EI1Or2EHjpgLCA==
@@ -5217,7 +5273,7 @@ saxes@^5.0.1:
   dependencies:
     xmlchars "^2.2.0"
 
-semver@^5.6.0, semver@^5.7.0, semver@^5.7.1, "semver@2 || 3 || 4 || 5":
+semver@^5.4.1, semver@^5.6.0, semver@^5.7.0, semver@^5.7.1, "semver@2 || 3 || 4 || 5":
   version "5.7.1"
   resolved "https://registry.npmjs.org/semver/-/semver-5.7.1.tgz"
   integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
@@ -5243,13 +5299,6 @@ semver@^6.3.0:
   integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
 semver@^7.3.5:
-  version "7.5.3"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.5.3.tgz"
-  integrity sha512-QBlUtyVk/5EeHbi7X0fw6liDZc7BBmEaSYn01fMU1OUYbf6GPsbTtd8WmnqbI20SeycoHSeiybkE/q1Q+qlThQ==
-  dependencies:
-    lru-cache "^6.0.0"
-
-semver@^7.5.1:
   version "7.5.3"
   resolved "https://registry.npmjs.org/semver/-/semver-7.5.3.tgz"
   integrity sha512-QBlUtyVk/5EeHbi7X0fw6liDZc7BBmEaSYn01fMU1OUYbf6GPsbTtd8WmnqbI20SeycoHSeiybkE/q1Q+qlThQ==
@@ -5303,22 +5352,22 @@ sequelize-pool@^7.1.0:
   resolved "https://registry.npmjs.org/sequelize-pool/-/sequelize-pool-7.1.0.tgz"
   integrity sha512-G9c0qlIWQSK29pR/5U2JF5dDQeqqHRragoyahj/Nx4KOOQ3CPPfzxnfqFPCSB7x5UgjOgnZ61nSxz+fjDpRlJg==
 
-sequelize@^6.29.0:
-  version "6.32.1"
-  resolved "https://registry.npmjs.org/sequelize/-/sequelize-6.32.1.tgz"
-  integrity sha512-3Iv0jruv57Y0YvcxQW7BE56O7DC1BojcfIrqh6my+IQwde+9u/YnuYHzK+8kmZLhLvaziRT1eWu38nh9yVwn/g==
+sequelize@^6.37.5:
+  version "6.37.5"
+  resolved "https://registry.npmjs.org/sequelize/-/sequelize-6.37.5.tgz"
+  integrity sha512-10WA4poUb3XWnUROThqL2Apq9C2NhyV1xHPMZuybNMCucDsbbFuKg51jhmyvvAUyUqCiimwTZamc3AHhMoBr2Q==
   dependencies:
     "@types/debug" "^4.1.8"
     "@types/validator" "^13.7.17"
     debug "^4.3.4"
-    dottie "^2.0.4"
+    dottie "^2.0.6"
     inflection "^1.13.4"
     lodash "^4.17.21"
     moment "^2.29.4"
     moment-timezone "^0.5.43"
-    pg-connection-string "^2.6.0"
+    pg-connection-string "^2.6.1"
     retry-as-promised "^7.0.4"
-    semver "^7.5.1"
+    semver "^7.5.4"
     sequelize-pool "^7.1.0"
     toposort-class "^1.0.1"
     uuid "^8.3.2"
@@ -5387,6 +5436,11 @@ shebang-regex@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz"
   integrity sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==
+
+shimmer@^1.2.0:
+  version "1.2.1"
+  resolved "https://registry.npmjs.org/shimmer/-/shimmer-1.2.1.tgz"
+  integrity sha512-sQTKC1Re/rM6XyFM6fIAGHRPVGvyXfgzIDvzoq608vM+jeyVD0Tu1E6Np0Kc2zAIFWIj963V2800iF/9LPieQw==
 
 side-channel@^1.0.4:
   version "1.0.4"
@@ -5553,6 +5607,11 @@ split2@^4.1.0:
   version "4.2.0"
   resolved "https://registry.npmjs.org/split2/-/split2-4.2.0.tgz"
   integrity sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==
+
+stack-chain@^1.3.7:
+  version "1.3.7"
+  resolved "https://registry.npmjs.org/stack-chain/-/stack-chain-1.3.7.tgz"
+  integrity sha512-D8cWtWVdIe/jBA7v5p5Hwl5yOSOrmZPWDPe2KxQ5UAGD+nxbxU0lKXA4h85Ta6+qgdKVL3vUxsbIZjc1kBG7ug==
 
 statuses@2.0.1:
   version "2.0.1"

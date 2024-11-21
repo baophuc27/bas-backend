@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { AsyncContext } from '@bas/utils/AsyncContext';
 
+const owner_orgId = 1;
+
 export const attachOrgId = (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.identification) {
@@ -21,7 +23,7 @@ export const attachOrgId = (req: Request, res: Response, next: NextFunction) => 
         : req.identification.permissions;
 
     // Skip AsyncContext for orgId === 1 (global access)
-    if (req.identification.orgId !== 1) {
+    if (req.identification.orgId !== owner_orgId) {
       const context = {
         orgId: req.identification.orgId,
         userId: req.identification.userId,

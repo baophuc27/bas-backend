@@ -7,8 +7,8 @@ const DEFAULT_PASSWORD = 'bas123456';
 // Define specific role IDs, with 8 assigned to ADMIN
 const roleMap = {
   [SystemRole.ADMIN]: 8,
-  [SystemRole.CONFIGURE]: 2,
-  [SystemRole.VIEW]: 3,
+  [SystemRole.CONFIGURE]: 9,
+  [SystemRole.VIEW]: 10,
 };
 
 const createDefaultAuth = async () => {
@@ -46,9 +46,24 @@ const createDefaultAuth = async () => {
 };
 
 const createDefaultHarbor = async () => {
-  if ((await Harbor.count()) > 0) return;
-  await Harbor.create(harborDefault);
-  console.log('Created default harbor');
+  // Lấy danh sách các orgId từ bảng User
+  const orgIds = await User.findAll({
+    attributes: ['orgId'],
+    group: ['orgId'], // Đảm bảo không trùng lặp orgId
+  }).then((users) => users.map((user) => user.orgId));
+
+  for (const orgId of orgIds) {
+    // Kiểm tra nếu Harbor đã tồn tại cho orgId
+    const existingHarbor = await Harbor.findOne({ where: { orgId } });
+    if (!existingHarbor) {
+      await Harbor.create({
+        ...harborDefault, // Thông tin mặc định
+        orgId, // Gắn orgId
+        name: `Harbor for orgId ${orgId}`, // Tên mặc định theo orgId
+      });
+      console.log(`Created default harbor for orgId: ${orgId}`);
+    }
+  }
 };
 
 const createDefaultDevice = async () => {

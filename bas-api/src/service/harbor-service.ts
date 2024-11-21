@@ -1,14 +1,14 @@
 import { harborDao } from '@bas/database/dao';
-import { BerthFilter } from './typing';
-import { HarborDetailDto } from '@bas/database/dto/response/harbor-detail-dto';
 import NotFoundException from '@bas/api/errors/not-found-exception';
+import { HarborDetailDto } from '@bas/database/dto/response/harbor-detail-dto';
 import { internalErrorCode } from '@bas/constant';
 
-export const getHarborInfo = async (filter: BerthFilter) => {
-  const harbor = await harborDao.getHarborInfo();
+export const getHarborInfo = async (orgId: number) => {
+  const harbor = await harborDao.getHarborInfo(orgId);
   if (!harbor) {
     throw new NotFoundException('Harbor not found', internalErrorCode.RESOURCE_NOT_FOUND);
   }
+
   const data: HarborDetailDto = {
     name: harbor.name,
     nameEn: harbor.nameEn,
@@ -18,9 +18,8 @@ export const getHarborInfo = async (filter: BerthFilter) => {
     weatherWidgetDashboardUrl: harbor.weatherWidgetDashboardUrl,
   };
   return data;
-}
+};
 
-
-export const configuration = async (body: any) => {
-  return (await harborDao.configuration(body))[1][0];
-}
+export const configuration = async (orgId: number, body: any) => {
+  return (await harborDao.configuration(orgId, body))[1][0];
+};

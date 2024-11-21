@@ -16,8 +16,8 @@ import {
 import { createDefaultAuth, createDefaultDevice, createDefaultHarbor } from './default-data';
 import RecordHistory from '../models/record-history-model';
 
-const ALTER = false;
-const FORCE = false;
+const ALTER = true;
+const FORCE = true;
 
 const initDb = async () => {
   await Harbor.sync({ alter: ALTER, force: FORCE }).then(createDefaultHarbor);

@@ -14,12 +14,13 @@ interface AlarmAttributes {
   side?: number | null;
   zone?: number | null;
   sensorId?: number | null;
-
+  orgId: number;
   record?: Record;
   sensor?: Sensor;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
+
 }
 
 export interface AlarmInput extends Optional<AlarmAttributes, 'id'> {
@@ -28,9 +29,7 @@ export interface AlarmInput extends Optional<AlarmAttributes, 'id'> {
 export interface AlarmOutput extends Required<AlarmAttributes> {
 }
 
-class Alarm
-  extends Model<AlarmAttributes, AlarmInput>
-  implements AlarmAttributes {
+class Alarm extends Model<AlarmAttributes, AlarmInput> implements AlarmAttributes {
   public id!: number;
   public recordId!: number;
   public endTime?: Date | null;
@@ -42,7 +41,8 @@ class Alarm
   public value?: number | null;
   public zone?: number | null;
   public sensor?: Sensor;
-  public record ?: Record;
+  public record?: Record;
+  public orgId!: number; // Thêm trường orgId
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -54,44 +54,49 @@ Alarm.init(
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
     },
     recordId: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
     },
     startTime: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
     },
     zone: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
     },
     value: {
       type: DataTypes.FLOAT,
-      allowNull: false
+      allowNull: false,
     },
     endTime: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
     },
     alarm: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
     },
     sensorId: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
     },
     side: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: true,
     },
     type: {
       type: DataTypes.STRING,
-      allowNull: false
-    }
+      allowNull: false,
+    },
+    orgId: {
+      // Cấu hình orgId
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
   },
   {
     timestamps: true,
@@ -102,9 +107,9 @@ Alarm.init(
     hooks: {},
     indexes: [
       {
-        fields: ['startTime']
-      }
-    ]
+        fields: ['startTime'],
+      },
+    ],
   }
 );
 

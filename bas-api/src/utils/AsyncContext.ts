@@ -1,11 +1,13 @@
+// AsyncContext.ts
+
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 export interface RequestContext {
   orgId: number;
   userId: string;
   roleId: number;
-  permissions: string[];
-  fullName: string;
+  permissions?: string[];
+  fullName?: string;
 }
 
 const asyncLocalStorage = new AsyncLocalStorage<RequestContext>();
@@ -22,8 +24,11 @@ export const AsyncContext = {
     console.log('[AsyncContext] Setting context:', context);
     asyncLocalStorage.enterWith(context);
   },
-  run(context: RequestContext, callback: () => void) {
+  run<T>(context: RequestContext, callback: (...args: any[]) => T): T {
     console.log('[AsyncContext] Running context:', context);
-    asyncLocalStorage.run(context, callback);
+    return asyncLocalStorage.run(context, callback);
+  },
+  getStore(context: RequestContext): RequestContext | undefined {
+    return asyncLocalStorage.getStore();
   },
 };

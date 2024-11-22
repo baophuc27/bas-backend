@@ -192,8 +192,8 @@ const updateMyInformation = async (req: Request, res: Response, next: NextFuncti
 
 const getSocketToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId,  roleId } = req.identification;
-    const token = userService.generateAccessTokenForSocket(userId, roleId);
+    const { userId,  roleId, orgId } = req.identification;
+    const token = userService.generateAccessTokenForSocket(userId, roleId, orgId);
     return res.success({ accessToken: token }, 'Get socket token successfully');
   } catch (error: any) {
     trace(getSocketToken.name);

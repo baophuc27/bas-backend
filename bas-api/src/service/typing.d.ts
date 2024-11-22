@@ -29,7 +29,8 @@ type userDataPayload = {
 };
 
 export interface AuthSocket extends Socket {
-  auth?: userDataPayload;
+  auth?: userDataPayload | TokenData;
+  context?: RequestContext;
 }
 
 export interface PortEventSocketEndSession {
@@ -54,6 +55,7 @@ export interface PortEventSocketDeviceError {
 type TokenData = {
   userId: string;
   roleId: number;
+  orgId: number;
 };
 
 export interface BerthFilter extends BaseQueryParams {

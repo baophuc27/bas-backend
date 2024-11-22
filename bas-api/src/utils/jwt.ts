@@ -55,8 +55,9 @@ export const generateJwt = (user: User) => {
   );
 };
 
-export const generateJwtSocket = (userId: string, roleId: number) => {
-  return sign({ userId, roleId }, SECRET_KEY, {
+export const generateJwtSocket = (userId: string, roleId: number, orgId: number) => {
+  return sign({ userId, roleId, orgId }, SECRET_KEY, {
     expiresIn: SOCKET_EXPIRES,
   });
 };
+

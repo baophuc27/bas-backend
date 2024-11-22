@@ -13,7 +13,7 @@ interface AlarmSettingAttributes {
   statusId: number;
   message?: string | null;
   defaultValue?: number | null;
-
+  orgId: number;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
@@ -35,7 +35,8 @@ class AlarmSetting
   public value!: number | null;
   public message!: string | null;
   public defaultValue!: number | null;
-  public statusId!: number; // 1: operator, 2:Warning, 3: Emergency
+  public statusId!: number;
+  public orgId!: number; // Thêm trường orgId
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -84,6 +85,10 @@ AlarmSetting.init(
     message: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    orgId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
   },
   {

@@ -5,12 +5,22 @@ import moment from 'moment';
 import { recordHistoryDao } from './index';
 import { DEFAULT_AMOUNT, DEFAULT_PAGE } from '@bas/constant';
 import RecordHistory from '../models/record-history-model';
+import { AsyncContext } from '@bas/utils/AsyncContext';
+
+const addOrgIdToConditions = () => {
+  const context = AsyncContext.getContext();
+  if (!context?.orgId) {
+    throw new Error('[RecordDAO] orgId is missing in AsyncContext');
+  }
+  return { orgId: context.orgId };
+};
 
 const findAll = async (recordFilter: RecordFilter) => {
   const { berthId, amount, vesselId, mode, order, page, search } = recordFilter;
 
   let conditions: FindOptions = {
     where: {
+      ...addOrgIdToConditions(),
       endTime: {
         [Op.not]: null,
       },
@@ -58,8 +68,9 @@ const findAll = async (recordFilter: RecordFilter) => {
 };
 
 const remove = async (id: number) => {
+  const context = addOrgIdToConditions();
   await recordHistoryDao.removeAllByRecord(id);
-  return await Record.destroy({ where: { id }, force: true });
+  return await Record.destroy({ where: { id, ...context }, force: true });
 };
 
 const getCurrentRecord = async (berthId: number, t?: Transaction) => {
@@ -67,6 +78,7 @@ const getCurrentRecord = async (berthId: number, t?: Transaction) => {
     where: {
       berthId,
       endTime: null,
+      ...addOrgIdToConditions(),
     },
     include: [
       {
@@ -95,7 +107,7 @@ const getCurrentRecord = async (berthId: number, t?: Transaction) => {
 };
 
 const createRecord = async (data: any, t?: Transaction) => {
-  return Record.create(data, { ...(t && { transaction: t }) });
+  return Record.create({ ...data, ...addOrgIdToConditions() }, { ...(t && { transaction: t }) });
 };
 
 const endRecord = async (recordId: number, t?: Transaction) => {
@@ -104,6 +116,7 @@ const endRecord = async (recordId: number, t?: Transaction) => {
     {
       where: {
         id: recordId,
+        ...addOrgIdToConditions(),
       },
       ...(t && { transaction: t }),
     }
@@ -111,7 +124,9 @@ const endRecord = async (recordId: number, t?: Transaction) => {
 };
 
 const getRecordById = async (recordId: number) => {
-  return Record.findByPk(recordId);
+  return Record.findOne({
+    where: { id: recordId, ...addOrgIdToConditions() },
+  });
 };
 
 const getRecordByIdAndNotEnd = async (recordId: number) => {
@@ -119,6 +134,7 @@ const getRecordByIdAndNotEnd = async (recordId: number) => {
     where: {
       id: recordId,
       endTime: null,
+      ...addOrgIdToConditions(),
     },
   });
 };
@@ -170,7 +186,7 @@ const getRecordHistoryByRecordId = async (
         paranoid: false,
       },
     ],
-    where: { id: recordId },
+    where: { id: recordId, ...addOrgIdToConditions() },
     logging: true,
   });
 
@@ -190,7 +206,7 @@ const getRecordHistoryByRecordId = async (
 
 const getAggregatesByRecordId = async (recordId: number) => {
   const record = await Record.findOne({
-    where: { id: recordId },
+    where: { id: recordId, ...addOrgIdToConditions() },
   });
   let aggregates;
   if (record) {
@@ -244,7 +260,7 @@ const findAllWithoutPagination = async (recordId: number) => {
         paranoid: false,
       },
     ],
-    where: { id: recordId },
+    where: { id: recordId, ...addOrgIdToConditions() },
     logging: true,
   });
 
@@ -261,7 +277,7 @@ const findAllWithoutPagination = async (recordId: number) => {
 
 const getChartByRecordId = async (recordId: number) => {
   const record = await Record.findOne({
-    where: { id: recordId },
+    where: { id: recordId, ...addOrgIdToConditions() },
   });
 
   let chart;
@@ -278,11 +294,11 @@ const findLatestRecord = async (berthId: number, startTime: Date, endTime: Date)
   const time = moment().utc().subtract(24, 'hours').toDate();
   const start = moment(startTime).utc().toDate();
   const end = moment(endTime).utc().toDate();
-  // find record have start time or end time between start and end time
 
   return await Record.findAll({
     where: {
       berthId,
+      ...addOrgIdToConditions(),
       [Op.or]: [
         {
           endTime: null,
@@ -347,6 +363,7 @@ const findRecordByIds = async (recordIds: number[]) => {
       id: {
         [Op.in]: recordIds,
       },
+      ...addOrgIdToConditions(),
     },
   });
 };
@@ -357,6 +374,7 @@ const updateStatus = async (recordId: number, status: string, t?: Transaction) =
     {
       where: {
         id: recordId,
+        ...addOrgIdToConditions(),
       },
       ...(t && { transaction: t }),
     }

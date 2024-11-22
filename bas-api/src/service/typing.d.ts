@@ -7,6 +7,7 @@ export interface BaseQueryParams {
   mode?: 'ASC' | 'DESC';
   amount?: number;
   page?: number;
+  orgId?: number;
 }
 
 export interface UserUpdatePayload {
@@ -28,7 +29,8 @@ type userDataPayload = {
 };
 
 export interface AuthSocket extends Socket {
-  auth?: userDataPayload;
+  auth?: userDataPayload | TokenData;
+  context?: RequestContext;
 }
 
 export interface PortEventSocketEndSession {
@@ -53,6 +55,7 @@ export interface PortEventSocketDeviceError {
 type TokenData = {
   userId: string;
   roleId: number;
+  orgId: number;
 };
 
 export interface BerthFilter extends BaseQueryParams {
@@ -61,6 +64,7 @@ export interface BerthFilter extends BaseQueryParams {
   vesselId?: number;
   page?: number | null | undefined;
   amount?: number | null | undefined;
+  orgId?: number;
 }
 
 export interface RecordFilter extends BaseQueryParams {

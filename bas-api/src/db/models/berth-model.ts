@@ -3,30 +3,30 @@ import sequelizeConnection from '../connection';
 import { Sensor, User, Vessel } from './index';
 
 interface BerthAttributes {
-  id : number;
+  id: number;
+  orgId: number;
   name: string;
   nameEn: string;
   description: string;
-  status ?: number;
-  shape ?: string;
-  directionCompass ?: number;
-  limitZone1 ?: number;
-  limitZone2 ?: number;
-  limitZone3 ?: number;
-  vesselId ?: number;
-  distanceFender ?: number;
-  distanceDevice ?: number;
-  modifiedBy ?: string;
-  vesselDirection ?: boolean;
+  status?: number;
+  shape?: string;
+  directionCompass?: number;
+  limitZone1?: number;
+  limitZone2?: number;
+  limitZone3?: number;
+  vesselId?: number;
+  distanceFender?: number;
+  distanceDevice?: number;
+  modifiedBy?: string;
+  vesselDirection?: boolean;
 
-  leftDeviceId ?: number;
-  rightDeviceId ?: number;
-  distanceToLeft ?: number;
-  distanceToRight ?: number;
+  leftDeviceId?: number;
+  rightDeviceId?: number;
+  distanceToLeft?: number;
+  distanceToRight?: number;
 
-  leftDevice ?: Sensor;
-  rightDevice ?: Sensor;
-
+  leftDevice?: Sensor;
+  rightDevice?: Sensor;
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -38,30 +38,31 @@ export interface BerthOutput extends Required<BerthAttributes> {}
 
 class Berth extends Model<BerthAttributes, BerthInput> implements BerthAttributes {
   public id!: number;
+  public orgId!: number;
   public name!: string;
   public nameEn!: string;
   public description!: string;
   public status?: number;
   public shape?: string;
-  public limitZone1 ?: number;
-  public limitZone2 ?: number;
-  public limitZone3 ?: number;
-  public vesselId ?: number;
+  public limitZone1?: number;
+  public limitZone2?: number;
+  public limitZone3?: number;
+  public vesselId?: number;
 
-  public directionCompass ?: number;
-  public distanceFender ?: number;
-  public distanceDevice ?: number;
-  public vesselDirection ?: boolean;
-  public distanceToLeft ?: number;
-  public distanceToRight ?: number;
+  public directionCompass?: number;
+  public distanceFender?: number;
+  public distanceDevice?: number;
+  public vesselDirection?: boolean;
+  public distanceToLeft?: number;
+  public distanceToRight?: number;
 
-  public leftDeviceId ?: number;
-  public rightDeviceId ?: number;
+  public leftDeviceId?: number;
+  public rightDeviceId?: number;
 
-  public leftDevice ?: Sensor;
-  public rightDevice ?: Sensor;
+  public leftDevice?: Sensor;
+  public rightDevice?: Sensor;
 
-  public modifiedBy ?: string;
+  public modifiedBy?: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -73,7 +74,11 @@ Berth.init(
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
-      primaryKey: true
+      primaryKey: true,
+    },
+    orgId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     name: {
       type: DataTypes.STRING,
@@ -155,21 +160,60 @@ Berth.init(
     paranoid: true,
     tableName: 'Berth',
     schema: 'bas',
+    hooks: {
+      beforeCreate: (berth: Berth, options: any) => {
+        if (!berth.orgId) {
+          if (options.user?.orgId) {
+            berth.orgId = options.user.orgId;
+          } else if (options.context?.orgId) {
+            berth.orgId = options.context.orgId;
+          }
+        }
+      },
+      beforeBulkCreate: (berths: Berth[], options: any) => {
+        berths.forEach((berth) => {
+          if (!berth.orgId) {
+            if (options.user?.orgId) {
+              berth.orgId = options.user.orgId;
+            } else if (options.context?.orgId) {
+              berth.orgId = options.context.orgId;
+            }
+          }
+        });
+      },
+      beforeFind: (options: any) => {
+        if (!options.where) options.where = {};
+        if (options.context?.orgId) {
+          options.where['orgId'] = options.context.orgId;
+        }
+      },
+      beforeUpdate: (options: any) => {
+        if (!options.where) options.where = {};
+        if (options.context?.orgId) {
+          options.where['orgId'] = options.context.orgId;
+        }
+      },
+    },
   }
 );
 
-
-Berth.belongsTo(Sensor, { foreignKey: 'leftDeviceId', as: 'leftDevice',  targetKey: 'id', constraints : false})
-Berth.belongsTo(Sensor, { foreignKey: 'rightDeviceId', as: 'rightDevice', targetKey: 'id' , constraints : false})
-Berth.belongsTo(Vessel, { foreignKey: 'vesselId', as: 'vessel', constraints : false})
-Berth.belongsTo(
-  User,
-  {
-    foreignKey: 'modifiedBy',
-    as: 'user',
-    constraints : false
-  }
-)
-
+Berth.belongsTo(Sensor, {
+  foreignKey: 'leftDeviceId',
+  as: 'leftDevice',
+  targetKey: 'id',
+  constraints: false,
+});
+Berth.belongsTo(Sensor, {
+  foreignKey: 'rightDeviceId',
+  as: 'rightDevice',
+  targetKey: 'id',
+  constraints: false,
+});
+Berth.belongsTo(Vessel, { foreignKey: 'vesselId', as: 'vessel', constraints: false });
+Berth.belongsTo(User, {
+  foreignKey: 'modifiedBy',
+  as: 'user',
+  constraints: false,
+});
 
 export default Berth;

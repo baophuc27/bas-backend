@@ -1,8 +1,14 @@
 import { Op, Transaction } from 'sequelize';
 import { AlarmSetting, Berth } from '../models';
 import { AlarmSettingUpdateDto } from '../dto/request/alarm-setting-update-dto';
+import { AsyncContext } from '@bas/utils/AsyncContext';
 
 const findSetting = async (conditions: object) => {
+  const context = AsyncContext.getContext();
+  if (!context) {
+    throw new Error('Context not found');
+  }
+
   const results = await AlarmSetting.findAll({
     include: [
       {
@@ -12,7 +18,7 @@ const findSetting = async (conditions: object) => {
         attributes: ['id', 'name'],
       },
     ],
-    where: { ...conditions },
+    where: { ...conditions, orgId: context.orgId },
     order: [
       ['alarmZone', 'asc'],
       ['id', 'asc'],
@@ -150,10 +156,16 @@ export const resetValueAlarmSetting = async (
   );
 };
 
-const createAlarmSetting = async (berthId: number,  alarmSettingDto: any, t?: Transaction) => {
+const createAlarmSetting = async (berthId: number, alarmSettingDto: any, t?: Transaction) => {
+  const context = AsyncContext.getContext();
+  if (!context) {
+    throw new Error('Context not found');
+  }
 
   return await AlarmSetting.create(
     {
+      orgId: context.orgId,
+      berthId,
       message: alarmSettingDto.message,
       alarmSensor: alarmSettingDto.alarmSensor,
       alarmType: alarmSettingDto.alarmType,
@@ -162,13 +174,12 @@ const createAlarmSetting = async (berthId: number,  alarmSettingDto: any, t?: Tr
       statusId: alarmSettingDto.statusId,
       value: alarmSettingDto.value,
       defaultValue: alarmSettingDto.defaultValue,
-      berthId,
     },
     {
       ...(t && { transaction: t }),
     }
   );
-}
+};
 
 export const findAlarmSettingByBerthIds = async (berthIds: number[]) => {
   return await AlarmSetting.findAll({
@@ -180,7 +191,6 @@ export const findAlarmSettingByBerthIds = async (berthIds: number[]) => {
   });
 };
 
-
 export {
   findSetting,
   updateSetting,
@@ -189,5 +199,5 @@ export {
   getPreviousRecord,
   findByBerthId,
   updateDefaultValue,
-  createAlarmSetting
+  createAlarmSetting,
 };

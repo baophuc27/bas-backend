@@ -74,8 +74,8 @@ const generateAccessToken = (user: User) => {
   return generateJwt(user);
 };
 
-const generateAccessTokenForSocket = (userId: string, roleId: number) => {
-  return generateJwtSocket(userId, roleId);
+const generateAccessTokenForSocket = (userId: string, roleId: number, orgId: number) => {
+  return generateJwtSocket(userId, roleId, orgId);
 };
 
 const generateRefreshToken = async (user: User, ipAddress: string, transaction?: any) => {

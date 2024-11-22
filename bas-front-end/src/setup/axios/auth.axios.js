@@ -22,56 +22,66 @@ export const setupAuthAxiosClient = (store) => {
     failedQueue = [];
   };
 
-  const refresh = async () => {
-    isRefreshing = true;
+ const refresh = async () => {
+   isRefreshing = true;
 
-    try {
-      const refreshLoginResp = await authAxiosClient.post(
-        `${process.env.REACT_APP_API_URL}/auth/refresh-login`,
-        {
-          refreshToken: store?.getState()?.user?.auth?.refreshToken,
-        },
-        {
-          withCredentials: true,
-        },
-      );
+   try {
+     const refreshLoginResp = await authAxiosClient.post(
+       `${process.env.REACT_APP_API_URL}/auth/refresh-login`,
+       {
+         refreshToken: store?.getState()?.user?.auth?.refreshToken,
+       },
+       {
+         withCredentials: true,
+       }
+     );
 
-      if (refreshLoginResp?.data?.success) {
-        const { data, refreshToken, token } = refreshLoginResp?.data;
+     if (refreshLoginResp?.data?.success) {
+       const { data, refreshToken, token } = refreshLoginResp?.data;
 
-        store.dispatch(
-          logIn({
-            auth: data,
-            isLoggedIn: true,
-            token: token,
-            refreshToken: refreshToken,
-            roleId: data?.roleId,
-          }),
-        );
+       // Cập nhật Redux store
+       store.dispatch(
+         logIn({
+           auth: data,
+           isLoggedIn: true,
+           token: token,
+           refreshToken: refreshToken,
+           roleId: data?.roleId,
+         })
+       );
 
-        processFailedQueue(token);
-        return token;
-      }
+       processFailedQueue(token);
+       return token;
+     }
 
-      return "";
-    } catch (error) {
-    } finally {
-      isRefreshing = false;
-    }
-    return "";
-  };
-
+     return "";
+   } catch (error) {
+     console.error("Error during token refresh:", error);
+     failedQueue = [];
+     store.dispatch(logOut()); // Xử lý logout nếu refresh thất bại
+   } finally {
+     isRefreshing = false;
+   }
+   return "";
+ };
   authAxiosClient.interceptors.request.use(
     (config) => {
-      if (!config.headers["Authorization"]) {
-        const accessToken = store?.getState()?.user?.auth?.token;
+      const accessToken = store?.getState()?.user?.auth?.token;
+      const orgId = store?.getState()?.organization?.id;
 
+      if (accessToken) {
         config.headers["Authorization"] = `Bearer ${accessToken}`;
+      }
+
+      if (orgId) {
+        config.headers["orgId"] = orgId; // Thêm orgId vào headers
+      } else {
+        console.warn("orgId is missing in request");
       }
 
       return config;
     },
-    (error) => Promise.reject(error),
+    (error) => Promise.reject(error)
   );
 
   authAxiosClient.interceptors.response.use(
@@ -100,6 +110,6 @@ export const setupAuthAxiosClient = (store) => {
         }
       }
       return Promise.reject(error);
-    },
+    }
   );
 };

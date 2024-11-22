@@ -1,15 +1,11 @@
-import { DB_NAME, DB_PASSWORD, DB_USERNAME, DB_PORT, DB_HOST } from '@bas/config';
+import { DB_NAME, DB_PASSWORD, DB_USERNAME, DB_PORT, DB_HOST, APP_NAME } from '@bas/config';
 import { Sequelize } from 'sequelize';
 
 const sequelizeConnection = new Sequelize(DB_NAME, DB_USERNAME, DB_PASSWORD, {
   host: DB_HOST,
   dialect: 'postgres',
   port: DB_PORT ? +DB_PORT : 5432,
-  logging: false,
-  define: {
-    charset: 'utf8mb4',
-    collate: 'Vietnamese_CI_AS',
-  },
+  logging: APP_NAME === 'local' ? console.log : false, // Chỉ log khi ở môi trường local
   pool: {
     max: 20,
     min: 0,
@@ -17,6 +13,9 @@ const sequelizeConnection = new Sequelize(DB_NAME, DB_USERNAME, DB_PASSWORD, {
     idle: 10000,
   },
   timezone: 'Asia/Ho_Chi_Minh',
+  dialectOptions: {
+    ssl: APP_NAME === 'prod' ? { require: true, rejectUnauthorized: false } : undefined, // SSL cho production
+  },
 });
 
 export default sequelizeConnection;

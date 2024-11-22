@@ -7,6 +7,8 @@ interface RecordHistoryAttributes {
   recordId: number;
   time: Date;
 
+  orgId: number; // Add this
+
   leftDistance?: number| null;
   leftSpeed?: number| null;
   rightDistance?: number| null;
@@ -45,6 +47,8 @@ class RecordHistory
   public id!: number;
   public recordId!: number;
   public time!: Date;
+
+  public orgId!: number; // Add this
 
   public leftSpeed?: number | null;
   public leftDistance?: number| null;
@@ -87,6 +91,10 @@ RecordHistory.init(
     },
     time: {
       type: DataTypes.DATE,
+      allowNull: false,
+    },
+    orgId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     angleZone: {
@@ -164,7 +172,13 @@ RecordHistory.init(
     paranoid: true,
     tableName: 'RecordHistory',
     schema: 'bas',
-    hooks: {},
+    hooks: {
+      beforeCreate: (recordHistory: any) => {
+        if (!recordHistory.orgId) {
+          throw new Error('orgId is required but missing in payload.');
+        }
+      }
+    },
     indexes: [
       {
         fields: ['time'],

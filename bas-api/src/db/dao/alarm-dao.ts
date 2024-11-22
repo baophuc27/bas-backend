@@ -5,6 +5,7 @@ import { AlarmQueryParams, createAlarmPayload } from '@bas/service/typing';
 import { alarmStatus } from '@bas/constant';
 import { sequelizeConnection } from '../index';
 import { InternalException } from '@bas/api/errors';
+import { AsyncContext } from '@bas/utils/AsyncContext';
 const SIDE = {
   LEFT: 1,
   RIGHT: 2,
@@ -17,8 +18,14 @@ export const getAlarmTypeLatest = async (
   side?: number | null,
   t?: Transaction
 ): Promise<any> => {
+  const context = AsyncContext.getContext();
+  if (!context) {
+    throw new Error('Context not found');
+  }
+
   const alarmTypeSameLatest = await Alarm.findOne({
     where: {
+      orgId: context.orgId,
       type,
       alarm,
       side,
@@ -44,8 +51,14 @@ export const doneAlarmTypeLatest = async (
   side?: number | null,
   t?: Transaction
 ): Promise<any> => {
+  const context = AsyncContext.getContext();
+  if (!context) {
+    throw new Error('Context not found');
+  }
+
   const alarmTypeSameLatest = await Alarm.findOne({
     where: {
+      orgId: context.orgId,
       type,
       side,
       endTime: null,
@@ -73,6 +86,11 @@ export const createRecordAlarm = async (
   t?: Transaction
 ): Promise<any> => {
   try {
+    const context = AsyncContext.getContext();
+    if (!context) {
+      throw new Error('Context not found');
+    }
+
     const recordHistoryItem = await getAlarmTypeLatest(
       recordAlarm.recordId,
       recordAlarm.type,
@@ -88,6 +106,7 @@ export const createRecordAlarm = async (
 
     return await Alarm.create(
       {
+        orgId: context.orgId,
         startTime: new Date(),
         recordId: recordAlarm.recordId,
         value: recordAlarm.value,
@@ -207,9 +226,15 @@ export const createAlarmFromDataPoint = async (
 };
 
 export const getAlarmById = async (id: number) => {
+  const context = AsyncContext.getContext();
+  if (!context) {
+    throw new Error('Context not found');
+  }
+
   return await Alarm.findOne({
     where: {
       id,
+      orgId: context.orgId,
     },
   });
 };

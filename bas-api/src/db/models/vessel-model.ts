@@ -4,6 +4,7 @@ import sequelizeConnection from '../connection';
 
 interface VesselAttributes {
   id : number;
+  orgId: number;
   code: string
   name: string;
   nameEn: string;
@@ -41,6 +42,7 @@ export interface VesselOutput extends Required<VesselAttributes> {}
 
 class Vessel extends Model<VesselAttributes, VesselInput> implements VesselAttributes {
   public id!: number;
+  public orgId!: number;
   public code!: string
   public name!: string;
   public nameEn!: string;
@@ -79,6 +81,10 @@ Vessel.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+    },
+    orgId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     code: {
       type: DataTypes.STRING,
@@ -188,6 +194,13 @@ Vessel.init(
     paranoid: true,
     tableName: 'Vessel',
     schema: 'bas',
+    hooks: {
+      beforeCreate: (vessel: any) => {
+        if (!vessel.orgId) {
+          throw new Error('orgId is required but missing in payload.');
+        }
+      }
+    }
   }
 );
 

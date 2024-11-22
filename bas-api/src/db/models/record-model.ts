@@ -6,6 +6,7 @@ import RecordHistory from './record-history-model';
 
 interface RecordAttributes {
   id: number;
+  orgId: number; // Add this
   berthId: number;
   vesselId: number;
   sessionId: string;
@@ -42,6 +43,7 @@ export interface RecordOutput extends Required<RecordAttributes> {}
 
 class Record extends Model<RecordAttributes, RecordInput> implements RecordAttributes {
   public id!: number;
+  public orgId!: number; // Add this
   public berthId!: number;
   public vesselId!: number;
   public sessionId!: string;
@@ -78,6 +80,10 @@ Record.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+    },
+    orgId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     berthId: {
       type: DataTypes.INTEGER,
@@ -161,7 +167,13 @@ Record.init(
     paranoid: true,
     tableName: 'Record',
     schema: 'bas',
-    hooks: {},
+    hooks: {
+      beforeCreate: (record: any) => {
+        if (!record.orgId) {
+          throw new Error('orgId is required but missing in payload.');
+        }
+      }
+    }
   }
 );
 

@@ -15,11 +15,15 @@ import {
 } from '../models';
 import { createDefaultAuth, createDefaultDevice, createDefaultHarbor } from './default-data';
 import RecordHistory from '../models/record-history-model';
+import { migrateUp } from '../migrate'; // Thêm module migrate
 
 const ALTER = false;
 const FORCE = false;
 
 const initDb = async () => {
+  // Chạy migration tự động trước khi đồng bộ
+  // Gọi hàm migrateUp để chạy tất cả các migration
+
   await Harbor.sync({ alter: ALTER, force: FORCE }).then(createDefaultHarbor);
   await Sensor.sync({ alter: ALTER, force: FORCE }).then(createDefaultDevice);
   await Role.sync({ alter: ALTER, force: FORCE });
@@ -32,6 +36,7 @@ const initDb = async () => {
   await Record.sync({ alter: ALTER, force: FORCE });
   await AlarmSetting.sync({ alter: ALTER, force: FORCE });
   await Alarm.sync({ alter: ALTER, force: FORCE });
+  // await migrateUp();
 };
 
 const syncDb = async (sequelizeConnection: Sequelize, dbName: string, withInitialData: boolean) => {

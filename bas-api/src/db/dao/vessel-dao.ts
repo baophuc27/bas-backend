@@ -2,9 +2,20 @@ import { Vessel } from '../models';
 import { Op, Transaction } from 'sequelize';
 import { AsyncContext } from '@bas/utils/AsyncContext';
 
+const addOrgIdToConditions = () => {
+  const context = AsyncContext.getContext();
+  if (!context?.orgId) {
+    throw new Error('[VesselDAO] orgId is missing in AsyncContext');
+  }
+  return { orgId: context.orgId };
+};
+
 export const getVessels = async (params: any) => {
+  const orgCondition = addOrgIdToConditions();
+
   return Vessel.findAll({
     where: {
+      ...orgCondition,
       ...(params?.search && {
         [Op.or]: [
           { name: { [Op.iLike]: `%${params.search}%` } },
@@ -23,9 +34,12 @@ export const getVessels = async (params: any) => {
 };
 
 export const getVesselById = async (vesselId: number) => {
+  const orgCondition = addOrgIdToConditions();
+
   return Vessel.findOne({
     where: {
       id: vesselId,
+      ...orgCondition,
     },
   });
 };
@@ -33,9 +47,10 @@ export const getVesselById = async (vesselId: number) => {
 export const upsertVessel = async (payload: any, t?: Transaction) => {
   console.log(payload);
   const context = AsyncContext.getContext();
-  if (context && context.orgId !== undefined) {
-    payload.orgId = context.orgId;
+  if (!context?.orgId) {
+    throw new Error('[VesselDAO] orgId is missing in AsyncContext');
   }
+  payload.orgId = context.orgId;
 
   return Vessel.upsert(
     {
@@ -54,9 +69,12 @@ export const upsertVessel = async (payload: any, t?: Transaction) => {
 };
 
 export const createVessel = async (payload: any, t: Transaction) => {
+  const orgCondition = addOrgIdToConditions();
+
   return Vessel.create(
     {
       ...payload,
+      orgId: orgCondition.orgId,
       nameEn: payload.name,
       description: payload.description || '',
     },
@@ -67,6 +85,8 @@ export const createVessel = async (payload: any, t: Transaction) => {
 };
 
 export const updateVessel = async (vesselId: number | undefined, payload: any, t: Transaction) => {
+  const orgCondition = addOrgIdToConditions();
+
   return Vessel.update(
     {
       ...payload,
@@ -76,6 +96,7 @@ export const updateVessel = async (vesselId: number | undefined, payload: any, t
     {
       where: {
         id: vesselId,
+        ...orgCondition,
       },
       transaction: t,
       returning: true,

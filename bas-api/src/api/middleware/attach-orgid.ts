@@ -34,6 +34,7 @@ export const attachOrgId = (req: Request, res: Response, next: NextFunction) => 
       AsyncContext.setContext(context);
     }
 
+
     console.log(`[attachOrgId] orgId attached: ${req.orgId}`);
     next();
   } catch (error) {

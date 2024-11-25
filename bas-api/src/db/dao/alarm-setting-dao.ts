@@ -3,22 +3,30 @@ import { AlarmSetting, Berth } from '../models';
 import { AlarmSettingUpdateDto } from '../dto/request/alarm-setting-update-dto';
 import { AsyncContext } from '@bas/utils/AsyncContext';
 
-const findSetting = async (conditions: object) => {
+const addOrgIdToConditions = () => {
   const context = AsyncContext.getContext();
-  if (!context) {
-    throw new Error('Context not found');
+  if (!context?.orgId) {
+    console.warn('[ALARM-SETTING] No orgId found in context.');
+    // throw new Error('orgId is required but not found in context');
+    return { orgId: 0 };
   }
+  return { orgId: context.orgId };
+};
 
+const orgCondition = addOrgIdToConditions();
+
+const findSetting = async (conditions: object) => {
+  const orgCondition = addOrgIdToConditions(); // Lấy orgId từ AsyncContext
   const results = await AlarmSetting.findAll({
     include: [
       {
         model: Berth,
         required: true,
         as: 'berth',
-        attributes: ['id', 'name'],
+        attributes: ['id', 'name', 'orgId'],
       },
     ],
-    where: { ...conditions, orgId: context.orgId },
+    where: { ...conditions, ...orgCondition },
     order: [
       ['alarmZone', 'asc'],
       ['id', 'asc'],
@@ -29,6 +37,7 @@ const findSetting = async (conditions: object) => {
 };
 
 const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto, t?: Transaction) => {
+  const orgCondition = addOrgIdToConditions(); // Lấy orgId động
   let operator = undefined;
   if (alarmSettingDto.alarmType === 'distance') {
     operator = Number.isFinite(alarmSettingDto.value) ? '>=' : '>';
@@ -45,6 +54,7 @@ const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto, t?: Transac
     {
       where: {
         id: alarmSettingDto.id,
+        ...orgCondition,
       },
       ...(t && { transaction: t }),
       returning: true,
@@ -53,6 +63,7 @@ const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto, t?: Transac
 };
 
 const updateDefaultValue = async (defaultValue: number, berthId: number, t?: Transaction) => {
+  const orgCondition = addOrgIdToConditions();
   return await AlarmSetting.update(
     {
       defaultValue,
@@ -62,6 +73,7 @@ const updateDefaultValue = async (defaultValue: number, berthId: number, t?: Tra
         berthId,
         alarmType: 'distance',
         alarmZone: 'zone_1',
+        ...orgCondition,
       },
       ...(t && { transaction: t }),
       returning: true,
@@ -70,8 +82,12 @@ const updateDefaultValue = async (defaultValue: number, berthId: number, t?: Tra
 };
 
 const findByAllConditions = async (ids: number[]) => {
+  const orgCondition = addOrgIdToConditions();
   const results = await AlarmSetting.findAll({
-    where: { id: ids },
+    where: {
+      id: ids,
+      ...orgCondition,
+    },
     order: [
       ['alarmZone', 'asc'],
       ['id', 'asc'],
@@ -86,6 +102,7 @@ const getNextRecord = async (
   alarmSensor: string,
   alarmType: string
 ) => {
+  const orgCondition = addOrgIdToConditions();
   const result = await AlarmSetting.findOne({
     where: {
       id: {
@@ -94,6 +111,7 @@ const getNextRecord = async (
       alarmZone,
       alarmType,
       alarmSensor,
+      ...orgCondition,
     },
     order: [['id', 'ASC']],
   });
@@ -107,6 +125,7 @@ const getPreviousRecord = async (
   alarmSensor: string,
   alarmType: string
 ) => {
+  const orgCondition = addOrgIdToConditions();
   const result = await AlarmSetting.findOne({
     where: {
       id: {
@@ -115,6 +134,7 @@ const getPreviousRecord = async (
       alarmZone,
       alarmType,
       alarmSensor,
+      ...orgCondition,
     },
     order: [['id', 'DESC']],
   });
@@ -123,9 +143,11 @@ const getPreviousRecord = async (
 };
 
 const findByBerthId = async (berthId: number) => {
+  const orgCondition = addOrgIdToConditions();
   return await AlarmSetting.findAll({
     where: {
       berthId,
+      ...orgCondition,
     },
     order: [['id', 'DESC']],
   });
@@ -135,6 +157,7 @@ export const resetValueAlarmSetting = async (
   alarmSettingDto: AlarmSettingUpdateDto,
   t?: Transaction
 ) => {
+  const orgCondition = addOrgIdToConditions(); // Lấy orgId động
   return await AlarmSetting.update(
     {
       message: alarmSettingDto.message,
@@ -149,6 +172,7 @@ export const resetValueAlarmSetting = async (
     {
       where: {
         id: alarmSettingDto.id,
+        ...orgCondition,
       },
       ...(t && { transaction: t }),
       returning: true,
@@ -157,14 +181,10 @@ export const resetValueAlarmSetting = async (
 };
 
 const createAlarmSetting = async (berthId: number, alarmSettingDto: any, t?: Transaction) => {
-  const context = AsyncContext.getContext();
-  if (!context) {
-    throw new Error('Context not found');
-  }
-
+  const orgCondition = addOrgIdToConditions();
   return await AlarmSetting.create(
     {
-      orgId: context.orgId,
+      orgId: orgCondition.orgId,
       berthId,
       message: alarmSettingDto.message,
       alarmSensor: alarmSettingDto.alarmSensor,
@@ -187,6 +207,7 @@ export const findAlarmSettingByBerthIds = async (berthIds: number[]) => {
       berthId: {
         [Op.in]: berthIds,
       },
+      ...orgCondition,
     },
   });
 };

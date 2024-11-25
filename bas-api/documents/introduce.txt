@@ -40,20 +40,18 @@ Một số lỗi khi chạy docker-compose khi chạy redis run :
 ```
 APP_NAME='local' # local, dev, prod
 KAFKA_HOST='localhost:29092' # Địa chỉ của kafka
-APP_HOST='http://14.161.47.208:8000' # domain của backend
-PORT=8000 # port của backend
+APP_HOST='http://localhost:8008' # domain của backend
+PORT=8008 # port của backend
 
-DB_HOST="14.161.47.208" # Địa chỉ của database
-DB_PORT=55432 # port của database
+DB_HOST="192.168.12.26" # Địa chỉ của database
+DB_PORT=56432 # port của database
 DB_USERNAME='postgres' # username của database
 DB_PASSWORD='postgres' # password của database
 DB_NAME='bas_dev' # tên database
 
 SECRET_KEY='2QR8T0p-241837jdfs8uehnjasd' # secret key
 JWT_EXPIRES='1h' # thời gian hết hạn của token
-SOCKET_EXPIRES='1d' # thời gian hết hạn của socket token
-# 1 week
-REFRESH_TERM=604800000 # thời gian hết hạn của refresh token
+SOCKET_EXPIRES='1d' # thời gian hết hạn của socket
 
 CLOUD_HOST='http://localhost:9000' # domain của cloud
 ORGANIZATION_ID='1' # id của tổ chức
@@ -63,7 +61,11 @@ REDIS_HOST='localhost' # Địa chỉ của redis
 REDIS_PORT=6379 # port của redis
 REDIS_DB=0 # db của redis
 REDIS_PASSWORD='123456' # password của redis
-```
+
+VNEMISOFT_API='https://api.vnemisoft.com' # api của vnemisoft
+VNEMISOFT_API_KEY='c9cc1642db991c88f78b712764b04d4b7431b34b' # api key của vnemisoft
+
+
 
 4. Bảo mật:
 - Sử dụng JWT để xác thực người dùng và bảo mật API

@@ -7,6 +7,8 @@ import { attachOrgId } from '../middleware/attach-orgid';
 const API_KEY = 'U2FsdGVkX1+h+5sFHnOBcJdFohfA7/lNm5TWcVeUGkc=';
 
 const router = express.Router();
+router.use(authorization);
+router.use(attachOrgId);
 router.get('/org-information', commonController.getOrgInformation);
 router.post(
   '/upload-logo',

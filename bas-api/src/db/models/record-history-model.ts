@@ -48,7 +48,7 @@ class RecordHistory
   public recordId!: number;
   public time!: Date;
 
-  public orgId!: number; // Add this
+  public orgId!: number;
 
   public leftSpeed?: number | null;
   public leftDistance?: number| null;

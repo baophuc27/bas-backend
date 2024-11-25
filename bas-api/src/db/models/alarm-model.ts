@@ -42,7 +42,7 @@ class Alarm extends Model<AlarmAttributes, AlarmInput> implements AlarmAttribute
   public zone?: number | null;
   public sensor?: Sensor;
   public record?: Record;
-  public orgId!: number; // Thêm trường orgId
+  public orgId!: number;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;

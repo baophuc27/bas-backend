@@ -36,7 +36,7 @@ class AlarmSetting
   public message!: string | null;
   public defaultValue!: number | null;
   public statusId!: number;
-  public orgId!: number; // Thêm trường orgId
+  public orgId!: number;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;

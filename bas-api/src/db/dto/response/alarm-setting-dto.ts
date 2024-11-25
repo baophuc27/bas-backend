@@ -12,6 +12,7 @@ export interface AlarmSettingDto {
     id: number;
     name: string;
   };
+  orgId: number;
 }
 
 export interface AlarmCondition {

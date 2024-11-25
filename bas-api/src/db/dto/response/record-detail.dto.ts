@@ -7,4 +7,5 @@ export interface RecordDetailDto {
   endTime: Date;
   mooringStatus: string;
   syncStatus: string;
+  orgId: number;
 }

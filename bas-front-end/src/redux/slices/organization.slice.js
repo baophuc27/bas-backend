@@ -30,7 +30,8 @@ export const organizationSlice = createSlice({
       }
 
       if (action?.payload?.logo) {
-        state["logo_url"] = action?.payload?.logo;
+        state["logo_url"] =
+          "https://api.vnemisoft.com/" + action?.payload?.logo;
       }
     },
   },

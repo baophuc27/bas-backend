@@ -1,5 +1,5 @@
 export const organizationDefault = {
-  name: ' hehehehe',
+  name: ' REECOTECH BAS SYSTEM',
   nameEn: 'REECOTECH BAS SYSTEM',
   address: 'Ho Chi Minh City, Vietnam',
   description: 'Reecotech Science and Technology Co., Ltd',

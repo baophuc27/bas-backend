@@ -137,6 +137,18 @@ const findUserByRole = async (role: string) => {
   return await userDao.findUserByRole(role);
 };
 
+const getOrgInformationUser = async (userId: string) => {
+  const user = await userDao.getOneUserById(userId);
+  if (!user) {
+    throw new BadRequestException('User not found');
+  }
+  return {
+    name: user.orgName,
+    logo: user.orgLogo,
+    // ...include other organization fields if needed...
+  };
+};
+
 export {
   deleteAccountById,
   getAllUsers,
@@ -151,4 +163,5 @@ export {
   updateUserInformation,
   generateAccessTokenForSocket,
   findUserByRole,
+  getOrgInformationUser,
 };

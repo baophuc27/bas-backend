@@ -6,7 +6,7 @@ export const AuthLayout = (props) => {
   return (
     <>
       <div className={classes.container}>
-        <PageHeader />
+        <PageHeader hideLogoAndName />
 
         <div className={classes.content}>
           <Outlet />

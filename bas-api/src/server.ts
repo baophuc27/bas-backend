@@ -8,8 +8,8 @@ import * as http from 'http';
 import { Server } from 'socket.io';
 
 import app from './app';
-import { queueService, realtimeService } from '@bas/service';
-
+import { realtimeService } from '@bas/service';
+import { handleQueue } from '@bas/service/queue-service';
 const result = dotenv.config({
   path: '.env',
 });
@@ -33,8 +33,18 @@ const io = new Server(httpServer, {
 
 sequelizeConnection
   .authenticate()
-  .then(async () => await SequelizeInitial.syncDb(sequelizeConnection, DB_NAME, INIT_DEFAULT_DATA))
-  .then(() => queueService.initQueue())
+  .then(async () => {
+    await SequelizeInitial.syncDb(sequelizeConnection, DB_NAME, INIT_DEFAULT_DATA);
+    logInfo('Database connected and synchronized.');
+
+    // Đăng ký handler cho các queue
+    await handleQueue('example-queue', async (data) => {
+      logInfo(`Processing data from example-queue: ${JSON.stringify(data)}`);
+      // Logic xử lý tại đây
+    });
+
+    logInfo('Queue handlers registered successfully.');
+  })
   .then(() => realtimeService.init(io))
   .catch((error) => {
     logError(`Unable to connect to SQL database: ${DB_NAME}`);

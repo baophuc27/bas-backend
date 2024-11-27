@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  id: null, // Thêm orgId vào state
   name_vi: "",
   name_en: "",
   address: "",
@@ -14,15 +13,12 @@ export const organizationSlice = createSlice({
   initialState,
   reducers: {
     setOrganizationData: (state, action) => {
-      if (action?.payload?.id) {
-        state["id"] = action?.payload?.id; // Lưu orgId
-      }
       if (action?.payload?.name) {
         state["name_vi"] = action?.payload?.name;
       }
 
       if (action?.payload?.nameEn) {
-        state["name_en"] = action?.payload?.nameEn || action?.payload?.name;
+        state["name_en"] = action?.payload?.nameEn;
       }
 
       if (action?.payload?.address) {
@@ -40,6 +36,6 @@ export const organizationSlice = createSlice({
   },
 });
 
-export const { setOrganizationData } = organizationSlice.actions;
+export const { setOrganizationData, resetState } = organizationSlice.actions;
 
 export default organizationSlice.reducer;

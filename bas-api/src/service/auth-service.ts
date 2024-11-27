@@ -2,8 +2,7 @@ import { BadRequestException } from '@bas/exceptions';
 import { dataAppService, userService } from '@bas/service';
 import { userDao } from '@bas/database/dao';
 import { getUserPermissions } from './permission-services';
-import { getSystemPermissionsFromRoles } from './permission-services';
-import { CLOUD_PERMISSION } from '@bas/constant';
+import { saveToCache } from '@bas/utils/cache';
 
 export const login = async (
   username: string,
@@ -17,6 +16,7 @@ export const login = async (
     const data = await dataAppService.callLoginFunction(username, password);
     console.log('data from callLoginFunction');
     console.log(data);
+
     if (!data) {
       throw new BadRequestException('Invalid username or password');
     }
@@ -37,14 +37,17 @@ export const login = async (
       orgName: data.user.organization.name,
       orgLogo: data.user.organization.url_logo,
     });
-    console.log('user mapped info');
-    console.log(user);
-    if (user === null) {
+
+    if (!user) {
       throw new BadRequestException('Invalid username or password');
     }
 
+    // Save the user data to cache using user.id as the key
+    saveToCache(data.user.organization.id.toString(), data, 3600);
+
     const token = userService.generateAccessToken(user);
     const refreshToken = await userService.generateRefreshToken(user, ipAddress);
+
     return {
       token: token,
       refreshToken: refreshToken.token,

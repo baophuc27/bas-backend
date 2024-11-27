@@ -3,5 +3,5 @@ export const harborDefault = {
   nameEn: '',
   address: '',
   description: 'Default Description',
-  orgId: null, // Chỉ định orgId sẽ được thêm khi tạo
+  orgId: null,
 };

@@ -20,6 +20,11 @@ export interface UserUpdatePayload {
   orgId?: number;
 }
 
+export interface OrgPayload {
+  orgName: string;
+  orgLogo: string;
+}
+
 export interface UserQueryParams extends BaseQueryParams {
   roleId?: number;
 }

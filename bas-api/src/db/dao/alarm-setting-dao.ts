@@ -16,7 +16,7 @@ const addOrgIdToConditions = () => {
 const orgCondition = addOrgIdToConditions();
 
 const findSetting = async (conditions: object) => {
-  const orgCondition = addOrgIdToConditions(); // Lấy orgId từ AsyncContext
+  const orgCondition = addOrgIdToConditions();
   const results = await AlarmSetting.findAll({
     include: [
       {

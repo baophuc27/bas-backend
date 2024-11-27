@@ -10,6 +10,18 @@ const API_PATH_VERSION = '/api';
 
 const app = express();
 
+import { connectRedis } from '@bas/utils/redis-client';
+
+(async () => {
+  try {
+    await connectRedis();
+    console.log('Redis client connected successfully.');
+  } catch (error) {
+    console.error('Failed to connect Redis:', error);
+  }
+})();
+
+
 app.use(
   cors({
     origin: true,

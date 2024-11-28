@@ -1,6 +1,7 @@
 import { harborDefault, SystemRole } from '../master-data';
 import { Account, Harbor, Role, Sensor, User } from '../models';
 import { deviceDefault } from '../master-data/device-default';
+import { getFromCache } from '@bas/utils/cache';
 
 const DEFAULT_PASSWORD = 'bas123456';
 
@@ -52,11 +53,15 @@ const createDefaultHarbor = async () => {
 
   for (const orgId of orgIds) {
     const existingHarbor = await Harbor.findOne({ where: { orgId } });
+    const cachedData = await getFromCache(orgId.toString());
+    const organization = cachedData.user.organization;
     if (!existingHarbor) {
       await Harbor.create({
-        ...harborDefault,
+        name: organization.nameVi,
+        nameEn: organization.name,
+        address: organization.address,
+        description: organization.description || harborDefault.description,
         orgId,
-        name: `Harbor for orgId ${orgId}`,
       });
       console.log(`Created default harbor for orgId: ${orgId}`);
     }

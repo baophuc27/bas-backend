@@ -25,7 +25,7 @@ const findOneByTokenAndIp = async (token: string, ipAddress?: string) => {
       {
         model: User,
         as: 'user',
-        attributes: ['id', 'roleId', 'orgId'],
+        attributes: ['id', 'roleId'],
       },
     ],
     logging: console.log,

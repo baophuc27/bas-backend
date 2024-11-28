@@ -45,7 +45,7 @@ export const LoginPage = (props) => {
             refreshToken: responseData?.refreshToken,
             roleId: userData?.roleId,
             permissions: userData?.permission,
-          })
+          }),
         );
       }
     } catch (error) {
@@ -65,7 +65,7 @@ export const LoginPage = (props) => {
     <Box className={classes.container}>
       <Box className={classes.header}>
         <img
-          src={"/images/reecotech-logo.png"}
+          src="https://api.vnemisoft.com/public/avatars/1674039885411.jpg"
           alt="Logo"
           className={classes.logo}
         />

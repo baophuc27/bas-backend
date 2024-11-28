@@ -1,5 +1,7 @@
 import { Harbor } from '@bas/database/models';
 import { NextFunction, Request, Response } from 'express';
+import { harborDefault } from '@bas/database/master-data';
+import { getFromCache } from '@bas/utils/cache';
 
 export const checkAndCreateHarbor = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -9,22 +11,26 @@ export const checkAndCreateHarbor = async (req: Request, res: Response, next: Ne
       console.warn('[checkAndCreateHarbor] Missing orgId in request');
       return res.status(400).json({ error: 'Missing orgId in request' });
     }
-
-    // Kiểm tra nếu Harbor đã tồn tại cho orgId
-    const harborExists = await Harbor.findOne({ where: { orgId } });
-    if (!harborExists) {
-      console.log(`[checkAndCreateHarbor] Creating default Harbor for orgId: ${orgId}`);
-      await Harbor.create({
-        orgId,
-        name: `Default Harbor for Org ${orgId}`,
-        nameEn: `Default Harbor for Org ${orgId}`,
-        address: 'Default Address',
-        description: 'Default Harbor Description',
-      });
-    }
+    const cachedData = await getFromCache(orgId.toString());
+    const organization = cachedData.user.organization;
+    console.log(`[checkAndCreateHarbor] Creating default Harbor for orgId: ${orgId}`);
+    await Harbor.update(
+      {
+        name: organization.nameVi || harborDefault.name,
+        nameEn: organization.name || harborDefault.nameEn,
+        address: organization.address || harborDefault.address,
+        description: organization.description || harborDefault.description,
+      },
+      {
+        where: { orgId },
+        returning: true,
+      }
+    );
+    console.log(`Created default harbor for orgId: ${orgId}`);
 
     next();
   } catch (error) {
+    1;
     console.error('[checkAndCreateHarbor] Error:', error);
     next(error);
   }

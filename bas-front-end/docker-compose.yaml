@@ -1,16 +1,22 @@
-version: "3"
-
 services:
   bas_frontend:
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 256M
     image: bas-fe-dev-test
     build:
       context: .
-      dockerfile: Dockerfile # Path to Dockerfile
+      dockerfile: Dockerfile
     ports:
-      - "3010:3000" # Port mapping from <host>:<container>
+      - "3010:3000"
     networks:
-      - bas-dev # Network name
-    restart: always # auto restart the container when server is down
+      - bas-dev
+    restart: no
 networks:
   bas-dev:
     driver: bridge

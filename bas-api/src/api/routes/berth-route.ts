@@ -4,12 +4,10 @@ import { berthController } from '@bas/api/controllers';
 import { configBerthValidator, updateBerthValidator } from '../validators/berth-validator';
 import { usePermissions } from '../middleware/use-permissions';
 import { SystemPermission } from '@bas/constant/system-permission';
-import { attachOrgId } from '@bas/api/middleware/attach-orgid';
 
 const router = express.Router();
 
 router.use(authorization);
-router.use(attachOrgId);
 router.post(
   '/:id/finish-session',
   usePermissions([SystemPermission.BERTH_DASHBOARD_EDIT]),

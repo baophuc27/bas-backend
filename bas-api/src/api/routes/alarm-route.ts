@@ -3,11 +3,9 @@ import { authorization } from '@bas/api/middleware/authorization';
 import express from 'express';
 import { usePermissions } from '../middleware/use-permissions';
 import { SystemPermission } from '@bas/constant/system-permission';
-import { attachOrgId } from '../middleware/attach-orgid';
 
 const router = express.Router();
 router.use(authorization);
-router.use(attachOrgId);
 router.get('/', usePermissions([SystemPermission.ALARM_MANAGEMENT_VIEW]), alarmController.findAll);
 router.get(
   '/export-data',

@@ -8,6 +8,7 @@ export const alarmSettingMapper = {
   alarmSensor: 'alarmSensor',
   alarmZone: 'alarmZone',
   defaultValue: 'defaultValue',
+  orgId: 'orgId',
   'berth.id': 'berth.id',
   'berth.name': 'berth.name',
 };

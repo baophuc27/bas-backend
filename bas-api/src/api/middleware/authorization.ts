@@ -62,7 +62,6 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
 
     console.log(`[Authorization] User authenticated: ${user.fullName} (orgId: ${user.orgId})`);
 
-    // Thiết lập Async Context cho yêu cầu hiện tại
     AsyncContext.run(
       {
         orgId: user.orgId,
@@ -72,7 +71,7 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
         fullName: user.fullName,
       },
       () => {
-        next(); // Chuyển tiếp yêu cầu sau khi thiết lập bối cảnh
+        next();
       }
     );
   } catch (error) {

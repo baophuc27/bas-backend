@@ -17,6 +17,7 @@ export const recordDetailMapper = {
   'berth.id': 'berth.id',
   'berth.name': 'berth.name',
   'berth.nameEn': 'berth.nameEn',
+  'berth.orgId': 'berth.orgId',
 };
 
 export const recordAggregateMapper = {
@@ -24,18 +25,18 @@ export const recordAggregateMapper = {
   minAngle: 'minAngle',
   avgAngle: 'avgAngle',
   maxLeftDistance: 'maxLeftDistance',
-  minLeftDistance: "minLeftDistance",
+  minLeftDistance: 'minLeftDistance',
   avgLeftDistance: 'avgLeftDistance',
   maxRightDistance: 'maxRightDistance',
-  minRightDistance: "minRightDistance",
+  minRightDistance: 'minRightDistance',
   avgRightDistance: 'avgRightDistance',
   maxLeftSpeed: 'maxLeftSpeed',
-  minLeftSpeed: "minLeftSpeed",
+  minLeftSpeed: 'minLeftSpeed',
   avgLeftSpeed: 'avgLeftSpeed',
   maxRightSpeed: 'maxRightSpeed',
-  minRightSpeed: "minRightSpeed",
-  avgRightSpeed: 'avgRightSpeed'
-}
+  minRightSpeed: 'minRightSpeed',
+  avgRightSpeed: 'avgRightSpeed',
+};
 
 export const recordCreateMapper = {
   ...recordDetailMapper,

@@ -265,7 +265,7 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
   const orgCondition = addOrgIdToConditions();
 
   const whereConditions: any = {
-    ...orgCondition, // Thêm orgId vào điều kiện
+    ...orgCondition,
   };
 
   if (berth) {
@@ -313,10 +313,10 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
     },
   ];
 
-  let orderConditions: any = [[order || 'id', mode?.toUpperCase() || 'DESC']];
+  let orderConditions: any = [[order ?? 'id', mode?.toUpperCase() ?? 'DESC']];
 
   if (order === 'sessionId') {
-    orderConditions = [[{ model: Record, as: 'record' }, order, mode?.toUpperCase() || 'DESC']];
+    orderConditions = [[{ model: Record, as: 'record' }, order, mode?.toUpperCase() ?? 'DESC']];
   }
 
   if (order === 'berth.nameEn') {
@@ -325,7 +325,7 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
         { model: Record, as: 'record' },
         { model: Berth, as: 'berth' },
         'nameEn',
-        mode?.toUpperCase() || 'DESC',
+        mode?.toUpperCase() ?? 'DESC',
       ],
     ];
   }
@@ -336,7 +336,7 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
         { model: Record, as: 'record' },
         { model: Berth, as: 'berth' },
         'name',
-        mode?.toUpperCase() || 'DESC',
+        mode?.toUpperCase() ?? 'DESC',
       ],
     ];
   }

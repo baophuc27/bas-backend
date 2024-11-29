@@ -4,8 +4,8 @@ import { NextFunction, Request, Response } from 'express';
 
 const getOne = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { orgId } = req;
-    const data = await harborService.getHarborInfo(orgId!);
+    const { orgId } = req.identification;
+    const data = await harborService.getHarborInfo(orgId);
     return res.success({ data });
   } catch (error: any) {
     trace(getOne.name);
@@ -15,8 +15,9 @@ const getOne = async (req: Request, res: Response, next: NextFunction) => {
 
 const configuration = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { orgId, body } = req;
-    const data = await harborService.configuration(orgId!, body);
+    const { body } = req;
+    const { orgId } = req.identification;
+    const data = await harborService.configuration(orgId, body);
     return res.success({ data });
   } catch (error: any) {
     trace(configuration.name);

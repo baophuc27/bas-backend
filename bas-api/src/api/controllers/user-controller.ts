@@ -6,19 +6,19 @@ import { getSystemRoleMassage, SystemRole } from '@bas/database/master-data/syst
 
 const getRoles = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const roles = Object.keys(SystemRole).map((key : string , index : number) => {
+    const roles = Object.keys(SystemRole).map((key: string, index: number) => {
       return {
-        id: index + 1,
+        id: index + 8,
         code: key,
-        ...getSystemRoleMassage(key)
+        ...getSystemRoleMassage(key),
       };
     });
-    return res.success({data : roles}, 'Get all roles successfully');
+    return res.success({ data: roles }, 'Get all roles successfully');
   } catch (error: any) {
     trace(getRoles.name);
     next(error);
   }
-}
+};
 
 const findAllUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -30,12 +30,12 @@ const findAllUser = async (req: Request, res: Response, next: NextFunction) => {
       amount: Number(amount || 0),
       mode: mode?.toString() === 'ASC' ? 'ASC' : 'DESC',
       order: order?.toString(),
-      roleId: roleId ? Number(roleId) : undefined
+      roleId: roleId ? Number(roleId) : undefined,
     });
 
     const response = {
       data: rows,
-      total: count
+      total: count,
     };
 
     return res.success(response, 'Get all users successfully');
@@ -149,7 +149,7 @@ const findMyInformation = async (req: Request, res: Response, next: NextFunction
     const data = await userService.getUserById(id);
     if (!data) throw new NotFound(`There's no data with id: ${id}`);
     const response = {
-      data: data
+      data: data,
     };
     return res.success(response, 'Get user successfully');
   } catch (error: any) {
@@ -192,8 +192,9 @@ const updateMyInformation = async (req: Request, res: Response, next: NextFuncti
 
 const getSocketToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { userId,  roleId, orgId } = req.identification;
+    const { userId, roleId, orgId } = req.identification;
     const token = userService.generateAccessTokenForSocket(userId, roleId, orgId);
+    console.log('Access token: ', token);
     return res.success({ accessToken: token }, 'Get socket token successfully');
   } catch (error: any) {
     trace(getSocketToken.name);
@@ -210,5 +211,5 @@ export default {
   updateMyInformation,
   findMyInformation,
   getSocketToken,
-  getRoles
+  getRoles,
 };

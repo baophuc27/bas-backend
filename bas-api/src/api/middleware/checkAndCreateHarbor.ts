@@ -5,7 +5,7 @@ import { getFromCache } from '@bas/utils/cache';
 
 export const checkAndCreateHarbor = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { orgId } = req;
+    const { orgId } = req.identification;
 
     if (!orgId) {
       console.warn('[checkAndCreateHarbor] Missing orgId in request');
@@ -14,12 +14,13 @@ export const checkAndCreateHarbor = async (req: Request, res: Response, next: Ne
     const cachedData = await getFromCache(orgId.toString());
     const organization = cachedData.user.organization;
     console.log(`[checkAndCreateHarbor] Creating default Harbor for orgId: ${orgId}`);
-    await Harbor.update(
+    await Harbor.create(
       {
         name: organization.nameVi || harborDefault.name,
         nameEn: organization.name || harborDefault.nameEn,
         address: organization.address || harborDefault.address,
         description: organization.description || harborDefault.description,
+        orgId: orgId,
       },
       {
         where: { orgId },

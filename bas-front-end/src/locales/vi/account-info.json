@@ -8,7 +8,11 @@
     "full-name": "Họ Và Tên",
     "phone-number": "Số Điện Thoại",
     "avatar-validate": "Kích thước ảnh tối đa là 1MB (.jpg, .jpeg, .png, .webp)",
-    "role": "Quyền"
+    "role": "Quyền",
+    "org-logo": "Organization Logo",
+    "role-name": "Quyền",
+    "permissions": "Quyền",
+    "org-id": "ID Tổ Chức"
   },
   "placeholder": {
     "phone-number": "Nhập Số Điện Thoại"

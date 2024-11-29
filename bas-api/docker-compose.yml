@@ -1,10 +1,17 @@
-version: '3.9'
 services:
-  bas_backend_test_test:
+  bas_backend_test:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.1'
+          memory: 256M
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: bas_backend_test_test
+    container_name: bas_backend_test
     network_mode: host
     command: ['/bin/bash', '-c', '/app/wait-for-it.sh ${KAFKA_HOST} && npm start']
     volumes:

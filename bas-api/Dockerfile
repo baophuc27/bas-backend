@@ -24,7 +24,8 @@ RUN apk add --no-cache bash
 # Copy package.json and package-lock.json to the container
 COPY package*.json ./
 
-
+# Copy nodemon.json to the container
+COPY nodemon.json ./
 
 # Install dependencies
 RUN npm install

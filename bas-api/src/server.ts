@@ -4,11 +4,11 @@ import { DB_NAME } from '@bas/config';
 import { sequelizeConnection, SequelizeInitial } from '@bas/database';
 import dotenv from 'dotenv';
 import * as http from 'http';
-
 import { Server } from 'socket.io';
-
 import app from './app';
-import { queueService, realtimeService } from '@bas/service';
+import { realtimeService } from '@bas/service';
+import { handleQueue } from '@bas/service/queue-service';
+import './swagger-config';
 
 const result = dotenv.config({
   path: '.env',
@@ -20,7 +20,7 @@ if (result.error) {
 
 console.log(result.parsed);
 
-const SERVER_PORT = process.env.PORT || 8000;
+const SERVER_PORT = process.env.PORT ?? 8008;
 const INIT_DEFAULT_DATA = true;
 
 const httpServer = http.createServer(app);
@@ -33,8 +33,16 @@ const io = new Server(httpServer, {
 
 sequelizeConnection
   .authenticate()
-  .then(async () => await SequelizeInitial.syncDb(sequelizeConnection, DB_NAME, INIT_DEFAULT_DATA))
-  .then(() => queueService.initQueue())
+  .then(async () => {
+    await SequelizeInitial.syncDb(sequelizeConnection, DB_NAME, INIT_DEFAULT_DATA);
+    logInfo('Database connected and synchronized.');
+
+    await handleQueue('example-queue', async (data) => {
+      logInfo(`Processing data from example-queue: ${JSON.stringify(data)}`);
+    });
+
+    logInfo('Queue handlers registered successfully.');
+  })
   .then(() => realtimeService.init(io))
   .catch((error) => {
     logError(`Unable to connect to SQL database: ${DB_NAME}`);

@@ -35,7 +35,8 @@ const realtimeMapper = {
   },
   "timestamp": "timestamp",
   "session_id": "sessionId",
-  "error_code" : "error_code"
+  "error_code" : "error_code",
+  "org_id": "orgId", 
 }
 
 export {

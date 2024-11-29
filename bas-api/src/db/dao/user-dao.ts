@@ -38,12 +38,13 @@ const getAllWithParams = async (params?: UserQueryParams) => {
           attributes: ['id', 'code'],
         },
       ],
-      limit: params?.amount || DEFAULT_AMOUNT,
-      offset: (params?.page || DEFAULT_PAGE) * (params?.amount || DEFAULT_AMOUNT),
-      order: [[params?.order || 'createdAt', params?.mode?.toUpperCase() || 'DESC']],
+      limit: params?.amount ?? DEFAULT_AMOUNT,
+      offset: (params?.page ?? DEFAULT_PAGE) * (params?.amount ?? DEFAULT_AMOUNT),
+      order: [[params?.order ?? 'createdAt', params?.mode?.toUpperCase() ?? 'DESC']],
       logging: true,
     });
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };
@@ -59,6 +60,24 @@ const getOneUserById = async (id: string) => {
       },
     });
   } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const getOrgByUserId = async (id: number) => {
+  try {
+    return await User.findOne({
+      where: {
+        id,
+        deletedAt: {
+          [Op.eq]: null,
+        },
+      },
+      attributes: ['orgId', 'orgName', 'orgLogo'],
+    });
+  } catch (error) {
+    console.log(error);
     throw error;
   }
 };
@@ -75,6 +94,7 @@ const update = async (payload: UserInput, transaction?: any) => {
       transaction: transaction,
     });
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };
@@ -98,6 +118,7 @@ const markUserAsDeletedById = async (id: string) => {
       },
     });
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };
@@ -173,6 +194,7 @@ const createUsers = async (payload: UserInput, transaction?: any) => {
       },
     });
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };

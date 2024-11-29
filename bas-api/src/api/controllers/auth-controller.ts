@@ -6,9 +6,8 @@ import {
   setCookieRefreshToken,
 } from '@bas/utils/request';
 import { NextFunction, Request, Response } from 'express';
-import { revokeTokenService, userService } from '@bas/service';
+import { revokeTokenService, userService, authService } from '@bas/service';
 import { REFRESH_TOKEN_KEY } from '@bas/constant';
-import { authService } from '@bas/service';
 
 const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -27,7 +26,9 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
     const accessToken = extractBearerToken(req);
+    console.log(accessToken);
     const token = refreshToken || getValueFromCookie(req, REFRESH_TOKEN_KEY);
+    console.log(token);
     const ipAddress = getIpAddress(req);
 
     await userService.revokeToken(token, ipAddress);

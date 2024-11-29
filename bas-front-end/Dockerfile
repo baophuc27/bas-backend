@@ -5,7 +5,9 @@ FROM --platform=linux/amd64 node:18-alpine
 WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# COPY package.json package-lock.json ./
+
+COPY yarn.lock ./
 
 # Install serve globally to serve the static files
 RUN npm i -g serve

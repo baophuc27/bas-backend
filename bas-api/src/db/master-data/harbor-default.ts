@@ -1,7 +1,7 @@
 export const harborDefault = {
-  name: '',
-  nameEn: '',
-  address: '',
+  name: 'Default Harbor Name Vi',
+  nameEn: 'Default Harbor Name',
+  address: 'Default Address',
   description: 'Default Description',
-  orgId: null, // Chỉ định orgId sẽ được thêm khi tạo
+  orgId: null,
 };

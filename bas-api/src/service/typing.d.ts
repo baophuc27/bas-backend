@@ -17,6 +17,12 @@ export interface UserUpdatePayload {
   avatar?: string | null;
   email?: string;
   userPrincipalName?: string;
+  orgId?: number;
+}
+
+export interface OrgPayload {
+  orgName: string;
+  orgLogo: string;
 }
 
 export interface UserQueryParams extends BaseQueryParams {
@@ -26,6 +32,7 @@ export interface UserQueryParams extends BaseQueryParams {
 type userDataPayload = {
   userId: string;
   roleId: number;
+  orgId: number;
 };
 
 export interface AuthSocket extends Socket {
@@ -40,6 +47,7 @@ export interface PortEventSocketEndSession {
     name?: string;
     nameEn?: string;
   };
+  orgId?: number;
 }
 
 export interface PortEventSocketDeviceError {
@@ -50,6 +58,7 @@ export interface PortEventSocketDeviceError {
     nameEn?: string;
   };
   errorCode: string;
+  orgId?: number;
 }
 
 type TokenData = {
@@ -70,6 +79,7 @@ export interface BerthFilter extends BaseQueryParams {
 export interface RecordFilter extends BaseQueryParams {
   berthId?: number;
   vesselId?: number;
+  orgId?: number;
 }
 
 export interface RecordHistoryQueryParams extends BaseQueryParams {}
@@ -102,12 +112,14 @@ type SocketRealtimeData = {
   eventTime: string;
   sessionId: string;
   error_code?: any;
+  orgId: number;
 };
 
 type SensorPayload = {
   value: number;
   status_id: number;
   zone: number;
+  orgId?: number;
 };
 
 type SensorPairPayload = {
@@ -122,6 +134,7 @@ type RealtimeKafkaMessage = {
   berth_id: number;
   session_id: string;
   error_code?: number;
+  orgId?: number;
 };
 
 export interface NamespaceRealtimeSocket {
@@ -139,12 +152,14 @@ type AlarmDataUnit = {
   recordId: number;
   side?: number;
   type?: string;
+  orgId?: number;
 };
 
 type AlarmUnit = {
   status_id: number;
   value: number;
   operator: string;
+  orgId?: number;
 };
 
 type StartRecordAlarmPayload = {
@@ -170,6 +185,7 @@ type StartRecordPayload = {
   limit_zone_2?: number;
   limit_zone_3?: number;
   alarm?: StartRecordAlarmPayload;
+  orgId?: number;
 };
 
 type DeviceUnit = {
@@ -179,12 +195,14 @@ type DeviceUnit = {
   status: number;
   error?: string | null;
   timestamp: number;
+  orgId?: number;
 };
 
 type DeviceRealValue = {
   left_sensor: DeviceUnit;
   right_sensor: DeviceUnit;
   berthId: number;
+  orgId?: number;
 };
 
 type resetBerthParam = {
@@ -193,6 +211,7 @@ type resetBerthParam = {
   modifier: string;
   isFinish?: boolean;
   isError?: boolean;
+  orgId?: number;
 };
 
 type AlarmData = {
@@ -216,6 +235,7 @@ type AlarmData = {
     id: number;
     name: string;
   };
+  orgId?: number;
 };
 
 type RawRealtimeData = {
@@ -224,9 +244,11 @@ type RawRealtimeData = {
   speed: number;
   distance: number;
   error_code: number;
+  orgId?: number;
 };
 
 type createAlarmPayload = {
+  orgId: number;
   recordId: number;
   type: string;
   value?: number | null;

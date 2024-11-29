@@ -8,6 +8,7 @@ export const alarmMapper = {
   side: 'side',
   zone: 'zone',
   message: 'message',
+  orgId: 'orgId',
   'sensor.id': 'sensor.id',
   'sensor.name': 'sensor.name',
   'record.id': 'record.id',

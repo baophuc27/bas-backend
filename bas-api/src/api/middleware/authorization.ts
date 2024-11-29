@@ -4,6 +4,7 @@ import { getOneUserById } from '@bas/database/dao/user-dao';
 import { NextFunction, Request, Response } from 'express';
 import { Forbidden, Unauthorized } from '@bas/api/errors';
 import { revokeTokenService } from '@bas/service';
+import { AsyncContext } from '@bas/utils/AsyncContext'; // Import Async Context
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -60,7 +61,19 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
     };
 
     console.log(`[Authorization] User authenticated: ${user.fullName} (orgId: ${user.orgId})`);
-    next();
+
+    AsyncContext.run(
+      {
+        orgId: user.orgId,
+        userId: user.id,
+        roleId: user.roleId,
+        permissions: user.permission.split(','),
+        fullName: user.fullName,
+      },
+      () => {
+        next();
+      }
+    );
   } catch (error) {
     logError(error);
     next(new Unauthorized('Token expires', internalErrorCode.TOKEN_EXPIRES));

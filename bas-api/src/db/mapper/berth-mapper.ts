@@ -1,21 +1,22 @@
 import { BerthStatus, getBerthStatusMessages } from '@bas/constant/berth-status';
 
 export const berthDetailMapper = {
-  id : 'id',
-  name : 'name',
-  nameEn : 'nameEn',
-  description : 'description',
+  id: 'id',
+  name: 'name',
+  nameEn: 'nameEn',
+  description: 'description',
   directionCompass: 'directionCompass',
-  limitZone1 : 'limitZone1',
-  limitZone2 : 'limitZone2',
-  limitZone3 : 'limitZone3',
-  distanceFender : 'distanceFender',
-  vesselDirection : 'vesselDirection',
-  distanceDevice : 'distanceDevice',
-  "vessel.id": "currentVessel.id",
-  "vessel.name": "currentVessel.name",
-  "vessel.code": "currentVessel.code",
-  "vessel.nameEn": "currentVessel.nameEn",
+  limitZone1: 'limitZone1',
+  limitZone2: 'limitZone2',
+  limitZone3: 'limitZone3',
+  distanceFender: 'distanceFender',
+  vesselDirection: 'vesselDirection',
+  distanceDevice: 'distanceDevice',
+  orgId: 'orgId',
+  'vessel.id': 'currentVessel.id',
+  'vessel.name': 'currentVessel.name',
+  'vessel.code': 'currentVessel.code',
+  'vessel.nameEn': 'currentVessel.nameEn',
   'leftDevice.id': 'leftDevice.id',
   'leftDevice.name': 'leftDevice.name',
   'leftDevice.status': 'leftDevice.status',
@@ -24,15 +25,15 @@ export const berthDetailMapper = {
   'rightDevice.name': 'rightDevice.name',
   'rightDevice.realValue': 'rightDevice.realValue',
   'rightDevice.status': 'rightDevice.status',
-  'distanceToLeft' : 'distanceToLeft',
-  'distanceToRight' : 'distanceToRight',
-  status : {
-    key : 'status',
-    transform : (status : number) => {
+  distanceToLeft: 'distanceToLeft',
+  distanceToRight: 'distanceToRight',
+  status: {
+    key: 'status',
+    transform: (status: number) => {
       return {
-        id : status,
-        ...getBerthStatusMessages(Object.values(BerthStatus)[status])
+        id: status,
+        ...getBerthStatusMessages(Object.values(BerthStatus)[status]),
       };
-    }
-  }
-}
+    },
+  },
+};

@@ -8,7 +8,11 @@
     "full-name": "Full Name",
     "phone-number": "Phone Number",
     "avatar-validate": "Maximum file size is 1MB (.jpg, .jpeg, .png, .webp)",
-    "role": "Role"
+    "role": "Role",
+    "org-logo": "Organization Logo",
+    "role-name": "Role Name",
+    "permissions": "Permissions",
+    "org-id": "Organization ID"
   },
   "placeholder": {
     "phone-number": "Enter Phone Number"

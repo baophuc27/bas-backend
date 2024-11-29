@@ -34,6 +34,19 @@ import {
   AlarmSettingDto,
 } from '@bas/database/dto/response/alarm-setting-dto';
 import { alarmSettingMapper } from '@bas/database/mapper/alarm-setting-mapper';
+import { AsyncContext } from '@bas/utils/AsyncContext';
+
+const addOrgIdToConditions = () => {
+  const context = AsyncContext.getContext();
+  if (!context?.orgId) {
+    // console.warn('[addOrgIdToConditions] No orgId found in context.');
+    // throw new Error('orgId is required but not found in context');
+    return { orgId: 0 };
+  }
+  return { orgId: context.orgId };
+};
+
+const orgCondition = addOrgIdToConditions();
 
 export const getBerthById = async (berthId: number) => {
   const result = await berthDao.getBerthInfo(berthId);
@@ -355,6 +368,8 @@ export const resetBerth = async (params: resetBerthParam) => {
 
 export const createBerth = async (data: BerthUpdateDto, modifier: string) => {
   const { limitZone1 = 60, limitZone2 = 120, limitZone3 = 200 } = data;
+
+  // Kiểm tra giá trị giới hạn các zone
   if (limitZone1 && limitZone2 && limitZone3) {
     if (+limitZone1 >= +limitZone2 || +limitZone2 >= +limitZone3) {
       throw new BadRequestException('Invalid limit zone value', internalErrorCode.INVALID_INPUT);
@@ -363,11 +378,24 @@ export const createBerth = async (data: BerthUpdateDto, modifier: string) => {
 
   const res = await sequelizeConnection.transaction(async (t) => {
     const result = await berthDao.createBerth(data, modifier, t);
+
+    // Tạo thiết lập báo động mặc định cho bến vừa tạo
     await alarmSettingService.createNewAlarmSettingSet(result.id, limitZone1, t);
     return result;
   });
-  if (res.leftDeviceId && res.rightDeviceId)
-    realtimeService.addBerthRealtime(res.id, res.leftDeviceId, res.rightDeviceId);
+
+  // Lấy `orgId` từ context
+  const orgCondition = berthDao.addOrgIdToConditions();
+  const orgId = orgCondition?.orgId;
+
+  if (!orgId) {
+    throw new Error('orgId is required for adding berth to realtime data');
+  }
+
+  // Thêm bến vào Realtime Service
+  if (res.leftDeviceId && res.rightDeviceId) {
+    realtimeService.addBerthRealtime(res.id, orgId, res.leftDeviceId, res.rightDeviceId);
+  }
 
   return objectMapper.merge(res, berthDetailMapper) as BerthDetailDto;
 };

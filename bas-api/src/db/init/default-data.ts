@@ -1,10 +1,10 @@
 import { harborDefault, SystemRole } from '../master-data';
 import { Account, Harbor, Role, Sensor, User } from '../models';
 import { deviceDefault } from '../master-data/device-default';
+import { getFromCache } from '@bas/utils/cache';
 
 const DEFAULT_PASSWORD = 'bas123456';
 
-// Define specific role IDs, with 8 assigned to ADMIN
 const roleMap = {
   [SystemRole.ADMIN]: 8,
   [SystemRole.CONFIGURE]: 9,
@@ -19,14 +19,14 @@ const createDefaultAuth = async () => {
     const roleId = roleMap[role];
 
     const createdRole = await Role.create({
-      id: roleId, // Assign specific role ID, with 8 for ADMIN
+      id: roleId,
       name: role,
       code: role,
       description: '',
     });
 
     const user = await User.create({
-      roleId: createdRole.id, // Assign the correct role ID
+      roleId: createdRole.id,
       email: `default@${createdRole.code}.com`,
       fullName: `User ${createdRole.code}`,
       username: role.toLowerCase(),
@@ -46,20 +46,22 @@ const createDefaultAuth = async () => {
 };
 
 const createDefaultHarbor = async () => {
-  // Lấy danh sách các orgId từ bảng User
   const orgIds = await User.findAll({
     attributes: ['orgId'],
-    group: ['orgId'], // Đảm bảo không trùng lặp orgId
+    group: ['orgId'],
   }).then((users) => users.map((user) => user.orgId));
 
   for (const orgId of orgIds) {
-    // Kiểm tra nếu Harbor đã tồn tại cho orgId
     const existingHarbor = await Harbor.findOne({ where: { orgId } });
+    const cachedData = await getFromCache(orgId.toString());
+    const organization = cachedData.user.organization;
     if (!existingHarbor) {
       await Harbor.create({
-        ...harborDefault, // Thông tin mặc định
-        orgId, // Gắn orgId
-        name: `Harbor for orgId ${orgId}`, // Tên mặc định theo orgId
+        name: organization.nameVi,
+        nameEn: organization.name,
+        address: organization.address,
+        description: organization.description || harborDefault.description,
+        orgId,
       });
       console.log(`Created default harbor for orgId: ${orgId}`);
     }

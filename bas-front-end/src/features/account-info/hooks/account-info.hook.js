@@ -1,11 +1,10 @@
-// import { phoneRegExp } from "common/constants/regex.constant";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { getRoleLabel } from "common/constants/role.constant";
 import { useAppForm } from "common/hooks";
 import { AccountInfoService } from "common/services";
 import { notify } from "common/utils/dashboard-toast.util";
 import { getFileSizeInMB } from "common/utils/file.util";
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { updateInfo } from "redux/slices/user.slice";
 import { FILE_FORMAT_LIST, MAX_FILE_SIZE_IN_MB } from "../constants/index";
 
@@ -14,9 +13,14 @@ export const useAccountInfo = (t) => {
   const [avatar, setAvatar] = useState(null);
   const [isAvatarValid, setIsAvatarValid] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [orgLogo, setOrgLogo] = useState(null);
+  const [roleName, setRoleName] = useState("");
+  const [permissions, setPermissions] = useState([]);
+  const [orgId, setOrgId] = useState("");
   const dispatch = useDispatch();
   const { user_roles: rolesObj } = useSelector((state) => state?.enumeration);
 
+  // Updated fieldList with additional fields
   const fieldList = [
     {
       name: "fullName",
@@ -47,18 +51,46 @@ export const useAccountInfo = (t) => {
         },
       ],
     },
+    // {
+    //   name: "avatar",
+    //   label: t("account-info:label.avatar"),
+    //   fieldType: "text",
+    //   initialValue: data?.avatar,
+    //   notRender: true,
+    // },
+    // {
+    //   name: "role",
+    //   label: t("account-info:label.role"),
+    //   fieldType: "text",
+    //   initialValue: getRoleLabel(t, data?.roleId),
+    //   disabled: true,
+    // },
+    // {
+    //   name: "orgLogo",
+    //   label: t("account-info:label.org-logo"),
+    //   fieldType: "text",
+    //   initialValue: data?.orgLogo,
+    //   disabled: true,
+    // },
     {
-      name: "avatar",
-      label: t("account-info:label.phone-number"),
+      name: "roleName",
+      label: t("account-info:label.role-name"),
       fieldType: "text",
-      initialValue: data?.avatar,
-      notRender: true,
+      initialValue: roleName,
+      disabled: true,
     },
+    // {
+    //   name: "permissions",
+    //   label: t("account-info:label.permissions"),
+    //   fieldType: "text",
+    //   initialValue: data?.permissions.join(", "),
+    //   disabled: true,
+    // },
     {
-      name: "role",
-      label: t("account-info:label.role"),
+      name: "orgId",
+      label: t("account-info:label.org-id"),
       fieldType: "text",
-      initialValue: getRoleLabel(t, data?.roleId),
+      initialValue: data?.orgId,
       disabled: true,
     },
   ];
@@ -94,10 +126,6 @@ export const useAccountInfo = (t) => {
           return;
         }
       }
-      // new: avatar null + avatarFile has value
-      // edit: avatar not null + avatarFile has value
-      // delete: avatar null +  avatarFile null
-      // no change: avatar not null + avatarFile null
 
       const postData = {
         avatar: values.avatarFile ? null : values.avatar,
@@ -153,8 +181,24 @@ export const useAccountInfo = (t) => {
       const resp = await AccountInfoService.getById();
 
       if (resp?.data?.success) {
-        setData(resp?.data?.data);
-        setAvatar(resp?.data?.data?.avatar);
+        const userData = resp?.data?.data;
+        setData(userData);
+        setAvatar(userData.avatar);
+        setOrgLogo(userData?.orgLogo);
+        setRoleName(userData?.roleName);
+        setPermissions(userData?.permissions.split(","));
+        setOrgId(userData?.orgId);
+
+        dispatch(
+          updateInfo({
+            avatar: userData?.avatar,
+            fullName: userData?.fullName,
+            roleName: userData?.roleName,
+            orgName: userData?.orgName,
+            orgLogo: userData?.orgLogo,
+            permissions: userData?.permissions.split(","),
+          }),
+        );
       }
     } catch (error) {
       console.log(error);
@@ -210,7 +254,6 @@ export const useAccountInfo = (t) => {
       setIsAvatarValid(true);
     }
     const reader = new FileReader();
-    //eslint-disable-next-line
     const url = reader.readAsDataURL(file);
 
     reader.onloadend = (e) => {
@@ -245,12 +288,11 @@ export const useAccountInfo = (t) => {
     avatar,
     isLoading,
     isAvatarValid,
-
-    setData,
-    setAvatar,
-    onSubmit,
+    orgLogo,
+    roleName,
+    permissions,
+    orgId,
     fetchData,
-    resizeImage,
     handleLogoChange,
     handleImageCancel,
     handleResetForm,

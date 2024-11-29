@@ -3,11 +3,10 @@ import recordController from '../controllers/record-controller';
 import { recordLatestValidator } from '../validators/record-validator';
 import { SystemPermission } from '@bas/constant/system-permission';
 import { usePermissions } from '../middleware/use-permissions';
-import { attachOrgId } from '../middleware/attach-orgid';
 import { authorization } from '../middleware/authorization';
+
 const router = express.Router();
 router.use(authorization);
-router.use(attachOrgId);
 router.get(
   '/aggregates/:id',
   usePermissions([SystemPermission.RECORDING_MANAGEMENT_VIEW]),

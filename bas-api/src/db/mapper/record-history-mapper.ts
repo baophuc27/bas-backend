@@ -18,6 +18,8 @@ export const recordHistoryMapper = {
   angleAlarm: 'angleAlarm',
   leftStatus: 'leftStatus',
   rightStatus: 'rightStatus',
+  orgId: 'orgId',
+  berthId: 'berthId',
 };
 
 export const recordHistoryChartMapper = {
@@ -28,7 +30,7 @@ export const recordHistoryChartMapper = {
   rightDistance: 'rightDistance',
 };
 
-export const recordHistoryMapperReverse = (leftCode : number  , rightCode : number) => {
+export const recordHistoryMapperReverse = (leftCode: number, rightCode: number) => {
   return {
     id: 'id',
     time: 'event_time',
@@ -48,5 +50,6 @@ export const recordHistoryMapperReverse = (leftCode : number  , rightCode : numb
     LSpeedAlarm: `speed.${leftCode}.alarm`,
     angleAlarm: 'angle.alarm',
     'record.berthId': 'berth_id',
-  }
-}
+    'record.orgId': 'org_id',
+  };
+};

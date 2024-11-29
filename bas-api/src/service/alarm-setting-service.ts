@@ -211,6 +211,7 @@ export const resetDataAlarmSetting = async (berthId: number) => {
         {
           ...rs[index],
           id: alarmSetting.id,
+          orgId: alarmSetting.orgId,
         } as AlarmSettingUpdateDto,
         t
       );

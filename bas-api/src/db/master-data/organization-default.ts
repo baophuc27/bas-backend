@@ -1,7 +1,7 @@
 export const organizationDefault = {
-  name: ' Công ty TNHH Cảng biển quốc tế Chu Lai',
-  nameEn: 'Chu Lai International Port Limited Liability Company',
-  address: 'Tam Hiệp, Núi Thành, Quảng Nam',
-  description: 'Default Description',
-  logo : '/public/logo/logo.png',
+  name: ' REECOTECH BAS SYSTEM',
+  nameEn: 'REECOTECH BAS SYSTEM',
+  address: 'Ho Chi Minh City, Vietnam',
+  description: 'Reecotech Science and Technology Co., Ltd',
+  logo: '/public/logo/logo.png',
 };

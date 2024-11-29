@@ -3,8 +3,8 @@ import { organizationDefault } from '@bas/database/master-data/organization-defa
 import { APP_HOST } from '@bas/config';
 import { internalErrorCode } from '@bas/constant';
 import { alarmSettingService } from '@bas/service';
-import InternalServerError from '../errors/internal-server-exception';
 import { BadRequestException } from '../errors';
+import { getFromCache } from '@bas/utils/cache';
 
 const resetAlarmSetting = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -19,10 +19,31 @@ const resetAlarmSetting = async (req: Request, res: Response, next: NextFunction
 
 const getOrgInformation = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const orgId = req.identification.orgId;
+    if (!orgId) {
+      throw new Error('User ID is missing');
+    }
+
+    const cachedData = await getFromCache(orgId.toString());
+    if (!cachedData) {
+      const data = {
+        ...organizationDefault,
+        logo: APP_HOST.concat(organizationDefault.logo),
+      };
+      console.log('Using default organization');
+      return res.success({ data });
+    }
+
+    const organization = cachedData.user.organization;
     const data = {
-      ...organizationDefault,
-      logo: APP_HOST.concat(organizationDefault.logo),
+      name: organization.nameVi,
+      nameEn: organization.name,
+      address: organization.address,
+      description: organization.description,
+      // logo: APP_HOST.concat(organization.url_logo || organizationDefault.logo),
+      logo: organization.url_logo,
     };
+    console.log('Using organization from cache');
     return res.success({ data });
   } catch (error: any) {
     next(error);

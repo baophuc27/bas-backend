@@ -201,7 +201,7 @@ const initDeviceData = async () => {
  */
 const getRoomKey = (berthId: string, orgId: string, type: string) => {
   const key = `${type}_${berthId}_${orgId}`;
-  console.log(`[getRoomKey] Generated key: ${key}`);
+  // console.log(`[getRoomKey] Generated key: ${key}`);
   return key;
 };
 
@@ -420,8 +420,10 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
     `[processData] Processing data for berth ${objectData.berthId} and org ${objectData.orgId}`
   );
   try {
-    const record = await recordService.getRecordById(+objectData.berthId, +objectData.orgId);
+    const record = await recordService.getRecordById(+objectData.sessionId, +objectData.orgId);
+    console.log(`[processData] Record: ${record}`);
     const berth = await berthDao.getBerthInfo(objectData.berthId, objectData.orgId);
+    console.log(`[processData] Berth: ${berth}`);
     if (!record || !berth?.leftDevice?.name || !berth?.rightDevice?.name) {
       return null;
     }
@@ -451,6 +453,7 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
         angleZone: objectData.angle?.zone,
         time: moment(objectData.eventTime).utc().toDate(),
         recordId: record.id,
+        berthId: record.berthId,
         orgId: record.orgId,
       } as RecordHistoryInput,
       {

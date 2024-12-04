@@ -129,16 +129,17 @@ export const getAllBerthWithSensor = async () => {
 };
 
 export const getBerthsWithHaveRecording = async () => {
-  return Record.findAll({
-    include: [
-      {
-        model: Berth,
-        as: 'berth',
-        attributes: ['id', 'orgId', 'name'],
-      },
-    ],
-    where: {
-      endTime: null,
-    },
-  });
+  // return Record.findAll({
+  //   include: [
+  //     {
+  //       model: Berth,
+  //       as: 'berth',
+  //       attributes: ['id', 'orgId', 'name'],
+  //     },
+  //   ],
+  //   where: {
+  //     endTime: null,
+  //   },
+  // });
+return [];
 };

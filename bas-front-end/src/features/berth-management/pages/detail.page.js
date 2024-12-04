@@ -67,6 +67,8 @@ const BerthManagementAddPage = () => {
       setLoading(true);
       const result = await BerthService.create({
         // name, nameEn, directionCompass, limitZone1, limitZone2, limitZone3, distanceToLeft, distanceToRight, distanceFender, distanceDevice
+        leftDeviceId: 1,
+        rightDeviceId: 2,
         name: values.berthName,
         nameEn: values.berthName,
         directionCompass: values.berthDirection,
@@ -175,7 +177,7 @@ const BerthManagementAddPage = () => {
         .min(0, t("note.range", { min: 0, max: 50 }))
         .max(50, t("note.range", { min: 0, max: 50 })),
       leftSensorDistanceToEdge: Yup.number().required(
-        t("note.required-message")
+        t("note.required-message"),
       ),
       distantBetweenSensors: Yup.number().required(t("note.required-message")),
     }),

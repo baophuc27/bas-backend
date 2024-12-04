@@ -6,7 +6,6 @@ import { internalErrorCode } from '@bas/constant';
 import { AVATAR_FOLDER_PATH_REGEX } from '@bas/constant/path';
 import { baseDao, refreshTokenDao, userDao } from '@bas/database/dao';
 import User, { UserInput } from '@bas/database/models/user-model';
-
 import { UserQueryParams, UserUpdatePayload } from '@bas/service/typing';
 import { removeTokenByUserId } from '@bas/database/dao/refresh-token-dao';
 
@@ -45,7 +44,6 @@ const removeTokenByUser = async (userId: string) => {
 
 const updateUserById = async (id: string, payload: UserUpdatePayload, transaction?: any) => {
   const { email, phone } = payload;
-  // check email and phone is unique
   return baseDao.updateModel(User, id, payload, transaction);
 };
 
@@ -83,18 +81,28 @@ const generateRefreshToken = async (user: User, ipAddress: string, transaction?:
     {
       token: randomString(),
       userId: user.id,
-      expires: new Date(Date.now() + (REFRESH_TERM ? DEFAULT_REFRESH_TERM : +REFRESH_TERM)),
+      expires: new Date(Date.now() + (REFRESH_TERM ? DEFAULT_REFRESH_TERM : + REFRESH_TERM)),
       createdByIp: ipAddress,
     },
     transaction
   );
 };
+
 const getRefreshToken = async (token: string, ip: string) => {
   const refreshToken = await refreshTokenDao.findOneByTokenAndIp(token, ip);
   console.log({ refreshToken, token, ip });
-  if (!refreshToken || !refreshToken.isActive) throw new InternalException('Invalid token');
+
+  if (!refreshToken) {
+    throw new InternalException('Token not found or expired');
+  }
+
+  if (!refreshToken.isActive) {
+    throw new InternalException('Token is inactive');
+  }
+
   return refreshToken;
 };
+
 
 const revokeToken = async (token: string, revokedByIpAddress: string) => {
   const refreshToken = await getRefreshToken(token, revokedByIpAddress);
@@ -137,18 +145,6 @@ const findUserByRole = async (role: string) => {
   return await userDao.findUserByRole(role);
 };
 
-const getOrgInformationUser = async (userId: string) => {
-  const user = await userDao.getOneUserById(userId);
-  if (!user) {
-    throw new BadRequestException('User not found');
-  }
-  return {
-    name: user.orgName,
-    logo: user.orgLogo,
-    // ...include other organization fields if needed...
-  };
-};
-
 export {
   deleteAccountById,
   getAllUsers,
@@ -163,5 +159,7 @@ export {
   updateUserInformation,
   generateAccessTokenForSocket,
   findUserByRole,
-  getOrgInformationUser,
 };
+function getPem() {
+  throw new Error('Function not implemented.');
+}

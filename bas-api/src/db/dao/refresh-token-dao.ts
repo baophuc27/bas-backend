@@ -25,7 +25,7 @@ const findOneByTokenAndIp = async (token: string, ipAddress?: string) => {
       {
         model: User,
         as: 'user',
-        attributes: ['id', 'roleId'],
+        attributes: ['id', 'orgId', 'roleId'],
       },
     ],
     logging: console.log,
@@ -56,3 +56,7 @@ const removeTokenByUserId = async (userId: string) => {
 };
 
 export { create, findOneByTokenAndIp, removeUnusedToken, removeTokenByUserId };
+
+export function findOneByToken(token: string) {
+  throw new Error('Function not implemented.');
+}

@@ -15,6 +15,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     const data = await authService.login(username, password, getIpAddress(req));
 
     setCookieRefreshToken(res, data.refreshToken);
+    console.log('refreshToken from data: ' + data.refreshToken);
     return res.success(data);
   } catch (error) {
     console.error('Error in authController.login:', error);
@@ -26,30 +27,46 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
     const accessToken = extractBearerToken(req);
-    console.log(accessToken);
+    console.log('Access Token:', accessToken);
+
     const token = refreshToken || getValueFromCookie(req, REFRESH_TOKEN_KEY);
-    console.log(token);
+    console.log('Token to be logged out:', token);
+
+    if (!token) {
+      return res.status(400).send({ error: 'No token provided for logout' });
+    }
+
     const ipAddress = getIpAddress(req);
+    console.log('IP Address:', ipAddress); // log IP address
 
-    await userService.revokeToken(token, ipAddress);
-    await userService.cleanupToken();
-    revokeTokenService.revokeToken(accessToken);
+    // Kiểm tra xem refreshToken có tồn tại trong cơ sở dữ liệu không
+    const result = await userService.revokeToken(token, ipAddress);
+    console.log('Revoke Token result:', result); // log kết quả trả về từ revokeToken
 
-    res.clearCookie(REFRESH_TOKEN_KEY);
-    return res.success(null, 'Logout successfully');
+    if (result && 'revoked' in result) {
+      await userService.cleanupToken();
+      revokeTokenService.revokeToken(accessToken);
+
+      res.clearCookie(REFRESH_TOKEN_KEY); // Xóa cookie refreshToken
+      return res.success(null, 'Logout successfully');
+    } else {
+      console.log('Token not found or already revoked');
+      return res.status(400).send({ error: 'Invalid token or already revoked' });
+    }
   } catch (error) {
-    trace(logout.name);
-    next(error);
+    trace(logout.name); // log lỗi khi gọi trace
+    next(error); // tiếp tục xử lý lỗi
   }
 };
 
 const refresh = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
+    console.log('Refresh Token:', refreshToken);
     const ipAddress = getIpAddress(req);
-
+    console.log('IP Address:', ipAddress);
     const token = getValueFromCookie(req, REFRESH_TOKEN_KEY);
-    console.log(token);
+    console.log('Token: ', token);
     const result = await userService.refreshUserToken(token || refreshToken, ipAddress);
     await userService.cleanupToken();
 

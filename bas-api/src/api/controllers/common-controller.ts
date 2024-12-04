@@ -20,9 +20,9 @@ const resetAlarmSetting = async (req: Request, res: Response, next: NextFunction
 
 const getOrgInformation = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const orgId = req.identification.orgId;
+    const orgId = req.identification?.orgId;
     if (!orgId) {
-      throw new Error('User ID is missing');
+      throw new Error('User ID is missing or user is not authenticated');
     }
 
     const cachedData = await getFromCache(orgId.toString());
@@ -41,8 +41,7 @@ const getOrgInformation = async (req: Request, res: Response, next: NextFunction
       nameEn: organization.name,
       address: organization.address,
       description: organization.description,
-      // logo: APP_HOST.concat(organization.url_logo || organizationDefault.logo),
-      logo: organization.url_logo,
+      logo: organization.url_logo || organizationDefault.logo,
     };
     console.log('Using organization from cache');
     return res.success({ data });

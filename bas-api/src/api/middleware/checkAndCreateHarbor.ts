@@ -12,7 +12,7 @@ export const checkAndCreateHarbor = async (req: Request, res: Response, next: Ne
       return res.status(400).json({ error: 'Missing orgId in request' });
     }
     const cachedData = await getFromCache(orgId.toString());
-    const organization = cachedData.user.organization;
+    const organization = cachedData;
     console.log(`[checkAndCreateHarbor] Creating default Harbor for orgId: ${orgId}`);
     await Harbor.create(
       {

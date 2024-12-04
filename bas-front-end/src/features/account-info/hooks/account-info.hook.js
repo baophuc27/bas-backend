@@ -87,6 +87,13 @@ export const useAccountInfo = (t) => {
     //   disabled: true,
     // },
     {
+      name: "phone",
+      label: t("account-info:label.phone"),
+      fieldType: "text",
+      initialValue: data?.phone,
+      disabled: true,
+    },
+    {
       name: "orgId",
       label: t("account-info:label.org-id"),
       fieldType: "text",

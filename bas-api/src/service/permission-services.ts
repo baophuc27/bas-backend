@@ -1,6 +1,5 @@
 import { mapApiPermissionsToRoles } from './permission-mapping';
 import { roleMatrix } from '@bas/constant/role-matrix';
-import { SystemPermission } from '@bas/constant/system-permission';
 
 export function getSystemPermissionsFromRoles(roles: string[]): string[] {
   const systemPermissionsSet: Set<string> = new Set();

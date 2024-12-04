@@ -1,7 +1,6 @@
 import { Op, Transaction } from 'sequelize';
 import { AlarmSetting, Berth } from '../models';
 import { AlarmSettingUpdateDto } from '../dto/request/alarm-setting-update-dto';
-import { AsyncContext } from '@bas/utils/AsyncContext';
 
 const findSetting = async (conditions: object) => {
   const results = await AlarmSetting.findAll({

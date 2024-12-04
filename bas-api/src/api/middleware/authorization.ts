@@ -8,7 +8,6 @@ import { AsyncContext } from '@bas/utils/AsyncContext'; // Import Async Context
 
 declare module 'express-serve-static-core' {
   interface Request {
-    orgId?: number;
     identification: {
       userId: string;
       roleId: number;
@@ -30,20 +29,12 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
       return next(new Unauthorized('Unauthorized'));
     }
 
-    // Kiểm tra token có bị thu hồi
     if (revokeTokenService.isTokenRevoked(token)) {
-      console.warn('[Authorization] Token revoked');
       return next(new Forbidden('Token revoked', internalErrorCode.TOKEN_EXPIRES));
     }
 
-    // Xác minh token
-    const { userId } = verifyToken(token);
-    if (!userId) {
-      console.error('[Authorization] Token verification failed');
-      return next(new Unauthorized('Unauthorized'));
-    }
 
-    // Lấy thông tin người dùng
+    const { userId } = verifyToken(token);
     const user = await getOneUserById(userId);
     if (!user) {
       console.warn('[Authorization] User not found');

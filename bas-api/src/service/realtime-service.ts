@@ -54,17 +54,10 @@ let berthIsRunning = new Map<
     mooringStatus?: string;
   }
 >();
+let globalOrgId: number | null = null;
 const generateKey = (berthId: number, orgId: number): string => {
   return `${berthId}-${orgId}`;
 };
-// const addOrgIdToConditions = () => {
-//   const context = AsyncContext.getContext();
-//   if (!context?.orgId) {
-//     console.warn('[RECORD] No orgId found in context, context:', context);
-//     return { orgId: 1 };
-//   }
-//   return { orgId: context.orgId };
-// };
 const UUID_SYSTEM = '8dad3a21-802a-4e3d-baa3-8dd28b303a93';
 /**
  * Add new berth to realtime data
@@ -121,13 +114,55 @@ const removeBerthRealtime = (berthId: number, orgId: number) => {
     `[removeBerthRealtime] Successfully removed berth ${berthId} of organization ${orgId}`
   );
 };
+/**
+ * Authorization socket with token
+ * @param socket
+ * @param next
+ */
+const authorizationSocket = (socket: AuthSocket, next: (err?: any) => void) => {
+  console.log(`[authorizationSocket] Authorizing socket ${socket.id}`);
+  try {
+    const token: string | undefined | string[] = socket.handshake.headers.authorization;
+    if (!token) {
+      return next(new Error('Token is required'));
+    }
+    console.log(`[authorizationSocket] Token: ${token}`);
 
+    const userInformation: TokenData | null = verifyTokenForSocket(<string>token);
+
+    if (!userInformation) {
+      return next(new Error('Token is invalid'));
+    }
+
+    globalOrgId = userInformation.orgId;
+
+    socket.auth = {
+      userId: userInformation.userId,
+      roleId: userInformation.roleId,
+      orgId: userInformation.orgId,
+    };
+
+    console.log(`[authorizationSocket] Successfully authorized socket ${socket.id}`);
+    console.log('User information:', userInformation);
+    next();
+  } catch (error) {
+    return next(new Error('Token is invalid'));
+  }
+};
+
+// const getOrgId = (): any => {
+//   if (!globalOrgId) {
+//     throw new Error('orgId is not available');
+//   }
+//   return globalOrgId;
+// };
 /**
  * Init device data for device realtime when start app
  */
 const initDeviceData = async () => {
   console.log('[initDeviceData] Initializing device data');
   try {
+    // const orgId = getOrgId();
     const data = await berthService.getAllBerthWithSensor();
     deviceRealtime.clear();
     data.forEach((berth) => {
@@ -156,36 +191,6 @@ const initDeviceData = async () => {
   } catch (error) {
     console.error('[initDeviceData] Error:', error);
     throw error;
-  }
-};
-
-/**
- * Authorization socket with token
- * @param socket
- * @param next
- */
-const authorizationSocket = (socket: AuthSocket, next: (err?: any) => void) => {
-  console.log(`[authorizationSocket] Authorizing socket ${socket.id}`);
-  try {
-    const token: string | undefined | string[] = socket.handshake.headers.authorization;
-    if (!token) {
-      return next(new Error('Token is required'));
-    }
-    console.log(`[authorizationSocket] Token: ${token}`);
-    const userInformation: TokenData | null = verifyTokenForSocket(<string>token);
-    if (!userInformation) {
-      return next(new Error('Token is invalid'));
-    }
-    socket.auth = {
-      userId: userInformation.userId,
-      roleId: userInformation.roleId,
-      orgId: userInformation.orgId,
-    };
-    console.log(`[authorizationSocket] Successfully authorized socket ${socket.id}`);
-    console.log('user information:', userInformation);
-    next();
-  } catch (error) {
-    return next(new Error('Token is invalid'));
   }
 };
 

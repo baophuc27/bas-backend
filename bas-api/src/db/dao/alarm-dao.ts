@@ -5,19 +5,6 @@ import { AlarmQueryParams, createAlarmPayload } from '@bas/service/typing';
 import { alarmStatus } from '@bas/constant';
 import { sequelizeConnection } from '../index';
 import { InternalException } from '@bas/api/errors';
-import { AsyncContext } from '@bas/utils/AsyncContext';
-
-const addOrgIdToConditions = () => {
-  const context = AsyncContext.getContext();
-  if (!context?.orgId) {
-    console.warn('[ALARM] No orgId found in context.');
-    // throw new Error('orgId is required but not found in context');
-    return { orgId: 0 };
-  }
-  return { orgId: context.orgId };
-};
-
-const orgCondition = addOrgIdToConditions();
 
 const SIDE = {
   LEFT: 1,
@@ -26,6 +13,7 @@ const SIDE = {
 
 export const getAlarmTypeLatest = async (
   recordId: number,
+  orgId: number,
   type: string,
   alarm: number,
   side?: number | null,
@@ -33,12 +21,12 @@ export const getAlarmTypeLatest = async (
 ): Promise<any> => {
   const alarmTypeSameLatest = await Alarm.findOne({
     where: {
-      ...orgCondition,
       type,
       alarm,
       side,
       // endTime: null,
       '$record.id$': recordId,
+      '$record.orgId$': orgId,
     },
     include: [
       {
@@ -55,17 +43,18 @@ export const getAlarmTypeLatest = async (
 
 export const doneAlarmTypeLatest = async (
   recordId: number,
+  orgId: number,
   type: string,
   side?: number | null,
   t?: Transaction
 ): Promise<any> => {
   const alarmTypeSameLatest = await Alarm.findOne({
     where: {
-      ...orgCondition,
       type,
       side,
       // endTime: null,
       '$record.id$': recordId,
+      '$record.orgId$': orgId,
     },
     include: [
       {
@@ -91,6 +80,7 @@ export const createRecordAlarm = async (
   try {
     const recordHistoryItem = await getAlarmTypeLatest(
       recordAlarm.recordId,
+      recordAlarm.orgId,
       recordAlarm.type,
       recordAlarm.alarm,
       recordAlarm.side,
@@ -100,7 +90,13 @@ export const createRecordAlarm = async (
       return;
     }
 
-    await doneAlarmTypeLatest(recordAlarm.recordId, recordAlarm.type, recordAlarm.side, t);
+    await doneAlarmTypeLatest(
+      recordAlarm.recordId,
+      recordAlarm.orgId,
+      recordAlarm.type,
+      recordAlarm.side,
+      t
+    );
     return await Alarm.create(
       {
         orgId: recordAlarm.orgId,
@@ -156,7 +152,7 @@ export const createAlarmFromDataPoint = async (
         sensorId: null,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'angle', null);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'angle', null);
     }
 
     if (data.LDistanceAlarm && data.LDistanceAlarm > alarmStatus.WARNING) {
@@ -174,7 +170,7 @@ export const createAlarmFromDataPoint = async (
         sensorId: sensorIds.left,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'distance', SIDE.LEFT);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'distance', SIDE.LEFT);
     }
 
     if (data.LSpeedAlarm && data.LSpeedAlarm > alarmStatus.OPERATOR) {
@@ -192,7 +188,7 @@ export const createAlarmFromDataPoint = async (
         sensorId: sensorIds.left,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'speed', SIDE.LEFT);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'speed', SIDE.LEFT);
     }
 
     if (data.RDistanceAlarm && data.RDistanceAlarm > alarmStatus.WARNING) {
@@ -210,7 +206,7 @@ export const createAlarmFromDataPoint = async (
         sensorId: sensorIds.right,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'distance', SIDE.RIGHT);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'distance', SIDE.RIGHT);
     }
 
     if (data.RSpeedAlarm && data.RSpeedAlarm > alarmStatus.OPERATOR) {
@@ -228,7 +224,7 @@ export const createAlarmFromDataPoint = async (
         sensorId: sensorIds.right,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'speed', SIDE.RIGHT);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'speed', SIDE.RIGHT);
     }
   } catch (e: any) {
     console.log(e);
@@ -264,14 +260,12 @@ export const deleteALlAlarm = async (orgId: number, berthId: number) => {
 };
 
 export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
-  const { berth, type, alarm, search, page, amount, order, mode } = params;
+  const { berth, orgId, type, alarm, search, page, amount, order, mode } = params;
 
-  const orgCondition = addOrgIdToConditions();
-
-  const whereConditions: any = {
-    ...orgCondition,
-  };
-
+  const whereConditions: any = {};
+  if (orgId) {
+    whereConditions['$record.orgId$'] = orgId;
+  }
   if (berth) {
     whereConditions['$record.berthId$'] = berth;
   }
@@ -299,13 +293,13 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
       model: Record,
       required: true,
       as: 'record',
-      attributes: ['id', 'startTime', 'endTime', 'berthId', 'sessionId'],
+      attributes: ['id', 'orgId', 'startTime', 'endTime', 'berthId', 'sessionId'],
       include: [
         {
           model: Berth,
           required: true,
           as: 'berth',
-          attributes: ['id', 'name', 'nameEn'],
+          attributes: ['id', 'orgId', 'name', 'nameEn'],
         },
       ],
     },
@@ -313,7 +307,7 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
       model: Sensor,
       required: true,
       as: 'sensor',
-      attributes: ['id', 'name'],
+      attributes: ['id', 'berthId', 'orgId', 'name'],
     },
   ];
 
@@ -349,6 +343,8 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
     attributes: [
       'id',
       'recordId',
+      'berthId',
+      'orgId',
       'endTime',
       'alarm',
       'side',
@@ -385,7 +381,7 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
   });
 };
 
-export const endAllAlarm = async (recordId: number, t?: Transaction) => {
+export const endAllAlarm = async (recordId: number, orgId: number, t?: Transaction) => {
   await Record.update(
     {
       doneAlarm: true,
@@ -393,6 +389,7 @@ export const endAllAlarm = async (recordId: number, t?: Transaction) => {
     {
       where: {
         id: recordId,
+        orgId: orgId,
       },
       ...(t && { transaction: t }),
     }

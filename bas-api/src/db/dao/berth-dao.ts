@@ -2,19 +2,6 @@ import { AlarmSetting, Berth, Record, Sensor, Vessel } from '../models';
 import { Op, Transaction } from 'sequelize';
 import { BerthFilter } from '@bas/service/typing';
 import { DEFAULT_AMOUNT, DEFAULT_PAGE } from '@bas/constant/common';
-import { AsyncContext } from '@bas/utils/AsyncContext';
-
-export const addOrgIdToConditions = () => {
-  const context = AsyncContext.getContext();
-  if (!context?.orgId) {
-    console.warn('[Berth-DAO] No orgId found in context.');
-    // throw new Error('orgId is required but not found in context');
-    return { orgId: 0 };
-  }
-  return { orgId: context.orgId };
-};
-
-const orgCondition = addOrgIdToConditions();
 
 export const getBerthInfo = async (id: number, orgId: number) => {
   try {
@@ -45,7 +32,6 @@ export const getBerthInfo = async (id: number, orgId: number) => {
 };
 
 export const getAllBerths = async (filter: BerthFilter) => {
-  const orgCondition = addOrgIdToConditions();
   return Berth.findAndCountAll({
     include: [
       {
@@ -55,7 +41,6 @@ export const getAllBerths = async (filter: BerthFilter) => {
       },
     ],
     where: {
-      ...orgCondition,
       ...(filter?.status && { status: filter.status }),
       ...(filter?.search && {
         [Op.or]: [
@@ -87,11 +72,11 @@ export const updateBerth = async (
       ...(data?.limitZone2 && { limitZone2: +data.limitZone2 }),
       ...(data?.limitZone3 && { limitZone3: +data.limitZone3 }),
       modifiedBy: modifier,
-      orgId,
     },
     {
       where: {
         id,
+        orgId,
       },
       ...(t && { transaction: t }),
       returning: true,
@@ -99,18 +84,16 @@ export const updateBerth = async (
   );
 };
 
-export const deleteBerth = async (id: number) => {
-  const orgCondition = addOrgIdToConditions();
+export const deleteBerth = async (id: number, orgId: number) => {
   return Berth.destroy({
     where: {
       id,
-      ...orgCondition,
+      orgId,
     },
   });
 };
 
 export const createBerth = async (data: any, creator: string, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions();
   return Berth.create(
     {
       ...data,
@@ -119,7 +102,6 @@ export const createBerth = async (data: any, creator: string, t?: Transaction) =
       ...(data?.limitZone3 && { limitZone3: +data.limitZone3 }),
       status: 0,
       createdBy: creator,
-      orgId: orgCondition.orgId,
     },
     {
       ...(t && { transaction: t }),
@@ -128,24 +110,21 @@ export const createBerth = async (data: any, creator: string, t?: Transaction) =
 };
 
 export const getAllBerthWithSensor = async () => {
-  const orgCondition = addOrgIdToConditions();
   return Berth.findAll({
-    where: {
-      ...orgCondition,
-    },
+    where: {},
     include: [
       {
         model: Sensor,
         as: 'leftDevice',
-        attributes: ['id', 'name', 'status', 'realValue'],
+        attributes: ['id', 'berthId', 'orgId', 'name', 'status', 'realValue'],
       },
       {
         model: Sensor,
         as: 'rightDevice',
-        attributes: ['id', 'name', 'status', 'realValue'],
+        attributes: ['id', 'berthId', 'orgId', 'name', 'status', 'realValue'],
       },
     ],
-    attributes: ['id', 'name'],
+    attributes: ['id','orgId', 'name'],
   });
 };
 

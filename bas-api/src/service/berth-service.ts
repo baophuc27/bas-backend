@@ -81,7 +81,7 @@ export const deleteBerth = async (berthId: number, orgId: number) => {
     );
   }
 
-  const result = await berthDao.deleteBerth(berthId);
+  const result = await berthDao.deleteBerth(berthId, orgId);
   if (result) {
     realtimeService.removeBerthRealtime(berthId, orgId);
   }
@@ -192,29 +192,32 @@ export const configurationBerth = async (
         ? BerthStatus.BERTHING
         : BerthStatus.DEPARTING;
 
-    return existRecord || await recordService.createRecord(
-          {
-            berthId,
-            orgId,
-            vesselId: vessel.id,
-            sessionId: generateRecordSession(berthId, vessel.id),
-            createdBy: modifier,
-            startTime: moment().utc().toDate(),
-            endTime: null,
-            vesselDirection: data.vesselDirection ? 1 : 0,
-            limitZone1: berth.limitZone1,
-            limitZone2: berth.limitZone2,
-            limitZone3: berth.limitZone3,
-            directionCompass: berth.directionCompass,
-            distanceFender: berth.distanceFender,
-            distanceDevice: berth.distanceDevice,
-            distanceToLeft: data.distanceToLeft,
-            distanceToRight: data.distanceToRight,
-            syncStatus: 'PENDING',
-            mooringStatus: mooringStatus,
-          },
-          t
-        );
+    return (
+      existRecord ||
+      (await recordService.createRecord(
+        {
+          berthId,
+          orgId,
+          vesselId: vessel.id,
+          sessionId: generateRecordSession(berthId, vessel.id),
+          createdBy: modifier,
+          startTime: moment().utc().toDate(),
+          endTime: null,
+          vesselDirection: data.vesselDirection ? 1 : 0,
+          limitZone1: berth.limitZone1,
+          limitZone2: berth.limitZone2,
+          limitZone3: berth.limitZone3,
+          directionCompass: berth.directionCompass,
+          distanceFender: berth.distanceFender,
+          distanceDevice: berth.distanceDevice,
+          distanceToLeft: data.distanceToLeft,
+          distanceToRight: data.distanceToRight,
+          syncStatus: 'PENDING',
+          mooringStatus: mooringStatus,
+        },
+        t
+      ))
+    );
   });
   if (isSend && res?.id) {
     await kafkaService.produceKafkaData(

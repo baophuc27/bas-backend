@@ -8,7 +8,7 @@ import { Server } from 'socket.io';
 import app from './app';
 import { realtimeService } from '@bas/service';
 import { handleQueue } from '@bas/service/queue-service';
-import './swagger-config';
+// import './swagger-config';
 
 const result = dotenv.config({
   path: '.env',

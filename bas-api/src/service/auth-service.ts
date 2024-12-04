@@ -14,9 +14,6 @@ export const login = async (
       throw new BadRequestException('Username and password are required');
     }
     const data = await dataAppService.callLoginFunction(username, password);
-    console.log('data from callLoginFunction');
-    console.log(data);
-
     if (!data) {
       throw new BadRequestException('Invalid username or password');
     }
@@ -41,13 +38,10 @@ export const login = async (
     if (!user) {
       throw new BadRequestException('Invalid username or password');
     }
-
-    // Save the user data to cache using user.id as the key
-    saveToCache(data.user.organization.id.toString(), data, 3600);
+    saveToCache(data.user.organization.id.toString(), data.user.organization, 3600);
 
     const token = userService.generateAccessToken(user);
     const refreshToken = await userService.generateRefreshToken(user, ipAddress);
-
     return {
       token: token,
       refreshToken: refreshToken.token,

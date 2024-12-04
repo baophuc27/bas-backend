@@ -32,4 +32,5 @@ export interface BerthConfigDto {
   show: boolean;
   vesselDirection: boolean;
   vessel?: VesselDto;
+  
 }

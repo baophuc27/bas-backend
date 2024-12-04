@@ -21,8 +21,8 @@ class Sensor extends Model<SensorAttributes, SensorInput> implements SensorAttri
   public name!: string;
   public status?: number;
   public realValue?: number | null;
-  public berthId!: number; // Bến
-  public orgId!: number; // Tổ chức
+  public berthId!: number;
+  public orgId!: number;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;

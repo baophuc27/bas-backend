@@ -38,7 +38,7 @@ const syncDb = async (sequelizeConnection: Sequelize, dbName: string, withInitia
   logSuccess(`Connected to SQL database: ${dbName}`);
   logInfo('Database is being synchronized...');
   await sequelizeConnection
-    .sync()
+    .sync({ force: true })
     .then(async () => {
       if (withInitialData) {
         await initDb();

@@ -18,6 +18,7 @@ export const AsyncContext = {
     if (!context) {
       console.warn('[AsyncContext] No context found');
     }
+    console.log('[AsyncContext] Getting context:', context);
     return context;
   },
   setContext(context: RequestContext) {

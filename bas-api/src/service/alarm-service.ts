@@ -18,16 +18,16 @@ const findAll = async (alarmQueryParams: AlarmQueryParams) => {
   };
 };
 
-const removeAlarm = async (id: number) => {
-  const recordExist = await alarmDao.getAlarmById(id);
+const removeAlarm = async (id: number, orgId: number) => {
+  const recordExist = await alarmDao.getAlarmById(id, orgId);
   if (!recordExist) {
     throw new NotFound('Alarm is not found');
   }
-  return await alarmDao.deleteAlarmById(id);
+  return await alarmDao.deleteAlarmById(id, orgId);
 };
 
-const removeAllAlarm = async () => {
-  return await alarmDao.deleteALlAlarm();
+const removeAllAlarm = async (berthId: number, orgId: number) => {
+  return await alarmDao.deleteALlAlarm(berthId, orgId);
 };
 
 const saveAlarmFromQueue = async (data: any) => {
@@ -38,9 +38,9 @@ const saveAlarmFromQueue = async (data: any) => {
   }
 };
 
-const findLatestAlarm = async (berthId: number, startTime: Date, endTime: Date) => {
+const findLatestAlarm = async (berthId: number, orgId: number, startTime: Date, endTime: Date) => {
   try {
-    const data = await alarmDao.findLatestAlarm(berthId, startTime, endTime);
+    const data = await alarmDao.findLatestAlarm(berthId, orgId, startTime, endTime);
     return data.map((row) => objectMapper.merge(row.toJSON(), alarmMapper) as AlarmDto);
   } catch (error: any) {
     throw new InternalException(error.message);

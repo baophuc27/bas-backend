@@ -5,22 +5,8 @@ import moment from 'moment/moment';
 import { DEFAULT_AMOUNT, DEFAULT_PAGE } from '@bas/constant';
 import { alarmStatus } from '@bas/constant/alarm-status';
 import sequelizeConnection from '../connection';
-import { AsyncContext } from '@bas/utils/AsyncContext';
 
-const addOrgIdToConditions = () => {
-  const context = AsyncContext.getContext();
-  if (!context?.orgId) {
-    console.warn('[RECORD-HISTORY] orgId is missing in AsyncContext, using default orgId.');
-    // throw new Error('orgId is required but not found in context');
-    return { orgId: 0 };
-  }
-  return { orgId: context.orgId };
-};
-
-const orgCondition = addOrgIdToConditions();
-
-const findAllByRecord = async (recordId: number) => {
-  const orgCondition = addOrgIdToConditions();
+const findAllByRecord = async (recordId: number, orgId: number) => {
   return await RecordHistory.findAndCountAll({
     include: [
       {
@@ -29,6 +15,7 @@ const findAllByRecord = async (recordId: number) => {
         as: 'record',
         attributes: [
           'id',
+          'orgId',
           'sessionId',
           'vesselId',
           'berthId',
@@ -41,51 +28,55 @@ const findAllByRecord = async (recordId: number) => {
             model: Vessel,
             required: true,
             as: 'vessel',
-            attributes: ['id', 'name', 'nameEn'],
+            attributes: ['id', 'orgId', 'name', 'nameEn'],
           },
           {
             model: Berth,
             required: true,
             as: 'berth',
-            attributes: ['id', 'name', 'nameEn'],
+            attributes: ['id', 'orgId', 'name', 'nameEn'],
             paranoid: false,
           },
         ],
       },
     ],
-    where: { recordId, ...orgCondition },
+    where: { recordId, orgId },
     order: [['time', 'DESC']],
     logging: true,
   });
 };
 
 const createRecordHistory = async (data: any) => {
-  const orgCondition = addOrgIdToConditions();
   const frame = await RecordHistory.findOrCreate({
     where: {
       recordId: data.recordId,
+      orgId: data.orgId,
       time: data.time,
-      ...orgCondition,
     },
-    defaults: { ...data, ...orgCondition },
+    defaults: { ...data },
   });
   return frame[0];
 };
 
-const getRecordHistoryById = async (recordHistoryId: number) => {
+const getRecordHistoryById = async (
+  recordHistoryId: number,
+  recordId: number,
+  berthId: number,
+  orgId: number
+) => {
   return RecordHistory.findOne({
     where: {
       id: recordHistoryId,
-      ...orgCondition,
+      recordId: recordId,
+      berthId: berthId,
+      orgId: orgId,
     },
   });
 };
 
 const removeAllAlarm = async () => {
-  const orgCondition = addOrgIdToConditions();
   return await RecordHistory.destroy({
     where: {
-      ...orgCondition,
       [Op.or]: [
         { RDistanceAlarm: { [Op.gt]: alarmStatus.OPERATOR } },
         { angleAlarm: { [Op.gt]: alarmStatus.OPERATOR } },
@@ -96,8 +87,12 @@ const removeAllAlarm = async () => {
   });
 };
 
-const getAllRecordHistoryBetweenTime = async (berthId: number, startTime: Date, endTime: Date) => {
-  const orgCondition = addOrgIdToConditions();
+const getAllRecordHistoryBetweenTime = async (
+  berthId: number,
+  orgId: number,
+  startTime: Date,
+  endTime: Date
+) => {
   const start = moment(startTime).utc().toDate();
   const end = moment(endTime).utc().toDate();
   const startQuery = new Date();
@@ -112,6 +107,7 @@ const getAllRecordHistoryBetweenTime = async (berthId: number, startTime: Date, 
           'sessionId',
           'vesselId',
           'berthId',
+          'orgId',
           'mooringStatus',
           'startTime',
           'endTime',
@@ -121,7 +117,7 @@ const getAllRecordHistoryBetweenTime = async (berthId: number, startTime: Date, 
     where: {
       time: { [Op.between]: [start, end] },
       '$record.berthId$': berthId,
-      ...orgCondition,
+      '$record$.orgId$': orgId,
     },
     order: [['time', 'DESC']],
     logging: true,
@@ -131,24 +127,23 @@ const getAllRecordHistoryBetweenTime = async (berthId: number, startTime: Date, 
   return data;
 };
 
-const removeAllByRecord = async (recordId: number) => {
+const removeAllByRecord = async (recordId: number, orgId: number) => {
   return await RecordHistory.destroy({
-    where: { recordId, ...orgCondition },
+    where: { recordId, orgId },
   });
 };
 
-const getAllRecordHistoryByRecordIds = async (recordIds: number[]) => {
+const getAllRecordHistoryByRecordIds = async (recordIds: number[], orgId: number) => {
   return await RecordHistory.findAll({
     where: {
       recordId: { [Op.in]: recordIds },
-      ...orgCondition,
+      orgId: orgId,
     },
     order: [['time', 'DESC']],
   });
 };
 
-const getAggregateByRecord = async (recordId: number) => {
-  const orgCondition = addOrgIdToConditions();
+const getAggregateByRecord = async (recordId: number, orgId: number) => {
   return await RecordHistory.findAll({
     attributes: [
       [fn('round', cast(fn('max', col('angle')), 'numeric'), 2), 'maxAngle'],
@@ -161,13 +156,12 @@ const getAggregateByRecord = async (recordId: number) => {
       [fn('round', cast(fn('min', col('rightSpeed')), 'numeric'), 2), 'minRightSpeed'],
       [fn('round', cast(fn('avg', col('rightSpeed')), 'numeric'), 2), 'avgRightSpeed'],
     ],
-    where: { recordId, ...orgCondition },
+    where: { recordId, orgId },
     logging: true,
   });
 };
 
-const getAllRecordHistoryByRecordId = async (recordId: number) => {
-  const orgCondition = addOrgIdToConditions();
+const getAllRecordHistoryByRecordId = async (recordId: number, orgId: number) => {
   const SEQUENCE = 30;
 
   return await sequelizeConnection.query(
@@ -181,15 +175,15 @@ const getAllRecordHistoryByRecordId = async (recordId: number) => {
       WHERE MOD(rown, :sequence) = 1;
     `,
     {
-      replacements: { recordId, orgId: orgCondition.orgId, sequence: SEQUENCE },
+      replacements: { recordId, orgId, sequence: SEQUENCE },
       type: QueryTypes.SELECT,
     }
   );
 };
 
-const removeById = async (id: number) => {
+const removeById = async (id: number, orgId: number) => {
   return await RecordHistory.destroy({
-    where: { id, ...orgCondition },
+    where: { id, orgId },
     force: true,
   });
 };

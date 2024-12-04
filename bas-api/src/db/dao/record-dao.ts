@@ -1,28 +1,15 @@
 import { RecordFilter, RecordHistoryQueryParams } from '@bas/service/typing';
 import { Berth, Record, Sensor, Vessel } from '../models';
-import { FindOptions, Op, Transaction } from 'sequelize';
+import { FindOptions, Op, or, Transaction } from 'sequelize';
 import moment from 'moment';
 import { recordHistoryDao } from './index';
 import { DEFAULT_AMOUNT, DEFAULT_PAGE } from '@bas/constant';
 import RecordHistory from '../models/record-history-model';
-import { AsyncContext } from '@bas/utils/AsyncContext';
-
-const addOrgIdToConditions = () => {
-  const context = AsyncContext.getContext();
-  if (!context?.orgId) {
-    console.warn('[RECORD] No orgId found in context, context:', context);
-    throw new Error('orgId is required but not found in context');
-  }
-  return { orgId: context.orgId };
-};
 
 const findAll = async (recordFilter: RecordFilter) => {
-  const { berthId, amount, vesselId, mode, order, page, search } = recordFilter;
-  const orgCondition = addOrgIdToConditions();
-
+  const { berthId, amount, vesselId, orgId, mode, order, page, search } = recordFilter;
   let conditions: FindOptions = {
     where: {
-      ...orgCondition,
       // endTime: {
       //   [Op.not]: null,
       // },
@@ -48,7 +35,9 @@ const findAll = async (recordFilter: RecordFilter) => {
     order: [[order || 'id', mode?.toUpperCase() || 'DESC']],
     logging: console.log,
   };
-
+  if (orgId) {
+    conditions.where = { ...conditions.where, orgId };
+  }
   if (berthId) {
     conditions.where = { ...conditions.where, berthId };
   }
@@ -70,19 +59,17 @@ const findAll = async (recordFilter: RecordFilter) => {
   return await Record.findAndCountAll(conditions);
 };
 
-const remove = async (id: number) => {
-  const orgCondition = addOrgIdToConditions();
-  await recordHistoryDao.removeAllByRecord(id);
-  return await Record.destroy({ where: { id, ...orgCondition }, force: true });
+const remove = async (id: number, orgId: number) => {
+  await recordHistoryDao.removeAllByRecord(id, orgId);
+  return await Record.destroy({ where: { id, orgId }, force: true });
 };
 
-const getCurrentRecord = async (berthId: number, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions();
+const getCurrentRecord = async (berthId: number, orgId: number, t?: Transaction) => {
   return Record.findOne({
     where: {
       berthId,
+      orgId,
       endTime: null,
-      ...orgCondition,
     },
     include: [
       {
@@ -94,13 +81,13 @@ const getCurrentRecord = async (berthId: number, t?: Transaction) => {
             model: Sensor,
             required: true,
             as: 'leftDevice',
-            attributes: ['id', 'name'],
+            attributes: ['id', 'berthId', 'orgId', 'name'],
           },
           {
             model: Sensor,
             required: true,
             as: 'rightDevice',
-            attributes: ['id', 'name'],
+            attributes: ['id', 'berthId', 'orgId', 'name'],
           },
         ],
       },
@@ -111,48 +98,44 @@ const getCurrentRecord = async (berthId: number, t?: Transaction) => {
 };
 
 const createRecord = async (data: any, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions();
-  return Record.create({ ...data, ...orgCondition }, { ...(t && { transaction: t }) });
+  return Record.create({ ...data }, { ...(t && { transaction: t }) });
 };
 
-const endRecord = async (recordId: number, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions();
+const endRecord = async (recordId: number, orgId: number, t?: Transaction) => {
   return Record.update(
     { endTime: moment().utc().toDate() },
     {
       where: {
         id: recordId,
-        ...orgCondition,
+        orgId: orgId,
       },
       ...(t && { transaction: t }),
     }
   );
 };
 
-const getRecordById = async (recordId: number) => {
-  const orgCondition = addOrgIdToConditions();
+const getRecordById = async (recordId: number, orgId: number) => {
   return Record.findOne({
-    where: { id: recordId, ...orgCondition },
+    where: { id: recordId, orgId: orgId },
   });
 };
 
-const getRecordByIdAndNotEnd = async (recordId: number) => {
-  const orgCondition = addOrgIdToConditions();
+const getRecordByIdAndNotEnd = async (recordId: number, orgId: number) => {
   return Record.findOne({
     where: {
       id: recordId,
       endTime: null,
-      ...orgCondition,
+      orgId: orgId,
     },
   });
 };
 
 const getRecordHistoryByRecordId = async (
   recordId: number,
+  orgId: number,
   recordHistoryQueryParams: RecordHistoryQueryParams
 ) => {
   const { amount, page, order } = recordHistoryQueryParams;
-  const orgCondition = addOrgIdToConditions();
   const record = await Record.findOne({
     include: [
       {
@@ -196,15 +179,15 @@ const getRecordHistoryByRecordId = async (
         paranoid: false,
       },
     ],
-    where: { id: recordId, ...orgCondition },
+    where: { id: recordId, orgId: orgId },
     logging: true,
   });
 
   const recordHistories = await RecordHistory.findAndCountAll({
-    where: { recordId, ...orgCondition },
-    limit: amount || DEFAULT_AMOUNT,
-    offset: (page || DEFAULT_PAGE) * (amount || DEFAULT_AMOUNT),
-    order: [['time', order?.toUpperCase() || 'DESC']],
+    where: { recordId, orgId },
+    limit: amount ?? DEFAULT_AMOUNT,
+    offset: (page ?? DEFAULT_PAGE) * (amount ?? DEFAULT_AMOUNT),
+    order: [['time', order?.toUpperCase() ?? 'DESC']],
   });
 
   return {
@@ -214,22 +197,20 @@ const getRecordHistoryByRecordId = async (
   };
 };
 
-const getAggregatesByRecordId = async (recordId: number) => {
-  const orgCondition = addOrgIdToConditions();
+const getAggregatesByRecordId = async (recordId: number, orgId: number) => {
   const record = await Record.findOne({
-    where: { id: recordId, ...orgCondition },
+    where: { id: recordId, orgId },
   });
   let aggregates;
   if (record) {
-    aggregates = await recordHistoryDao.getAggregateByRecord(recordId);
+    aggregates = await recordHistoryDao.getAggregateByRecord(recordId, orgId);
   }
   return {
     aggregates: aggregates || [],
   };
 };
 
-const findAllWithoutPagination = async (recordId: number) => {
-  const orgCondition = addOrgIdToConditions();
+const findAllWithoutPagination = async (recordId: number, orgId: number) => {
   const record = await Record.findOne({
     include: [
       {
@@ -272,12 +253,12 @@ const findAllWithoutPagination = async (recordId: number) => {
         paranoid: false,
       },
     ],
-    where: { id: recordId, ...orgCondition },
+    where: { id: recordId, orgId: orgId },
     logging: true,
   });
 
   const recordHistories = await RecordHistory.findAll({
-    where: { recordId, ...orgCondition },
+    where: { recordId, orgId },
     order: [['time', 'DESC']],
   });
 
@@ -287,15 +268,14 @@ const findAllWithoutPagination = async (recordId: number) => {
   };
 };
 
-const getChartByRecordId = async (recordId: number) => {
-  const orgCondition = addOrgIdToConditions();
+const getChartByRecordId = async (recordId: number, orgId: number) => {
   const record = await Record.findOne({
-    where: { id: recordId, ...orgCondition },
+    where: { id: recordId, orgId },
   });
 
   let chart;
   if (record) {
-    chart = await recordHistoryDao.getAllRecordHistoryByRecordId(recordId);
+    chart = await recordHistoryDao.getAllRecordHistoryByRecordId(recordId, orgId);
   }
 
   return {
@@ -303,8 +283,7 @@ const getChartByRecordId = async (recordId: number) => {
   };
 };
 
-const findLatestRecord = async (berthId: number, startTime: Date, endTime: Date) => {
-  const orgCondition = addOrgIdToConditions();
+const findLatestRecord = async (berthId: number, orgId: number, startTime: Date, endTime: Date) => {
   const time = moment().utc().subtract(24, 'hours').toDate();
   const start = moment(startTime).utc().toDate();
   const end = moment(endTime).utc().toDate();
@@ -312,7 +291,7 @@ const findLatestRecord = async (berthId: number, startTime: Date, endTime: Date)
   return await Record.findAll({
     where: {
       berthId,
-      ...orgCondition,
+      orgId,
       [Op.or]: [
         {
           endTime: null,
@@ -344,13 +323,12 @@ const findLatestRecord = async (berthId: number, startTime: Date, endTime: Date)
       ],
     },
     order: [['id', 'desc']],
-    attributes: ['id', 'sessionId', 'startTime', 'endTime'],
+    attributes: ['id', 'berthId', 'orgId', 'sessionId', 'startTime', 'endTime'],
     logging: console.log,
   });
 };
 
-const findRecordByIds = async (recordIds: number[]) => {
-  const orgCondition = addOrgIdToConditions();
+const findRecordByIds = async (recordIds: number[], orgId: number) => {
   return await Record.findAll({
     include: [
       {
@@ -378,19 +356,18 @@ const findRecordByIds = async (recordIds: number[]) => {
       id: {
         [Op.in]: recordIds,
       },
-      ...orgCondition,
+      orgId: orgId,
     },
   });
 };
 
-const updateStatus = async (recordId: number, status: string, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions();
+const updateStatus = async (recordId: number, orgId: number, status: string, t?: Transaction) => {
   return Record.update(
     { syncStatus: status },
     {
       where: {
         id: recordId,
-        ...orgCondition,
+        orgId: orgId,
       },
       ...(t && { transaction: t }),
     }

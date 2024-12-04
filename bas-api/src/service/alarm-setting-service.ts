@@ -16,8 +16,8 @@ import { AlarmSettingUpdateDto } from '@bas/database/dto/request/alarm-setting-u
 import { berthService } from '.';
 import { Transaction } from 'sequelize';
 
-export const findSetting = async (berthId: number) => {
-  const results = await alarmSettingDao.findSetting({ berthId });
+export const findSetting = async (berthId: number, orgId: number) => {
+  const results = await alarmSettingDao.findSetting({ berthId, orgId });
   const alarmSettings = results.map((row) => {
     return objectMapper.merge(row, alarmSettingMapper) as AlarmSettingDto;
   });
@@ -77,10 +77,9 @@ export const findSetting = async (berthId: number) => {
   };
 };
 
-export const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto[]) => {
+export const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto[], orgId: number) => {
   const ids = alarmSettingDto.map((alarmSetting) => alarmSetting.id);
-
-  const results = await alarmSettingDao.findByAllConditions(ids);
+  const results = await alarmSettingDao.findByAllConditions(ids, orgId);
   if (!results || ids.length > results.length) {
     throw new NotFoundException(
       `Alarm setting with id ${ids.join(', ')} not found`,
@@ -196,8 +195,8 @@ export const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto[]) =>
   return response;
 };
 
-export const resetDataAlarmSetting = async (berthId: number) => {
-  const berth = await berthService.getBerthById(berthId);
+export const resetDataAlarmSetting = async (berthId: number, orgId: number) => {
+  const berth = await berthService.getBerthById(berthId, orgId);
 
   const results = await alarmSettingDao.findSetting({ berthId });
   const alarmSettings = results.map((row) => {
@@ -205,7 +204,7 @@ export const resetDataAlarmSetting = async (berthId: number) => {
   });
 
   await sequelizeConnection.transaction(async (t) => {
-    const rs = defaultAlarmSettings(berth.limitZone1, berth.id);
+    const rs = defaultAlarmSettings(berth.limitZone1, berth.id, berth.orgId);
     for (const [index, alarmSetting] of alarmSettings.entries()) {
       await alarmSettingDao.resetValueAlarmSetting(
         {
@@ -219,13 +218,14 @@ export const resetDataAlarmSetting = async (berthId: number) => {
   });
 };
 
-const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) => {
+const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number, orgId: number) => {
   return [
     {
       alarmType: 'distance',
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '>=',
       message: null,
@@ -237,6 +237,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '>=',
       message: null,
@@ -248,6 +249,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '>=',
       message: null,
@@ -259,6 +261,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '>=',
       message: null,
@@ -270,6 +273,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '>=',
       message: null,
@@ -281,6 +285,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: Number.isFinite(limitZone1) ? '>=' : '>',
       message: null,
@@ -292,6 +297,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -303,6 +309,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -314,6 +321,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<',
       message: null,
@@ -325,6 +333,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -336,6 +345,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -347,6 +357,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<',
       message: null,
@@ -358,6 +369,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -369,6 +381,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -380,6 +393,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_1',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<=',
       message: null,
@@ -391,6 +405,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -402,6 +417,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -413,6 +429,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<=',
       message: null,
@@ -424,6 +441,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -435,6 +453,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -446,6 +465,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<',
       message: null,
@@ -457,6 +477,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -468,6 +489,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -479,6 +501,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_2',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<=',
       message: null,
@@ -491,6 +514,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -502,6 +526,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -513,6 +538,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'left_sensor',
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<',
       message: null,
@@ -524,6 +550,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -535,6 +562,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -546,6 +574,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: 'right_sensor',
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<',
       message: null,
@@ -557,6 +586,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 1,
       operator: '<=',
       message: null,
@@ -568,6 +598,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 2,
       operator: '<=',
       message: null,
@@ -579,6 +610,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
       alarmSensor: null,
       alarmZone: 'zone_3',
       berthId: berthId,
+      orgId: orgId,
       statusId: 3,
       operator: '<=',
       message: null,
@@ -588,19 +620,23 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number) =
   ];
 };
 
-
-export const createNewAlarmSettingSet = async (berthId: number, limitZone1: number, transaction?: Transaction) => {
+export const createNewAlarmSettingSet = async (
+  berthId: number,
+  orgId: number,
+  limitZone1: number,
+  transaction?: Transaction
+) => {
   try {
-    const settingSet = defaultAlarmSettings(limitZone1, berthId);
+    const settingSet = defaultAlarmSettings(limitZone1, berthId, orgId);
 
     const response: any = [];
 
     for (const alarmSetting of settingSet) {
-      await alarmSettingDao.createAlarmSetting( berthId , alarmSetting, transaction);
+      await alarmSettingDao.createAlarmSetting(berthId, orgId, alarmSetting, transaction);
     }
     return true;
   } catch (error) {
     console.log(error);
-    return false
+    return false;
   }
-}
+};

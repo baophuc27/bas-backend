@@ -16,31 +16,32 @@ export const addOrgIdToConditions = () => {
 
 const orgCondition = addOrgIdToConditions();
 
-export const getBerthInfo = async (id: number) => {
-  const orgCondition = addOrgIdToConditions();
-  return Berth.findOne({
-    where: {
-      id,
-      ...orgCondition,
-    },
-    include: [
-      {
-        model: Vessel,
-        as: 'vessel',
-        attributes: ['id', 'name', 'code', 'nameEn'],
-      },
-      {
-        model: Sensor,
-        as: 'leftDevice',
-        attributes: ['id', 'name', 'status', 'realValue'],
-      },
-      {
-        model: Sensor,
-        as: 'rightDevice',
-        attributes: ['id', 'name', 'status', 'realValue'],
-      },
-    ],
-  });
+export const getBerthInfo = async (id: number, orgId: number) => {
+  try {
+    return await Berth.findOne({
+      where: { id, orgId },
+      include: [
+        {
+          model: Vessel,
+          as: 'vessel',
+          attributes: ['id', 'name', 'code', 'nameEn'],
+        },
+        {
+          model: Sensor,
+          as: 'leftDevice',
+          attributes: ['id', 'name', 'status', 'realValue'],
+        },
+        {
+          model: Sensor,
+          as: 'rightDevice',
+          attributes: ['id', 'name', 'status', 'realValue'],
+        },
+      ],
+    });
+  } catch (error) {
+    console.error('Error in getBerthInfo: ', error);
+    throw error;
+  }
 };
 
 export const getAllBerths = async (filter: BerthFilter) => {
@@ -72,8 +73,13 @@ export const getAllBerths = async (filter: BerthFilter) => {
   });
 };
 
-export const updateBerth = async (id: number, data: any, modifier: string, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions();
+export const updateBerth = async (
+  id: number,
+  orgId: number,
+  data: any,
+  modifier: string,
+  t?: Transaction
+) => {
   return Berth.update(
     {
       ...data,
@@ -81,11 +87,11 @@ export const updateBerth = async (id: number, data: any, modifier: string, t?: T
       ...(data?.limitZone2 && { limitZone2: +data.limitZone2 }),
       ...(data?.limitZone3 && { limitZone3: +data.limitZone3 }),
       modifiedBy: modifier,
+      orgId,
     },
     {
       where: {
         id,
-        ...orgCondition,
       },
       ...(t && { transaction: t }),
       returning: true,
@@ -144,14 +150,12 @@ export const getAllBerthWithSensor = async () => {
 };
 
 export const getBerthsWithHaveRecording = async () => {
-  const orgCondition = addOrgIdToConditions();
   return Record.findAll({
     include: [
       {
         model: Berth,
         as: 'berth',
-        attributes: ['id', 'name'],
-        where: { ...orgCondition },
+        attributes: ['id', 'orgId', 'name'],
       },
     ],
     where: {

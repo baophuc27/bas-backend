@@ -29,8 +29,8 @@ export const findAll = async (recordFilter: RecordFilter) => {
   };
 };
 
-export const getAggregatesByRecordId = async (recordId: number) => {
-  const result = await recordDao.getAggregatesByRecordId(recordId);
+export const getAggregatesByRecordId = async (recordId: number, orgId: number) => {
+  const result = await recordDao.getAggregatesByRecordId(recordId, orgId);
 
   const aggregates = objectMapper.merge(
     result.aggregates[0]?.dataValues || {},
@@ -43,8 +43,8 @@ export const getAggregatesByRecordId = async (recordId: number) => {
   };
 };
 
-export const getChartByRecordId = async (recordId: number) => {
-  const result = await recordDao.getChartByRecordId(recordId);
+export const getChartByRecordId = async (recordId: number, orgId: number) => {
+  const result = await recordDao.getChartByRecordId(recordId, orgId);
 
   const chart = result?.chart?.map((recordHistory) => {
     return objectMapper.merge(recordHistory, recordHistoryChartMapper);
@@ -58,9 +58,14 @@ export const getChartByRecordId = async (recordId: number) => {
 
 export const getRecordHistoryByRecordId = async (
   recordId: number,
+  orgId: number,
   recordHistoryQueryParams: RecordHistoryQueryParams
 ) => {
-  const result = await recordDao.getRecordHistoryByRecordId(recordId, recordHistoryQueryParams);
+  const result = await recordDao.getRecordHistoryByRecordId(
+    recordId,
+    orgId,
+    recordHistoryQueryParams
+  );
 
   const record = objectMapper.merge(result.record || {}, recordDetailMapper);
   const recordHistories = result.recordHistories.map((recordHistory) => {
@@ -76,22 +81,25 @@ export const getRecordHistoryByRecordId = async (
   };
 };
 
-export const getRecordHistoryByRecordIdWithoutPagination = async (recordId: number) => {
-  const result = await recordDao.findAllWithoutPagination(recordId);
+export const getRecordHistoryByRecordIdWithoutPagination = async (
+  recordId: number,
+  orgId: number
+) => {
+  const result = await recordDao.findAllWithoutPagination(recordId, orgId);
 
   const record = objectMapper.merge(result.record || {}, recordDetailMapper);
   const recordHistories = result.recordHistories.map((recordHistory) => {
     return objectMapper.merge(recordHistory, recordHistoryMapper);
   });
 
-  const resultAggregates = await recordDao.getAggregatesByRecordId(recordId);
+  const resultAggregates = await recordDao.getAggregatesByRecordId(recordId, orgId);
 
   const aggregates = objectMapper.merge(
     resultAggregates.aggregates[0]?.dataValues || {},
     recordAggregateMapper
   );
 
-  const resultChart = await recordDao.getChartByRecordId(recordId);
+  const resultChart = await recordDao.getChartByRecordId(recordId, orgId);
 
   const chart = resultChart?.chart?.map((recordHistory) => {
     return objectMapper.merge(recordHistory, recordHistoryChartMapper);
@@ -105,32 +113,37 @@ export const getRecordHistoryByRecordIdWithoutPagination = async (recordId: numb
   };
 };
 
-export const remove = async (id: number) => {
-  const recordExist = await recordDao.getRecordById(id);
+export const remove = async (id: number, orgId: number) => {
+  const recordExist = await recordDao.getRecordById(id, orgId);
   if (!recordExist?.endTime) {
     throw new BadRequestException('Record is not ended yet', internalErrorCode.INVALID_INPUT);
   }
-  return await recordDao.remove(id);
+  return await recordDao.remove(id, orgId);
 };
 
-export const getCurrentRecord = async (berthId: number, t?: Transaction) => {
-  return recordDao.getCurrentRecord(berthId, t);
+export const getCurrentRecord = async (berthId: number, orgId: number, t?: Transaction) => {
+  return recordDao.getCurrentRecord(berthId, orgId, t);
 };
 
 export const createRecord = async (data: any, t?: Transaction) => {
   return recordDao.createRecord(data, t);
 };
 
-export const endRecord = async (recordId: number, t?: Transaction) => {
-  return recordDao.endRecord(recordId, t);
+export const endRecord = async (
+  recordId: number,
+  orgId: number,
+  t?: Transaction
+) => {
+  return recordDao.endRecord(recordId, orgId, t);
 };
 
-export const getRecordById = async (recordId: number) => {
-  return recordDao.getRecordByIdAndNotEnd(recordId);
+export const getRecordById = async (recordId: number, orgId: number) => {
+  return recordDao.getRecordByIdAndNotEnd(recordId, orgId);
 };
 
 export const findLatestRecord = async (
   berthId: number,
+  orgId: number,
   startTime: Date,
   endTime: Date,
   raw?: boolean
@@ -138,10 +151,14 @@ export const findLatestRecord = async (
   //   get data history 24h last
   const recordHistory = await recordHistoryService.getAllRecordHistoryBetweenTime(
     berthId,
+    orgId,
     startTime,
     endTime
   );
-  const records = await recordDao.findRecordByIds(recordHistory.map((record) => record.recordId));
+  const records = await recordDao.findRecordByIds(
+    recordHistory.map((record) => record.recordId),
+    orgId
+  );
   if (!raw) {
     return recordHistory.length > 0 ? await convertToAlarmData(recordHistory, records) : [];
   } else {
@@ -324,8 +341,8 @@ const extractAlarmData = (alarmData: RecordHistory, type: string, side?: number)
   }
 };
 
-export const sync = async (recordId: number) => {
-  const result = await recordDao.findAllWithoutPagination(recordId);
+export const sync = async (recordId: number, orgId: number) => {
+  const result = await recordDao.findAllWithoutPagination(recordId, orgId);
 
   if (!result) {
     throw new BadRequestException('Record not found', internalErrorCode.INVALID_INPUT);
@@ -354,7 +371,7 @@ export const sync = async (recordId: number) => {
   };
   const sync = await cloudService.syncRecordToCloud(payload);
   const status = sync ? RecordSyncStatus.SUCCESS : RecordSyncStatus.FAILED;
-  await recordDao.updateStatus(recordId, status);
+  await recordDao.updateStatus(recordId, orgId, status);
 
   return sync;
 };

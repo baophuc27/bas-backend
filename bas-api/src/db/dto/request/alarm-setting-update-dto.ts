@@ -8,5 +8,6 @@ export interface AlarmSettingUpdateDto {
   statusId?: number;
   operator?: string;
   defaultValue?: number;
+  berthId:number;
   orgId: number;
 }

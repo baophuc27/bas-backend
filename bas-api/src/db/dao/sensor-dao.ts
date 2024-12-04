@@ -1,6 +1,5 @@
 import { Sensor } from '../models';
 import { DeviceStatus } from '@bas/constant/device-status';
-import { AsyncContext } from '@bas/utils/AsyncContext';
 
 type sensorUpdatePayload = {
   id: number;
@@ -10,25 +9,12 @@ type sensorUpdatePayload = {
   timeout?: boolean;
 };
 
-const addOrgIdToConditions = () => {
-  const context = AsyncContext.getContext();
-  if (!context?.orgId) {
-    console.warn('[Sensor-DAO] orgId is missing in AsyncContext, using default orgId.');
-    // throw new Error('orgId is required but not found in context');
-    return { orgId: 0 };
-  }
-  return { orgId: context.orgId };
-};
-
-const orgCondition = addOrgIdToConditions();
-
 export const updatePairDevice = async (
   leftSensor: sensorUpdatePayload,
   rightSensor: sensorUpdatePayload,
-  berthId: number
+  berthId: number,
+  orgId: number
 ) => {
-  const orgCondition = addOrgIdToConditions();
-
   if (leftSensor.value !== leftSensor.oldVal) {
     await Sensor.update(
       {
@@ -39,7 +25,7 @@ export const updatePairDevice = async (
         where: {
           id: leftSensor.id,
           berthId,
-          ...orgCondition,
+          orgId,
         },
       }
     );
@@ -54,8 +40,8 @@ export const updatePairDevice = async (
       {
         where: {
           id: rightSensor.id,
-          berthId, // Áp dụng bến
-          ...orgCondition, // Áp dụng orgId
+          berthId,
+          orgId,
         },
       }
     );

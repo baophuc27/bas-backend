@@ -7,7 +7,6 @@ export interface BaseQueryParams {
   mode?: 'ASC' | 'DESC';
   amount?: number;
   page?: number;
-  orgId?: number;
 }
 
 export interface UserUpdatePayload {
@@ -27,6 +26,7 @@ export interface OrgPayload {
 
 export interface UserQueryParams extends BaseQueryParams {
   roleId?: number;
+  orgId?: number;
 }
 
 type userDataPayload = {
@@ -36,8 +36,7 @@ type userDataPayload = {
 };
 
 export interface AuthSocket extends Socket {
-  auth?: userDataPayload | TokenData;
-  context?: RequestContext;
+  auth?: userDataPayload;
 }
 
 export interface PortEventSocketEndSession {
@@ -47,7 +46,7 @@ export interface PortEventSocketEndSession {
     name?: string;
     nameEn?: string;
   };
-  orgId?: number;
+  orgId: number;
 }
 
 export interface PortEventSocketDeviceError {
@@ -58,7 +57,7 @@ export interface PortEventSocketDeviceError {
     nameEn?: string;
   };
   errorCode: string;
-  orgId?: number;
+  orgId: number;
 }
 
 type TokenData = {
@@ -88,6 +87,7 @@ export interface AlarmQueryParams extends BaseQueryParams {
   type?: string;
   alarm?: string;
   berth?: string;
+  orgId?: number;
   withoutPagination?: boolean;
 }
 
@@ -134,7 +134,7 @@ type RealtimeKafkaMessage = {
   berth_id: number;
   session_id: string;
   error_code?: number;
-  orgId?: number;
+  orgId: number;
 };
 
 export interface NamespaceRealtimeSocket {
@@ -159,7 +159,7 @@ type AlarmUnit = {
   status_id: number;
   value: number;
   operator: string;
-  orgId?: number;
+  orgId: number;
 };
 
 type StartRecordAlarmPayload = {
@@ -185,7 +185,7 @@ type StartRecordPayload = {
   limit_zone_2?: number;
   limit_zone_3?: number;
   alarm?: StartRecordAlarmPayload;
-  orgId?: number;
+  orgId: number;
 };
 
 type DeviceUnit = {
@@ -202,16 +202,16 @@ type DeviceRealValue = {
   left_sensor: DeviceUnit;
   right_sensor: DeviceUnit;
   berthId: number;
-  orgId?: number;
+  orgId: number;
 };
 
 type resetBerthParam = {
   berthId: number;
+  orgId: number;
   status: BerthStatus;
   modifier: string;
   isFinish?: boolean;
   isError?: boolean;
-  orgId?: number;
 };
 
 type AlarmData = {
@@ -244,11 +244,12 @@ type RawRealtimeData = {
   speed: number;
   distance: number;
   error_code: number;
-  orgId?: number;
+  orgId: number;
 };
 
 type createAlarmPayload = {
   orgId: number;
+  berthId: number;
   recordId: number;
   type: string;
   value?: number | null;

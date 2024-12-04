@@ -9,7 +9,8 @@ import { getFromCache } from '@bas/utils/cache';
 const resetAlarmSetting = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { berthId } = req.params;
-    await alarmSettingService.resetDataAlarmSetting(+berthId);
+    const orgId = req.identification.orgId;
+    await alarmSettingService.resetDataAlarmSetting(+berthId, orgId);
 
     return res.success({});
   } catch (error: any) {

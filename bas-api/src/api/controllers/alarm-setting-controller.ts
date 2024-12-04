@@ -6,7 +6,8 @@ import { alarmStatus, getAlarmStatusMessages } from '@bas/constant/alarm-status'
 const findSetting = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { berthId } = req.params;
-    const { data } = await alarmSettingService.findSetting(+berthId);
+    const orgId = req.identification.orgId;
+    const { data } = await alarmSettingService.findSetting(+berthId, +orgId);
     return res.success({ data });
   } catch (error: any) {
     trace(findSetting.name);
@@ -17,7 +18,8 @@ const findSetting = async (req: Request, res: Response, next: NextFunction) => {
 const updateSetting = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { alarmSettings } = req.body;
-    const data = await alarmSettingService.updateSetting(alarmSettings);
+    const orgId = req.identification.orgId;
+    const data = await alarmSettingService.updateSetting(alarmSettings, orgId);
     return res.success({ data }, 'Alarm setting updated successfully');
   } catch (error: any) {
     trace(updateSetting.name);

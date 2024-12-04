@@ -34,18 +34,17 @@ import { APP_NAME, LIMIT_CONDITION, SPEED_CONDITION } from '@bas/config';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { SystemRole } from '@bas/database/master-data/system-role';
 import { setIntervalAsync } from 'set-interval-async';
-import { AsyncContext } from '@bas/utils/AsyncContext';
 
 const TIME_OUT = 30 * 1000;
 const groupId = `GROUP-${APP_NAME}`;
-let deviceRealtime = new Map<number, DeviceRealValue>();
+let deviceRealtime = new Map<string, DeviceRealValue>();
 let realtimeSocket: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> =
   null as any;
 const rooms = new Set<String>();
 let generalSocket: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> =
   null as any;
 let berthIsRunning = new Map<
-  number,
+  string,
   {
     timestamp: number;
     beginTs: number;
@@ -53,9 +52,19 @@ let berthIsRunning = new Map<
     isSent: boolean;
     lostTargetAt?: number;
     mooringStatus?: string;
-    orgId?: number;
   }
 >();
+const generateKey = (berthId: number, orgId: number): string => {
+  return `${berthId}-${orgId}`;
+};
+// const addOrgIdToConditions = () => {
+//   const context = AsyncContext.getContext();
+//   if (!context?.orgId) {
+//     console.warn('[RECORD] No orgId found in context, context:', context);
+//     return { orgId: 1 };
+//   }
+//   return { orgId: context.orgId };
+// };
 const UUID_SYSTEM = '8dad3a21-802a-4e3d-baa3-8dd28b303a93';
 /**
  * Add new berth to realtime data
@@ -65,8 +74,11 @@ const UUID_SYSTEM = '8dad3a21-802a-4e3d-baa3-8dd28b303a93';
  * @param rightId
  */
 const addBerthRealtime = (berthId: number, orgId: number, leftId: number, rightId: number) => {
-  console.log(`[addBerthRealtime] Adding berth ${berthId} to realtime data`);
-  deviceRealtime.set(berthId, {
+  const key = generateKey(berthId, orgId);
+  console.log(
+    `[addBerthRealtime] Adding berth ${berthId} of organization ${orgId} to realtime data`
+  );
+  deviceRealtime.set(key, {
     left_sensor: {
       id: leftId,
       value: null,
@@ -84,18 +96,30 @@ const addBerthRealtime = (berthId: number, orgId: number, leftId: number, rightI
     berthId,
     orgId,
   });
-  console.log(`[addBerthRealtime] Successfully added berth ${berthId}`);
+  console.log(`[addBerthRealtime] Successfully added berth ${berthId} of organization ${orgId}`);
 };
+/**
+ * Generate socket access token
+ * @param userId
+ * @param roleId
+ * @param orgId
+ * @returns string
+ */
 
 /**
  * Remove berth from realtime data when berth is deleted
  * @param berthId
- *
+ * @param orgId
  */
-const removeBerthRealtime = (berthId: number) => {
-  console.log(`[removeBerthRealtime] Removing berth ${berthId} from realtime data`);
-  deviceRealtime.delete(berthId);
-  console.log(`[removeBerthRealtime] Successfully removed berth ${berthId}`);
+const removeBerthRealtime = (berthId: number, orgId: number) => {
+  const key = generateKey(berthId, orgId);
+  console.log(
+    `[removeBerthRealtime] Removing berth ${berthId} of organization ${orgId} from realtime data`
+  );
+  deviceRealtime.delete(key);
+  console.log(
+    `[removeBerthRealtime] Successfully removed berth ${berthId} of organization ${orgId}`
+  );
 };
 
 /**
@@ -108,19 +132,19 @@ const initDeviceData = async () => {
     deviceRealtime.clear();
     data.forEach((berth) => {
       if (berth.leftDevice?.id && berth.rightDevice?.id) {
-        deviceRealtime.set(berth.id, {
+        deviceRealtime.set(generateKey(berth.id, berth.orgId), {
           left_sensor: {
             id: berth.leftDevice?.id,
-            value: berth.leftDevice?.realValue || null,
-            oldVal: berth.leftDevice?.realValue || null,
-            status: berth.leftDevice?.status || DeviceStatus.DISCONNECT,
+            value: berth.leftDevice?.realValue ?? null,
+            oldVal: berth.leftDevice?.realValue ?? null,
+            status: berth.leftDevice?.status ?? DeviceStatus.DISCONNECT,
             timestamp: new Date().getTime(),
           },
           right_sensor: {
             id: berth.rightDevice?.id,
-            value: berth.rightDevice?.realValue || null,
-            oldVal: berth.rightDevice?.realValue || null,
-            status: berth.rightDevice?.status || DeviceStatus.DISCONNECT,
+            value: berth.rightDevice?.realValue ?? null,
+            oldVal: berth.rightDevice?.realValue ?? null,
+            status: berth.rightDevice?.status ?? DeviceStatus.DISCONNECT,
             timestamp: new Date().getTime(),
           },
           berthId: berth.id,
@@ -147,6 +171,7 @@ const authorizationSocket = (socket: AuthSocket, next: (err?: any) => void) => {
     if (!token) {
       return next(new Error('Token is required'));
     }
+    console.log(`[authorizationSocket] Token: ${token}`);
     const userInformation: TokenData | null = verifyTokenForSocket(<string>token);
     if (!userInformation) {
       return next(new Error('Token is invalid'));
@@ -169,8 +194,8 @@ const authorizationSocket = (socket: AuthSocket, next: (err?: any) => void) => {
  * @param berthId : string (berthId)
  * @param type : string (bas, config)
  */
-const getRoomKey = (berthId: string, type: string) => {
-  const key = `${type}_${berthId}`;
+const getRoomKey = (berthId: string, orgId: string, type: string) => {
+  const key = `${type}_${berthId}_${orgId}`;
   console.log(`[getRoomKey] Generated key: ${key}`);
   return key;
 };
@@ -194,82 +219,79 @@ const handleJoinSocket = async (socket: AuthSocket) => {
  */
 const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>) => {
   return async (message: KafkaMessage) => {
-    console.log('[handleRealtimeData] Processing new message');
     try {
-      const raw: RealtimeKafkaMessage = JSON.parse(message?.value?.toString() || '{}');
-      console.log('[Kafka Message] Raw data:', raw);
+      const raw: RealtimeKafkaMessage = JSON.parse(message?.value?.toString() ?? '{}');
       const objectData: SocketRealtimeData = objectMapper.merge(
         raw,
         realtimeMapper
       ) as SocketRealtimeData;
-      const context = { orgId: objectData.orgId, userId: UUID_SYSTEM, roleId: 1 };
-      AsyncContext.run(context, async () => {
-        const room = getRoomKey(objectData.berthId.toString(), 'bas');
-        const { data, record } = await processData(objectData);
-        const isRunning = berthIsRunning.get(+objectData.berthId) || null;
-        if (isRunning) {
-          const beginTs = isRunning.beginTs;
-          const type = isRunning.type;
-          berthIsRunning.set(+objectData.berthId, {
-            ...isRunning,
-            type,
-            beginTs,
-            timestamp: new Date().getTime(),
-            isSent: false,
-            ...(!data?.error_code && {
-              lostTargetAt: undefined,
-              mooringStatus: undefined,
-            }),
-          });
-        }
+      const key = generateKey(objectData.berthId, objectData.orgId);
+      const room = getRoomKey(objectData.berthId.toString(), objectData.orgId.toString(), 'bas');
+      const { data, record } = await processData(objectData);
+      const isRunning = berthIsRunning.get(key) || null;
+      if (isRunning) {
+        const beginTs = isRunning.beginTs;
+        const type = isRunning.type;
+        berthIsRunning.set(key, {
+          ...isRunning,
+          type,
+          beginTs,
+          timestamp: new Date().getTime(),
+          isSent: false,
+          ...(!data?.error_code && {
+            lostTargetAt: undefined,
+            mooringStatus: undefined,
+          }),
+        });
+      }
 
-        if (realtimeSocket != null && data != null) {
-          console.log(JSON.stringify(data));
-          realtimeSocket.to(rooms.toString()).emit('data', JSON.stringify(data));
-          if (data?.error_code) {
-            await handleError(
-              objectData.sessionId,
-              objectData.berthId,
-              data.error_code.toString(),
-              record?.mooringStatus || 'DEPARTING'
-            );
-          } else {
-            if (record?.mooringStatus !== 'DEPARTING') {
-              const speedCondition = Object.values(data?.speed).every((val: any) => {
-                if (!val?.value) {
-                  return false;
-                }
-                return val.value < +SPEED_CONDITION;
-              });
-              const distanceCondition = Object.values(data?.distance).every((val: any) => {
-                if (!val?.value) {
-                  return false;
-                }
-                return val.value <= +LIMIT_CONDITION;
-              });
-              const isShouldEndRecording = speedCondition && distanceCondition;
-              if (isShouldEndRecording) {
-                const berth = await berthDao.getBerthInfo(objectData.berthId);
-                shouldEndRecording({
-                  berth: {
-                    id: objectData.berthId,
-                    name: berth?.name,
-                    nameEn: berth?.nameEn,
-                  },
-                  sessionId: objectData.sessionId,
-                });
+      if (realtimeSocket != null && data != null) {
+        console.log(JSON.stringify(data));
+        realtimeSocket.to(room.toString()).emit('data', JSON.stringify(data));
+        if (data?.error_code) {
+          await handleError(
+            objectData.sessionId,
+            objectData.berthId,
+            objectData.orgId,
+            data.error_code.toString(),
+            record?.mooringStatus || 'DEPARTING'
+          );
+        } else {
+          if (record?.mooringStatus !== 'DEPARTING') {
+            const speedCondition = Object.values(data?.speed).every((val: any) => {
+              if (!val?.value) {
+                return false;
               }
+              return val.value < +SPEED_CONDITION;
+            });
+            const distanceCondition = Object.values(data?.distance).every((val: any) => {
+              if (!val?.value) {
+                return false;
+              }
+              return val.value <= +LIMIT_CONDITION;
+            });
+            const isShouldEndRecording = speedCondition && distanceCondition;
+            if (isShouldEndRecording) {
+              const berth = await berthDao.getBerthInfo(objectData.berthId, objectData.orgId);
+              shouldEndRecording({
+                berth: {
+                  id: objectData.berthId,
+                  name: berth?.name,
+                  nameEn: berth?.nameEn,
+                },
+                orgId: objectData.orgId,
+                sessionId: objectData.sessionId,
+              });
             }
           }
         }
-      });
+      }
     } catch (error) {
       console.log(error);
       logError(error);
     }
   };
 };
-
 /**
  * Init realtime data for visualizing data
  * @param io
@@ -279,10 +301,12 @@ const initRealtimeData = async (io: Server) => {
   try {
     realtimeSocket = io.of('/bas-realtime');
     realtimeSocket.use(authorizationSocket);
+
     realtimeSocket.on('connection', async (socket: AuthSocket) => {
-      setTimeout(function () {
+      // Disconnect socket if not authorized within TIME_OUT
+      setTimeout(() => {
         if (!socket.auth) {
-          console.log(`Disconnect socket {id: ${socket?.id}`);
+          console.log(`Disconnecting unauthorized socket {id: ${socket?.id}}`);
           socket.disconnect(true);
         }
       }, TIME_OUT);
@@ -290,12 +314,14 @@ const initRealtimeData = async (io: Server) => {
       socket.on('join', async (data: any) => {
         try {
           const { berthId } = JSON.parse(data);
-          if (!berthId) {
+          if (!berthId || !socket.auth?.orgId) {
             return;
           }
-          const stringBerthId = getRoomKey(berthId, 'bas');
-          socket.join(stringBerthId);
-          rooms.add(stringBerthId);
+
+          const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'bas');
+          socket.join(roomKey);
+          rooms.add(roomKey);
+          console.log(`Socket ${socket.id} joined room ${roomKey}`);
         } catch (error) {
           logError(error);
         }
@@ -304,15 +330,17 @@ const initRealtimeData = async (io: Server) => {
       socket.on('leave', async (data: any) => {
         try {
           const { berthId } = JSON.parse(data);
-          if (!berthId) {
+          if (!berthId || !socket.auth?.orgId) {
             return;
           }
-          const stringBerthId = getRoomKey(berthId, 'bas');
-          socket.leave(stringBerthId);
-          // check socket room have socket
-          const clients = await realtimeSocket.in(stringBerthId).fetchSockets();
+
+          const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'bas');
+          socket.leave(roomKey);
+
+          const clients = await realtimeSocket.in(roomKey).fetchSockets();
           if (clients.length === 0) {
-            rooms.delete(stringBerthId);
+            rooms.delete(roomKey);
+            console.log(`Room ${roomKey} deleted as it has no clients`);
           }
         } catch (error) {
           logError(error);
@@ -320,8 +348,10 @@ const initRealtimeData = async (io: Server) => {
       });
 
       socket.on('disconnect', () => {
+        console.log(`Socket ${socket.id} disconnected`);
         socket.rooms?.forEach((room: any) => {
           socket.leave(room);
+          console.log(`Socket ${socket.id} left room ${room}`);
         });
       });
     });
@@ -342,7 +372,7 @@ const initRealtimeData = async (io: Server) => {
  * @returns
  */
 function cleanData(data: SocketRealtimeData, berth: Berth | null) {
-  console.log('[cleanData] Cleaning data for berth:', berth?.id);
+  console.log('[cleanData] Cleaning data for berth:', berth?.id, 'of organization:', berth?.orgId);
   if (!berth?.leftDevice?.name || !berth?.rightDevice?.name) {
     return;
   }
@@ -381,20 +411,15 @@ function cleanData(data: SocketRealtimeData, berth: Berth | null) {
  * @returns
  */
 const processData = async (objectData: SocketRealtimeData): Promise<any> => {
-  console.log(`[processData] Processing data for berth ${objectData.berthId}`);
+  console.log(
+    `[processData] Processing data for berth ${objectData.berthId} and org ${objectData.orgId}`
+  );
   try {
-    if (!objectData.orgId) {
-      throw new Error('[ProcessData] Missing orgId in Kafka message.');
-    }
-    const record = await recordService.getRecordById(+objectData.sessionId);
-    const berth = await berthDao.getBerthInfo(objectData.berthId);
+    const record = await recordService.getRecordById(+objectData.berthId, +objectData.orgId);
+    const berth = await berthDao.getBerthInfo(objectData.berthId, objectData.orgId);
     if (!record || !berth?.leftDevice?.name || !berth?.rightDevice?.name) {
       return null;
     }
-    if (berth.orgId !== objectData.orgId) {
-      throw new Error('Organization ID mismatch for the provided berthId.');
-    }
-
     const error_code = SENSOR_ERROR_CODE?.[objectData.error_code?.toString()] || '';
     const device = errorConverter(error_code);
     const left = ['both', 'left'].includes(device.side) ? device.status : DeviceStatus.CONNECT;
@@ -421,12 +446,13 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
         angleZone: objectData.angle?.zone,
         time: moment(objectData.eventTime).utc().toDate(),
         recordId: record.id,
+        orgId: record.orgId,
       } as RecordHistoryInput,
       {
         left: berth.leftDevice?.id,
         right: berth.rightDevice?.id,
       },
-      record?.mooringStatus || 'DEPARTING'
+      record?.mooringStatus ?? 'DEPARTING'
     );
 
     return {
@@ -499,7 +525,10 @@ const initRealtimeDevice = async (io: Server) => {
         if (!berthId) {
           return;
         }
-        const stringBerthId = getRoomKey(berthId, 'config');
+        if (!socket.auth) {
+          return;
+        }
+        const stringBerthId = getRoomKey(berthId, socket.auth.orgId.toString(), 'config');
         socket.join(stringBerthId);
         rooms.add(stringBerthId);
       } catch (error) {
@@ -513,7 +542,10 @@ const initRealtimeDevice = async (io: Server) => {
         if (!berthId) {
           return;
         }
-        const stringBerthId = getRoomKey(berthId, 'config');
+        if (!socket.auth) {
+          return;
+        }
+        const stringBerthId = getRoomKey(berthId, socket.auth.orgId.toString(), 'config');
         socket.leave(stringBerthId);
         const clients = await deviceSocket.in(stringBerthId).fetchSockets();
         if (clients.length === 0) {
@@ -537,8 +569,9 @@ const initRealtimeDevice = async (io: Server) => {
 
   await initKafkaData(
     async (message: KafkaMessage) => {
-      const raw: RawRealtimeData = JSON.parse(message?.value?.toString() || '{}');
-      const berthSensor = deviceRealtime.get(+raw.berthId);
+      const raw: RawRealtimeData = JSON.parse(message?.value?.toString() ?? '{}');
+      const key = generateKey(raw.berthId, raw.orgId);
+      const berthSensor = deviceRealtime.get(key);
       if (!berthSensor) {
         return;
       }
@@ -581,14 +614,15 @@ const initRealtimeDevice = async (io: Server) => {
           oldVal: berthSensor.right_sensor.oldVal,
           timeout: berthSensor.right_sensor.timestamp + TIMEOUT_DEVICE < new Date().getTime(),
         },
-        raw.berthId // Passing the berthId
+        raw.berthId,
+        raw.orgId
       );
 
-      deviceRealtime.set(+raw.berthId, berthSensor);
+      deviceRealtime.set(key, berthSensor);
 
       deviceSocket
-        .to(getRoomKey(raw.berthId.toString(), 'config'))
-        .emit('device', JSON.stringify(deviceRealtime.get(raw.berthId)));
+        .to(getRoomKey(raw.berthId.toString(), raw.orgId.toString(), 'config'))
+        .emit('device', JSON.stringify(deviceRealtime.get(key)));
     },
     consumer,
     BAS_DEVICE_REALTIME
@@ -596,66 +630,66 @@ const initRealtimeDevice = async (io: Server) => {
 
   const INTERVAL_TIME = 1000;
   const TIMEOUT_DEVICE = 1000 * 30;
-
   setInterval(async () => {
+    // console.log('Device realtime: ', deviceRealtime);
+
     for (const berth of deviceRealtime.keys()) {
       const configData = deviceRealtime.get(berth);
-      const orgId = configData?.orgId;
-      if (orgId) {
-        AsyncContext.run({ orgId, userId: UUID_SYSTEM, roleId: 8 }, async () => {
-          const now = new Date().getTime();
-
-          if (
-            configData.left_sensor.timestamp + TIMEOUT_DEVICE < now &&
-            configData.left_sensor.status !== DeviceStatus.DISCONNECT
-          ) {
-            configData.left_sensor = {
-              ...configData.left_sensor,
-              status: DeviceStatus.DISCONNECT,
-              oldVal: configData.left_sensor.value,
-              value: null,
-              error: 'disconnected',
-            };
-          }
-
-          if (
-            configData.right_sensor.timestamp + TIMEOUT_DEVICE < now &&
-            configData.right_sensor.status !== DeviceStatus.DISCONNECT
-          ) {
-            configData.right_sensor = {
-              ...configData.right_sensor,
-              status: DeviceStatus.DISCONNECT,
-              oldVal: configData.right_sensor.value,
-              value: null,
-              error: 'disconnected',
-            };
-          }
-
-          await sensorDao.updatePairDevice(
-            {
-              id: configData.left_sensor.id,
-              status: configData.left_sensor.status,
-              value: configData.left_sensor.value,
-              oldVal: configData.left_sensor.oldVal,
-              timeout: configData.left_sensor.timestamp + TIMEOUT_DEVICE < now,
-            },
-            {
-              id: configData.right_sensor.id,
-              status: configData.right_sensor.status,
-              value: configData.right_sensor.value,
-              oldVal: configData.right_sensor.oldVal,
-              timeout: configData.right_sensor.timestamp + TIMEOUT_DEVICE < now,
-            },
-            berth // Pass the berthId
-          );
-
-          deviceRealtime.set(berth, configData);
-
-          deviceSocket
-            .to(getRoomKey(berth.toString(), 'config'))
-            .emit('device', JSON.stringify(deviceRealtime.get(berth)));
-        });
+      if (!configData) {
+        continue;
       }
+      const now = new Date().getTime();
+      if (
+        configData.left_sensor.timestamp + TIMEOUT_DEVICE < now &&
+        configData.left_sensor.status !== DeviceStatus.DISCONNECT
+        // && configData.left_sensor.oldVal !== configData.left_sensor.value
+      ) {
+        configData.left_sensor = {
+          ...configData.left_sensor,
+          status: DeviceStatus.DISCONNECT,
+          oldVal: configData.left_sensor.value,
+          value: null,
+          error: 'disconnected',
+        };
+      }
+
+      if (
+        configData.right_sensor.timestamp + TIMEOUT_DEVICE < now &&
+        configData.right_sensor.status !== DeviceStatus.DISCONNECT
+        // && configData.right_sensor.value !== configData.right_sensor.oldVal
+      ) {
+        configData.right_sensor = {
+          ...configData.right_sensor,
+          status: DeviceStatus.DISCONNECT,
+          oldVal: configData.right_sensor.value,
+          value: null,
+          error: 'disconnected',
+        };
+      }
+      await sensorDao.updatePairDevice(
+        {
+          id: configData.left_sensor.id,
+          status: configData.left_sensor.status,
+          value: configData.left_sensor.value,
+          oldVal: configData.left_sensor.oldVal,
+          timeout: configData.left_sensor.timestamp + TIMEOUT_DEVICE < now,
+        },
+        {
+          id: configData.right_sensor.id,
+          status: configData.right_sensor.status,
+          value: configData.right_sensor.value,
+          oldVal: configData.right_sensor.oldVal,
+          timeout: configData.right_sensor.timestamp + TIMEOUT_DEVICE < now,
+        },
+        configData.berthId,
+        configData.orgId
+      );
+
+      deviceRealtime.set(berth, configData);
+      const orgId = configData.orgId.toString();
+      deviceSocket
+        .to(getRoomKey(berth.toString(), orgId, 'config'))
+        .emit('device', JSON.stringify(deviceRealtime.get(berth)));
     }
   }, INTERVAL_TIME);
 };
@@ -675,21 +709,24 @@ const shouldEndRecording = (portEventSocketEndSession: PortEventSocketEndSession
  * Handle error from sensor
  * @param sessionId
  * @param berthId
+ * @param orgId
  * @param code
  * @param mooringStatus [DEPARTING, BERTHING]
  */
 const handleError = async (
   sessionId: string,
   berthId: number,
+  orgId: number,
   code: string,
   mooringStatus: string
 ) => {
   console.log(`[handleError] Handling error for berth ${berthId}, code: ${code}`);
   try {
-    const berth = await berthDao.getBerthInfo(berthId);
+    const berth = await berthDao.getBerthInfo(berthId, orgId);
     if (!berth || !berth.leftDevice || !berth.rightDevice) {
       return;
     }
+    const key = generateKey(berthId, orgId);
     const error: string = SENSOR_ERROR_CODE[code];
     const side = error.split('@')[1];
     const errorMessage = error.split('@')[0];
@@ -727,14 +764,15 @@ const handleError = async (
               name: berth.name,
               nameEn: berth.nameEn,
             },
+            orgId: orgId,
             errorCode: errorMessage.toUpperCase(),
           });
         }
 
-        isRunning = berthIsRunning.get(berthId) || null;
+        isRunning = berthIsRunning.get(key) || null;
         if (errorMessage === 'lost_target') {
           if (isRunning && !isRunning?.lostTargetAt) {
-            berthIsRunning.set(berthId, {
+            berthIsRunning.set(key, {
               ...isRunning,
               lostTargetAt: new Date().getTime(),
               mooringStatus: mooringStatus,
@@ -742,7 +780,7 @@ const handleError = async (
           }
         } else {
           if (isRunning && isRunning?.lostTargetAt) {
-            berthIsRunning.set(berthId, {
+            berthIsRunning.set(key, {
               ...isRunning,
               lostTargetAt: undefined,
               mooringStatus: undefined,
@@ -751,9 +789,9 @@ const handleError = async (
         }
         break;
       default:
-        isRunning = berthIsRunning.get(berthId) || null;
+        isRunning = berthIsRunning.get(key) || null;
         if (isRunning && isRunning?.lostTargetAt) {
-          berthIsRunning.set(berthId, {
+          berthIsRunning.set(key, {
             ...isRunning,
             lostTargetAt: undefined,
             mooringStatus: undefined,
@@ -772,7 +810,9 @@ const handleError = async (
  * @param portEventSocketDeviceError
  */
 const deviceIsError = (portEventSocketDeviceError: PortEventSocketDeviceError) => {
-  console.log(`[deviceIsError] Device error for berth ${portEventSocketDeviceError.berth.id}`);
+  console.log(
+    `[deviceIsError] Device error for berth ${portEventSocketDeviceError.berth.id} of org ${portEventSocketDeviceError.orgId}`
+  );
   generalSocket.emit('DEVICE_ERROR', JSON.stringify(portEventSocketDeviceError));
 };
 
@@ -802,152 +842,153 @@ const initRealtimeGeneral = async (io: Server) => {
  * - Check berth when record time is 6 hours then finish this record
  */
 const watchingBerth = async () => {
-  console.log('[watchingBerth] Starting berth monitoring');
   const INTERVAL_TIME = 1000;
   const TIMEOUT = 1000 * 30;
   const TIMEOUT_RECORD = 1000 * 60 * 60 * 6;
+  const LOST_TARGET_THRESHOLD = 10000; // 10 seconds
+
   setIntervalAsync(async () => {
-    for (const [berthId, value] of berthIsRunning) {
+    for (const [key, value] of berthIsRunning) {
+      if (typeof key !== 'string') {
+        console.error(`[watchingBerth] Invalid key format: ${key}`);
+        return;
+      }
+
+      const keyParts = key.split('-');
+      if (keyParts.length !== 2) {
+        console.error(`[watchingBerth] Invalid key format: ${key}`);
+        return;
+      }
+
+      const berthId = parseInt(keyParts[0], 10);
+      const orgId = parseInt(keyParts[1], 10);
+      if (isNaN(berthId) || isNaN(orgId)) {
+        console.error(`[watchingBerth] Invalid berthId or orgId in key: ${key}`);
+        continue;
+      }
+
       const now = new Date().getTime();
-      const orgId = value.orgId;
-      if (orgId) {
-        AsyncContext.run({ orgId, userId: UUID_SYSTEM, roleId: 8 }, async () => {
-          // Check the berth is lost target more than 10s
-          if (value?.lostTargetAt && value?.lostTargetAt + 10000 < now) {
-            const berth = await berthDao.getBerthInfo(berthId);
-            const record = await recordService.getCurrentRecord(berthId);
-            if (!berth || !berth.leftDevice || !berth.rightDevice) {
-              return;
-            }
 
-            if (!record) {
-              return;
-            }
+      // Lost target check (more than 10 seconds)
+      if (value?.lostTargetAt && value?.lostTargetAt + LOST_TARGET_THRESHOLD < now) {
+        const berth = await berthDao.getBerthInfo(berthId, orgId);
+        const record = await recordService.getCurrentRecord(berthId, orgId);
+        if (!berth || !berth.leftDevice || !berth.rightDevice || !record) {
+          return;
+        }
 
-            if (value.mooringStatus === 'DEPARTING') {
-              shouldEndRecording({
-                berth: {
-                  id: berthId,
-                  name: berth?.name,
-                  nameEn: berth?.nameEn,
+        if (value.mooringStatus === 'DEPARTING') {
+          shouldEndRecording({
+            berth: {
+              id: berthId,
+              name: berth?.name,
+              nameEn: berth?.nameEn,
+            },
+            sessionId: record?.sessionId,
+            orgId: orgId,
+          });
+        } else {
+          deviceIsError({
+            sessionId: record?.sessionId,
+            berth: {
+              id: berthId,
+              name: berth?.name,
+              nameEn: berth?.nameEn,
+            },
+            orgId: orgId,
+            errorCode: 'LOST_TARGET',
+          });
+        }
+      }
+
+      // Check if record duration exceeds 6 hours
+      if (value.beginTs + TIMEOUT_RECORD < now) {
+        const berth = await berthDao.getBerthInfo(berthId, orgId);
+        console.log('Berth: ', berth);
+        if (!berth || !berth.leftDevice || !berth.rightDevice) {
+          continue;
+        }
+        // End record
+        console.log('End record: ', berthId);
+        const user = await userService.findUserByRole(SystemRole.ADMIN);
+        if (!user) {
+          continue;
+        }
+        const { isSync } = await berthService.resetBerth({
+          berthId: berthId,
+          orgId: orgId,
+          status: BerthStatus.MOORING,
+          modifier: user.id,
+          isError: false,
+          isFinish: true,
+        });
+        console.log('End record: ', isSync);
+      }
+
+      // Data check if no data received in 30 seconds
+      if (value.timestamp + TIMEOUT < now && !value.isSent) {
+        berthIsRunning.set(key, { ...value, isSent: true });
+        const res = await recordService.getCurrentRecord(berthId, orgId);
+        if (!res) {
+          return;
+        }
+        const record = unflattenObject(res);
+        const error = SENSOR_ERROR_CODE[1033];
+        const errorMessage = error.split('@')[0];
+        const room = getRoomKey(berthId.toString(), orgId.toString(), 'bas');
+        console.log('Disconnect socket room: ', room);
+        if (realtimeSocket) {
+          realtimeSocket.to(room.toString()).emit(
+            'data',
+            JSON.stringify(
+              cleanData(
+                {
+                  distance: {},
+                  speed: {},
+                  timestamp: new Date().getTime(),
+                  eventTime: moment().tz('Asia/Ho_Chi_Minh').toDate().toISOString(),
+                  berthId: berthId,
+                  sessionId: record.id.toString(),
+                  error_code: 1033,
+                  orgId: orgId,
                 },
-                sessionId: record?.sessionId,
-              });
-            } else {
-              deviceIsError({
-                sessionId: record?.sessionId,
-                berth: {
-                  id: berthId,
-                  name: berth?.name,
-                  nameEn: berth?.nameEn,
-                },
-                errorCode: 'LOST_TARGET',
-              });
-            }
-          }
-
-          // Check the record for more than 6 hours
-          if (value.beginTs + TIMEOUT_RECORD < now) {
-            const berth = await berthDao.getBerthInfo(berthId);
-            if (!berth || !berth.leftDevice || !berth.rightDevice) {
-              return;
-            }
-            //End record
-            console.log('End record: ', berthId);
-            const user = await userService.findUserByRole(SystemRole.ADMIN);
-            if (!user) {
-              return;
-            }
-            const { isSync } = await berthService.resetBerth({
-              berthId: berthId,
-              status: BerthStatus.MOORING,
-              modifier: user.id,
-              isError: false,
-              isFinish: true,
-            });
-            console.log('End record: ', isSync);
-          }
-
-          // Check the berth is receiving data in 30s
-          if (value.timestamp + TIMEOUT < now && !value.isSent) {
-            berthIsRunning.set(berthId, {
-              ...value,
-              isSent: true,
-            });
-            const res = await recordService.getCurrentRecord(berthId);
-            if (!res) {
-              return;
-            }
-            const record = unflattenObject(res);
-
-            const error: string = SENSOR_ERROR_CODE[1033];
-            const errorMessage = error.split('@')[0];
-            const room = getRoomKey(berthId.toString(), 'bas');
-            console.log('Disconnect socket room: ', room);
-            if (realtimeSocket) {
-              realtimeSocket.to(room.toString()).emit(
-                'data',
-                JSON.stringify(
-                  cleanData(
-                    {
-                      distance: {},
-                      speed: {},
-                      timestamp: new Date().getTime(),
-                      eventTime: moment().tz('Asia/Ho_Chi_Minh').toDate().toISOString(),
-                      berthId: berthId,
-                      sessionId: record.id.toString(),
-                      error_code: 1033,
-                      orgId: record?.orgId || null,
-                    },
-                    record?.berth || null
-                  )
-                )
-              );
-            }
-            deviceIsError({
-              sessionId: record.sessionId,
-              berth: {
-                id: berthId,
-                name: record.berth?.name,
-                nameEn: record.berth?.nameEn,
-              },
-              errorCode: errorMessage.toUpperCase(),
-            });
-          }
+                record?.berth || null
+              )
+            )
+          );
+        }
+        deviceIsError({
+          sessionId: record.sessionId,
+          berth: { id: berthId, name: record.berth?.name, nameEn: record.berth?.nameEn },
+          orgId: orgId,
+          errorCode: errorMessage.toUpperCase(),
         });
       }
     }
   }, INTERVAL_TIME);
 };
 
-const addBerthToWatch = (berthId: number, beginTs: number, type: string) => {
-  console.log(`[addBerthToWatch] Adding berth ${berthId} to watch list`);
-  berthIsRunning.set(berthId, {
+const addBerthToWatch = (key: string, beginTs: number, type: string) => {
+  berthIsRunning.set(key, {
     timestamp: new Date().getTime(),
     beginTs,
     type,
     isSent: false,
   });
 };
-const removeBerthFromWatch = (berthId: number) => {
-  console.log(`[removeBerthFromWatch] Removing berth ${berthId} from watch list`);
-  berthIsRunning.delete(berthId);
+
+const removeBerthFromWatch = (key: string) => {
+  berthIsRunning.delete(key);
 };
 
 const initWatchBerth = async () => {
-  console.log('[initWatchBerth] Initializing berth watching');
   const records = await berthDao.getBerthsWithHaveRecording();
   console.log('Init watch berth: ', records.length);
   records.forEach((frame: any) => {
     const beginTs = new Date(frame?.startTime).getTime();
-    const orgId = frame?.orgId;
-    if (orgId) {
-      AsyncContext.run({ orgId, userId: UUID_SYSTEM, roleId: 8 }, () => {
-        addBerthToWatch(frame.berth.id, beginTs, frame.mooringStatus);
-      });
-    } else {
-      console.warn(`[initWatchBerth] Missing orgId for berth ${frame.berth.id}`);
-    }
+    const key = generateKey(frame.berth.id, frame.berth.orgId);
+    console.log('Add berth to watch: ', frame.berth.id + ' ' + beginTs);
+    addBerthToWatch(key, beginTs, frame.mooringStatus);
   });
 };
 
@@ -956,13 +997,12 @@ const initWatchBerth = async () => {
  * @param io
  */
 const init = (io: Server) => {
-  console.log('[init] Initializing realtime service');
   try {
     revokeTokenService.init();
     initRealtimeData(io).then(() => logSuccess('Init realtime data successfully'));
-    initDeviceData().then(() => {
-      initRealtimeDevice(io).then(() => logSuccess('Init realtime device successfully'));
-    });
+    initDeviceData().then(() =>
+      initRealtimeDevice(io).then(() => logSuccess('Init realtime device successfully'))
+    );
     initWatchBerth().then(() => watchingBerth());
     initRealtimeGeneral(io).then(() => logSuccess('Init realtime general successfully'));
     logSuccess('-----------------Init realtime service successfully-------------');

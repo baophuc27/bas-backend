@@ -15,7 +15,9 @@
     "left_sensor": "Left sensor",
     "right_sensor": "Right sensor",
     "distance_from_left_sensor_to_fender": "Distance between Left sensor and fender",
-    "distance_from_right_sensor_to_fender": "Distance between Right sensor and fender"
+    "distance_from_right_sensor_to_fender": "Distance between Right sensor and fender",
+    "left_sensor_id": "Left Sensor ID",
+    "right_sensor_id": "Right Sensor ID"
   },
 
   "parameter_berth_layout": {

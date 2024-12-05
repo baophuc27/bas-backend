@@ -41,7 +41,7 @@ const LayoutParameter = ({
         <Grid item xs={6}>
           <SharedInputField
             label={t(
-              "berth:dock_information.distance_from_left_sensor_to_fender"
+              "berth:dock_information.distance_from_left_sensor_to_fender",
             )}
             name="leftSensorDistance"
             value={values.leftSensorDistance}
@@ -69,11 +69,23 @@ const LayoutParameter = ({
               max: 50,
             }}
           />
+          <SharedInputField
+            label={t("berth:dock_information.left_sensor_id")}
+            name="leftDeviceId"
+            value={values.leftDeviceId}
+            onChange={handleChange}
+            required
+            errorMsg={touched.leftDeviceId ? errors.leftDeviceId : ""}
+            onBlur={() => {
+              setFieldTouched("leftDeviceId", true);
+            }}
+            style={{ marginTop: "16px" }}
+          />
         </Grid>
         <Grid item xs={6}>
           <SharedInputField
             label={t(
-              "berth:dock_information.distance_from_right_sensor_to_fender"
+              "berth:dock_information.distance_from_right_sensor_to_fender",
             )}
             name="rightSensorDistance"
             value={values.rightSensorDistance}
@@ -101,6 +113,18 @@ const LayoutParameter = ({
               max: 50,
             }}
           />
+          <SharedInputField
+            label={t("berth:dock_information.right_sensor_id")}
+            name="rightDeviceId"
+            value={values.rightDeviceId}
+            onChange={handleChange}
+            required
+            errorMsg={touched.rightDeviceId ? errors.rightDeviceId : ""}
+            onBlur={() => {
+              setFieldTouched("rightDeviceId", true);
+            }}
+            style={{ marginTop: "16px" }}
+          />
         </Grid>
       </Grid>
 
@@ -109,12 +133,12 @@ const LayoutParameter = ({
           <SharedInputField
             label={
               t(
-                "berth:parameter_berth_layout.distance_from_left_sensor_to_left_edge"
+                "berth:parameter_berth_layout.distance_from_left_sensor_to_left_edge",
               ) + " (m)"
             }
             placeholder={
               t(
-                "berth:parameter_berth_layout.distance_from_left_sensor_to_left_edge"
+                "berth:parameter_berth_layout.distance_from_left_sensor_to_left_edge",
               ) + " (m)"
             }
             type="number"

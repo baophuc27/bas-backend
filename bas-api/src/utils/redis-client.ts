@@ -1,7 +1,6 @@
 import { createClient } from 'redis';
 import { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_DB } from '@bas/config';
 
-// Khởi tạo Redis client
 export const redisClient = createClient({
   socket: {
     host: REDIS_HOST,
@@ -11,7 +10,6 @@ export const redisClient = createClient({
   database: parseInt(REDIS_DB, 10),
 });
 
-// Kết nối Redis
 redisClient.on('connect', () => {
   console.log('Connected to Redis');
 });

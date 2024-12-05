@@ -1,4 +1,4 @@
-import { Button, CircularProgress } from "@material-ui/core";
+import { Button, CircularProgress, TextField, Grid } from "@material-ui/core";
 import {
   DesktopOnly,
   DesktopView,
@@ -46,6 +46,8 @@ const BerthManagementAddPage = () => {
         distanceToRight: values.rightSensorDistance,
         distanceFender: values.leftSensorDistanceToEdge,
         distanceDevice: values.distantBetweenSensors,
+        leftDeviceId: values.leftSensorId, // Thêm leftSensorId
+        rightDeviceId: values.rightSensorId, // Thêm rightSensorId
       });
       setLoading(false);
       console.info("result", result);
@@ -66,9 +68,8 @@ const BerthManagementAddPage = () => {
     try {
       setLoading(true);
       const result = await BerthService.create({
-        // name, nameEn, directionCompass, limitZone1, limitZone2, limitZone3, distanceToLeft, distanceToRight, distanceFender, distanceDevice
-        leftDeviceId: 1,
-        rightDeviceId: 2,
+        leftDeviceId: values.leftSensorId, // Thêm leftSensorId
+        rightDeviceId: values.rightSensorId, // Thêm rightSensorId
         name: values.berthName,
         nameEn: values.berthName,
         directionCompass: values.berthDirection,
@@ -116,6 +117,10 @@ const BerthManagementAddPage = () => {
 
       leftSensorDistanceToEdge: "", // TBD
       distantBetweenSensors: "",
+
+      // Thêm các trường cho sensorId
+      leftSensorId: "", // left sensor ID
+      rightSensorId: "", // right sensor ID
     },
     onSubmit: id ? handleUpdate : handleCreate,
     enableReinitialize: true,
@@ -125,7 +130,6 @@ const BerthManagementAddPage = () => {
         .required(t("note.required-message"))
         .min(0, t("note.range", { min: 0, max: 360 }))
         .max(360, t("note.range", { min: 0, max: 360 })),
-      // limitZone1 < limitZone2 < limitZone3 <= 300
       limitZone1: Yup.number()
         .required(t("note.required-message"))
         .min(0, t("note.range", { min: 0, max: 300 }))
@@ -180,6 +184,9 @@ const BerthManagementAddPage = () => {
         t("note.required-message"),
       ),
       distantBetweenSensors: Yup.number().required(t("note.required-message")),
+      // Validation cho sensorId
+      leftSensorId: Yup.string().required(t("note.required-message")),
+      rightSensorId: Yup.string().required(t("note.required-message")),
     }),
   });
 
@@ -202,99 +209,86 @@ const BerthManagementAddPage = () => {
           limitZone1: data?.limitZone1,
           limitZone2: data?.limitZone2,
           limitZone3: data?.limitZone3,
-
-          leftSensorStatus: data?.leftDevice?.status,
-          rightSensorStatus: data?.rightDevice?.status,
+          leftSensorStatus: data?.leftSensorStatus,
+          rightSensorStatus: data?.rightSensorStatus,
           leftSensorDistance: data?.distanceToLeft,
           rightSensorDistance: data?.distanceToRight,
-
           leftSensorDistanceToEdge: data?.distanceFender,
-          distantBetweenSensors: data?.distanceDevice ?? 80,
+          distantBetweenSensors: data?.distanceDevice,
+          leftSensorId: data?.leftDeviceId, // Thêm leftSensorId
+          rightSensorId: data?.rightDeviceId, // Thêm rightSensorId
         });
         setBerthInfo(data);
         setLoading(false);
       });
     };
 
-    if (id) {
-      fetchDetail();
-    } else {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, navigate]);
+    if (id) fetchDetail();
+    else setLoading(false);
+  }, [id, navigate, setValues, values]);
 
   useEffect(() => {
-    setPageTitle({
-      id: "berth:page-title.list",
-    });
-    setBreadcrumbsList({
-      id: "berth:list",
-    });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setBreadcrumbsList([
+      {
+        label: t("common:berth"),
+        path: "/dashboard/berth-management",
+      },
+      {
+        label: id ? t("berth:update_berth") : t("berth:create_berth"),
+      },
+    ]);
+    setPageTitle(id ? t("berth:update_berth") : t("berth:create_berth"));
+  }, [id, navigate, setBreadcrumbsList, setPageTitle, t]);
 
   return (
-    <PagePermissionCheck feature={FEATURES.BERTH_MANAGEMENT}>
+    <div>
+      <MenuAppBar />
+      <MobileView>
+        <PagePermissionCheck feature={FEATURES.BERTH_MANAGEMENT} />
+      </MobileView>
       <DesktopView>
-        <div className="main-content record-management-container">
-          {loading && (
-            <div className={detailStyles.loading}>
+        <div className={detailStyles.desktop}>
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <GeneralInformation
+              berthName={values.berthName}
+              berthDirection={values.berthDirection}
+              leftSensorId={values.leftSensorId}
+              rightSensorId={values.rightSensorId}
+              onChange={handleChange}
+              errors={errors}
+              touched={touched}
+              setFieldTouched={setFieldTouched}
+            />
+            <LayoutParameter
+              berthInfo={berthInfo}
+              limitZone1={values.limitZone1}
+              limitZone2={values.limitZone2}
+              limitZone3={values.limitZone3}
+              leftSensorDistance={values.leftSensorDistance}
+              rightSensorDistance={values.rightSensorDistance}
+              leftSensorDistanceToEdge={values.leftSensorDistanceToEdge}
+              distantBetweenSensors={values.distantBetweenSensors}
+              onChange={handleChange}
+              errors={errors}
+              touched={touched}
+              setFieldTouched={setFieldTouched}
+            />
+            {loading ? (
               <CircularProgress />
-            </div>
-          )}
-          {!id ? (
-            <p className={styles.title}>{t("berth:create_new")}</p>
-          ) : (
-            <p className={styles.title}>
-              {t("berth:update")}{" "}
-              {i18next.language.includes("en")
-                ? berthInfo?.nameEn
-                : berthInfo?.name}
-            </p>
-          )}
-          <p className={styles.sectionTitle}>
-            {t("berth:general_information.general_information")}
-          </p>
-
-          <GeneralInformation
-            handleChange={handleChange}
-            values={values}
-            errors={errors}
-            touched={touched}
-            setFieldTouched={setFieldTouched}
-          />
-
-          <p className={styles.sectionTitle}>
-            {t("berth:parameter_berth_layout.parameter_berth_layout")}
-          </p>
-          <LayoutParameter
-            handleChange={handleChange}
-            values={values}
-            errors={errors}
-            touched={touched}
-            setFieldTouched={setFieldTouched}
-          />
-
-          <div className={styles.buttonGroup}>
-            <Button className="custom-button" onClick={handleSubmit}>
-              {t("common:button:save")}
-            </Button>
-            <Button
-              className="light-button custom-button"
-              onClick={() => navigate(-1)}
-            >
-              {t("common:button:cancel")}
-            </Button>
-          </div>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                type="submit"
+                disabled={Object.keys(errors).length > 0}
+              >
+                {id ? t("berth:update_berth") : t("berth:create_berth")}
+              </Button>
+            )}
+          </form>
         </div>
       </DesktopView>
-
-      <MobileView AppBar={<MenuAppBar title={t("berth:detail_title")} />}>
-        <DesktopOnly />
-      </MobileView>
-    </PagePermissionCheck>
+    </div>
   );
 };
 

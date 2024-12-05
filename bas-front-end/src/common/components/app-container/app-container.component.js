@@ -17,10 +17,10 @@ export const AppContainer = (props) => {
   const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state) => state?.user);
 
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const [
         organizationResponse,
@@ -36,7 +36,6 @@ export const AppContainer = (props) => {
         BerthService.getAll(),
       ]);
 
-      // Dispatch the data if successful
       if (organizationResponse?.data?.success) {
         dispatch(setOrganizationData(organizationResponse?.data?.data));
       }
@@ -55,24 +54,16 @@ export const AppContainer = (props) => {
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetchData(); // Fetch all necessary data when the user is logged in
+      fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn]); // Trigger effect when login status changes
+  }, [isLoggedIn]);
 
-  return (
-    <>
-      {loading ? (
-        <div>Loading...</div> // Display loading indicator
-      ) : (
-        <Outlet />
-      )}
-    </>
-  );
+  return <>{loading ? <div>Loading...</div> : <Outlet />}</>;
 };

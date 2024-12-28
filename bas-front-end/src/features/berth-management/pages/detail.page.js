@@ -69,6 +69,8 @@ const BerthManagementAddPage = () => {
       setLoading(true);
       const result = await BerthService.create({
         // name, nameEn, directionCompass, limitZone1, limitZone2, limitZone3, distanceToLeft, distanceToRight, distanceFender, distanceDevice
+        leftDeviceId: 1,
+        rightDeviceId: 2,
         name: values.berthName,
         nameEn: values.berthName,
         directionCompass: values.berthDirection,
@@ -114,8 +116,10 @@ const BerthManagementAddPage = () => {
       leftSensorDistance: "",
       rightSensorDistance: "",
 
-      leftSensorDistanceToEdge: "", // TBD
+      leftSensorDistanceToEdge: "",
       distantBetweenSensors: "",
+      leftSensorId: "",
+      rightSensorId: "",
     },
     onSubmit: id ? handleUpdate : handleCreate,
     enableReinitialize: true,

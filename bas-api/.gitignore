@@ -9,3 +9,6 @@ public/*
 .idea
 
 ./redis_data
+
+# package-lock.json
+package-lock.json

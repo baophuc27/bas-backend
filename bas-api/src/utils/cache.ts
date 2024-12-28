@@ -19,7 +19,10 @@ export const getFromCache = async (key: string) => {
       return null;
     }
     console.log(`Data retrieved from Redis cache for key: ${key}`);
-    return JSON.parse(cachedData);
+    // The data is already a JSON string, just parse it once
+    const parsedData = JSON.parse(cachedData);
+    console.log('Cached value:', JSON.stringify(parsedData, null, 2));
+    return parsedData;
   } catch (error) {
     console.error('Error retrieving from Redis cache:', error);
     return null;

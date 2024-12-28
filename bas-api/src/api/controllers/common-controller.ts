@@ -25,8 +25,8 @@ const getOrgInformation = async (req: Request, res: Response, next: NextFunction
       throw new Error('User ID is missing or user is not authenticated');
     }
 
-    const cachedData = await getFromCache(orgId.toString());
-    if (!cachedData) {
+    const organization = await getFromCache(orgId.toString());
+    if (!organization) {
       const data = {
         ...organizationDefault,
         logo: APP_HOST.concat(organizationDefault.logo),
@@ -35,13 +35,12 @@ const getOrgInformation = async (req: Request, res: Response, next: NextFunction
       return res.success({ data });
     }
 
-    const organization = cachedData.user.organization;
     const data = {
       name: organization.nameVi,
       nameEn: organization.name,
       address: organization.address,
       description: organization.description,
-      logo: organization.url_logo || organizationDefault.logo,
+      logo: organization.url_logo,
     };
     console.log('Using organization from cache');
     return res.success({ data });

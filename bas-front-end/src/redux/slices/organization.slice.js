@@ -5,7 +5,7 @@ const initialState = {
   name_en: "",
   address: "",
   description: "",
-  url_logo: "",
+  logo_url: "",
   orgId: "",
 };
 

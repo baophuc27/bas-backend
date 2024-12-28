@@ -69,7 +69,7 @@ const LayoutParameter = ({
               max: 50,
             }}
           />
-          <SharedInputField
+          {/* <SharedInputField
             label={t("berth:dock_information.left_sensor_id")}
             name="leftDeviceId"
             value={values.leftDeviceId}
@@ -80,7 +80,7 @@ const LayoutParameter = ({
               setFieldTouched("leftDeviceId", true);
             }}
             style={{ marginTop: "16px" }}
-          />
+          /> */}
         </Grid>
         <Grid item xs={6}>
           <SharedInputField
@@ -113,7 +113,7 @@ const LayoutParameter = ({
               max: 50,
             }}
           />
-          <SharedInputField
+          {/* <SharedInputField
             label={t("berth:dock_information.right_sensor_id")}
             name="rightDeviceId"
             value={values.rightDeviceId}
@@ -124,7 +124,7 @@ const LayoutParameter = ({
               setFieldTouched("rightDeviceId", true);
             }}
             style={{ marginTop: "16px" }}
-          />
+          /> */}
         </Grid>
       </Grid>
 

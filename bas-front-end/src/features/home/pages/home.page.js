@@ -144,14 +144,48 @@ export const HomePage = (props) => {
     }
   };
 
+  const checkBerthStatus = async (berthId) => {
+    try {
+      const response = await BerthService.getAll();
+      if (response?.data?.success) {
+        const currentBerth = response?.data?.data?.find(
+          (berth) => berth.id === berthId
+        );
+        
+        if (currentBerth?.status?.id !== 0) {
+          const confirm = await swal({
+            title: t("home:dialogs.status-warning.title"),
+            text: t("home:dialogs.status-warning.message"),
+            icon: "warning",
+            buttons: {
+              cancel: t("common:cancel"),
+              confirm: {
+                text: t("common:continue"),
+                value: true,
+              },
+            },
+          });
+          return confirm;
+        }
+        return true;
+      }
+    } catch (error) {
+      notify("error", t("common:messages.error"));
+      return false;
+    }
+  };
+
   const showsCompleteSessionDialog = async (completeDialogs, data) => {
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
     if (!(berthId in completeDialogs)) {
+      const canProceed = await checkBerthStatus(data?.berth?.id);
+      if (!canProceed) return;
+
       dispatch(
         setCurrentSessionCompleteDialog({
           berthId,
-        }),
+        })
       );
 
       const value = await swal({

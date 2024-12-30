@@ -22,11 +22,11 @@ export const AsyncContext = {
     return context;
   },
   setContext(context: RequestContext) {
-    console.log('[AsyncContext] Setting context:', context);
+    // console.log('[AsyncContext] Setting context:', context);
     asyncLocalStorage.enterWith(context);
   },
   run<T>(context: RequestContext, callback: (...args: any[]) => T): T {
-    console.log('[AsyncContext] Running context:', context);
+    // console.log('[AsyncContext] Running context:', context);
     return asyncLocalStorage.run(context, callback);
   },
   getStore(context: RequestContext): RequestContext | undefined {

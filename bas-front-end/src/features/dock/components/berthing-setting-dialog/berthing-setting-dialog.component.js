@@ -68,7 +68,6 @@ const BerthingSettingDialog = ({
         status: BERTH_STATUS[values.upcomingStatus || values.currentStatus],
         distanceToLeft: values.leftSensorDistance,
         distanceToRight: values.rightSensorDistance,
-        // TODO: vessel information
         vessel: {
           code: values.vesselIMO,
           name: values.vesselName,
@@ -99,7 +98,7 @@ const BerthingSettingDialog = ({
           speed: values.vesselSpeed ? +values?.vesselSpeed : undefined,
           callSign: values.vesselCallSign || undefined,
         },
-        vesselDirection: values.vesselDirection ? true : false,
+        vesselDirection: !!values.vesselDirection,
       });
       setLoading(false);
       if (!result?.data?.success) {
@@ -196,7 +195,6 @@ const BerthingSettingDialog = ({
           distanceToLeft: values.leftSensorDistance,
           distanceToRight: values.rightSensorDistance,
           currentVessel: {
-            // TODO: vessel information
             ...prev.currentVessel,
             code: values.vesselIMO,
             name: values.vesselName,
@@ -210,7 +208,55 @@ const BerthingSettingDialog = ({
       });
   };
 
+  const checkBerthStatus = async () => {
+    try {
+      const response = await BerthService.getAll();
+      if (response?.data?.success) {
+        const currentBerth = response?.data?.data?.find(
+          (berth) => berth.id === Number(id)
+        );
+        
+        if (!currentBerth) {
+          notify("error", t("berthing:confirm.error"));
+          return false;
+        }
+
+        if (currentBerth?.status?.id !== BERTH_STATUS.AVAILABLE) {
+          const confirm = await swal({
+            title: t("home:dialogs.status-warning.title"),
+            text: t("home:dialogs.status-warning.message"), 
+            icon: "warning",
+            buttons: {
+              cancel: t("common:cancel"),
+              confirm: {
+                text: t("common:continue"),
+                value: true,
+              },
+            },
+          });
+          if (confirm) {
+            window.location.reload();
+            // Prevent save if continuing
+            return false;
+          }
+          return false;
+        }
+        return true;
+      }
+      notify("error", t("berthing:confirm.error"));
+      return false;
+    } catch (error) {
+      notify("error", t("common:messages.error"));
+      return false;
+    }
+  };
+
   const handleConfirm = async () => {
+    const canProceed = await checkBerthStatus();
+    if (!canProceed) {
+      return;
+    }
+
     setTouched({});
     if (!values.upcomingStatus) {
       handleUpdate(values).then((res) => {

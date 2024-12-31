@@ -86,7 +86,7 @@ const exportData = async (req: Request, res: Response, next: NextFunction) => {
     const orgId = req.identification.orgId;
     const { language } = req.query;
     const data = await recordService.getRecordHistoryByRecordIdWithoutPagination(+id, +orgId);
-    await exportDataToExcel(res, data, language?.toString() || 'en');
+    await exportDataToExcel(res, data, language?.toString() ?? 'en');
   } catch (error: any) {
     next(error);
   }

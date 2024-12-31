@@ -43,7 +43,6 @@ export const alarmQueue = new Bull('alarm-queue', {
   },
 });
 
-// Hàm thêm job vào hàng đợi
 export const pushToQueue = async (queueName: string, data: any) => {
   try {
     console.log(`Adding job to queue: ${queueName}`);
@@ -53,7 +52,6 @@ export const pushToQueue = async (queueName: string, data: any) => {
   }
 };
 
-// Xử lý job trong hàng đợi
 export const handleQueue = async (queueName: string, handler: (data: any) => Promise<void>) => {
   try {
     alarmQueue.process(queueName, async (job) => {

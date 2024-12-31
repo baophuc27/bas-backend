@@ -4,7 +4,7 @@ import { getOneUserById } from '@bas/database/dao/user-dao';
 import { NextFunction, Request, Response } from 'express';
 import { Forbidden, Unauthorized } from '@bas/api/errors';
 import { revokeTokenService } from '@bas/service';
-import { AsyncContext } from '@bas/utils/AsyncContext'; // Import Async Context
+import { AsyncContext } from '@bas/utils/AsyncContext';
 
 declare module 'express-serve-static-core' {
   interface Request {

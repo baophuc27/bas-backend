@@ -118,8 +118,8 @@ const BerthManagementAddPage = () => {
 
       leftSensorDistanceToEdge: "",
       distantBetweenSensors: "",
-      leftSensorId: "",
-      rightSensorId: "",
+      leftSensorId: 1,
+      rightSensorId: 2,
     },
     onSubmit: id ? handleUpdate : handleCreate,
     enableReinitialize: true,
@@ -214,8 +214,8 @@ const BerthManagementAddPage = () => {
 
           leftSensorDistanceToEdge: data?.distanceFender,
           distantBetweenSensors: data?.distanceDevice,
-          leftSensorId: data?.leftDeviceId,
-          rightSensorId: data?.rightDeviceId,
+          leftSensorId: 1,
+          rightSensorId: 2,
         });
         setBerthInfo(data);
         setLoading(false);

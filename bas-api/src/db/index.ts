@@ -3,6 +3,7 @@ import sequelizeConnection from './connection';
 import { SequelizeInitial } from './init';
 export * from './models';
 
+
 setupSequelizeHooks(sequelizeConnection);
 
 sequelizeConnection

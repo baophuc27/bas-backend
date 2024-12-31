@@ -54,7 +54,6 @@ let berthIsRunning = new Map<
     mooringStatus?: string;
   }
 >();
-let globalOrgId: number | null = null;
 const generateKey = (berthId: number, orgId: number): string => {
   return `${berthId}-${orgId}`;
 };
@@ -133,8 +132,6 @@ const authorizationSocket = (socket: AuthSocket, next: (err?: any) => void) => {
     if (!userInformation) {
       return next(new Error('Token is invalid'));
     }
-
-    globalOrgId = userInformation.orgId;
 
     socket.auth = {
       userId: userInformation.userId,
@@ -232,7 +229,14 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
       ) as SocketRealtimeData;
       const key = generateKey(objectData.berthId, objectData.orgId);
       const room = getRoomKey(objectData.berthId.toString(), objectData.orgId.toString(), 'bas');
-      const { data, record } = await processData(objectData);
+
+      const result = await processData(objectData);
+      if (!result) {
+        return;
+      }
+      console.log(`[handleRealtimeData] Data: ${JSON.stringify(result)}`);
+      const { data, record } = result;
+
       const isRunning = berthIsRunning.get(key) || null;
       if (isRunning) {
         const beginTs = isRunning.beginTs;
@@ -416,17 +420,25 @@ function cleanData(data: SocketRealtimeData, berth: Berth | null) {
  * @returns
  */
 const processData = async (objectData: SocketRealtimeData): Promise<any> => {
+  if (!objectData?.berthId || !objectData?.orgId || !objectData?.sessionId) {
+    console.log('[processData] Missing required fields in objectData');
+    return null;
+  }
+
   console.log(
     `[processData] Processing data for berth ${objectData.berthId} and org ${objectData.orgId}`
   );
+  console.log(`[processData] Data: ${JSON.stringify(objectData)}`);
+  
   try {
     const record = await recordService.getRecordById(+objectData.sessionId, +objectData.orgId);
     console.log(`[processData] Record: ${record}`);
-    const berth = await berthDao.getBerthInfo(objectData.berthId, objectData.orgId);
+    const berth = await berthDao.getBerthInfo(+objectData.berthId, +objectData.orgId);
     console.log(`[processData] Berth: ${berth}`);
     if (!record || !berth?.leftDevice?.name || !berth?.rightDevice?.name) {
       return null;
     }
+
     const error_code = SENSOR_ERROR_CODE?.[objectData.error_code?.toString()] || '';
     const device = errorConverter(error_code);
     const left = ['both', 'left'].includes(device.side) ? device.status : DeviceStatus.CONNECT;
@@ -469,6 +481,7 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
     };
   } catch (error) {
     logError(error);
+    console.error('[processData] Error details:', error);
     throw error;
   }
 };
@@ -578,15 +591,20 @@ const initRealtimeDevice = async (io: Server) => {
   await initKafkaData(
     async (message: KafkaMessage) => {
       const raw: RawRealtimeData = JSON.parse(message?.value?.toString() ?? '{}');
+      console.log(`[initRealtimeDevice] Raw data: ${JSON.stringify(raw)}`);
       const key = generateKey(raw.berthId, raw.orgId);
       const berthSensor = deviceRealtime.get(key);
       if (!berthSensor) {
+        console.log(`[initRealtimeDevice] No berth sensor found for key: ${key}`);
         return;
       }
 
       const errorInfo = errorConverter(SENSOR_ERROR_CODE[raw?.error_code?.toString()] || '');
+      console.log(`[initRealtimeDevice] Error info: ${JSON.stringify(errorInfo)}`);
 
       if (raw.sensorsType !== 'RIGHT') {
+        console.log(`[initRealtimeDevice] Updating LEFT sensor for berth ${raw.berthId}`);
+        console.log('Before update:', JSON.stringify(berthSensor.left_sensor));
         berthSensor.left_sensor = {
           ...berthSensor.left_sensor,
           oldVal: berthSensor.left_sensor.value,
@@ -595,7 +613,10 @@ const initRealtimeDevice = async (io: Server) => {
           timestamp: new Date().getTime(),
           error: errorInfo.message,
         };
+        console.log('After update:', JSON.stringify(berthSensor.left_sensor));
       } else {
+        console.log(`[initRealtimeDevice] Updating RIGHT sensor for berth ${raw.berthId}`);
+        console.log('Before update:', JSON.stringify(berthSensor.right_sensor));
         berthSensor.right_sensor = {
           ...berthSensor.right_sensor,
           oldVal: berthSensor.right_sensor.value,
@@ -604,7 +625,26 @@ const initRealtimeDevice = async (io: Server) => {
           timestamp: new Date().getTime(),
           error: errorInfo.message,
         };
+        console.log('After update:', JSON.stringify(berthSensor.right_sensor));
       }
+
+      // Log before database update
+      console.log('[initRealtimeDevice] Updating database with sensor data:', {
+        left: {
+          id: berthSensor.left_sensor.id,
+          status: berthSensor.left_sensor.status,
+          value: berthSensor.left_sensor.value,
+          oldVal: berthSensor.left_sensor.oldVal,
+          timeout: berthSensor.left_sensor.timestamp + TIMEOUT_DEVICE < new Date().getTime(),
+        },
+        right: {
+          id: berthSensor.right_sensor.id,
+          status: berthSensor.right_sensor.status,
+          value: berthSensor.right_sensor.value,
+          oldVal: berthSensor.right_sensor.oldVal,
+          timeout: berthSensor.right_sensor.timestamp + TIMEOUT_DEVICE < new Date().getTime(),
+        },
+      });
 
       // Updating sensors using the new method with berthId and orgId
       await sensorDao.updatePairDevice(
@@ -622,11 +662,9 @@ const initRealtimeDevice = async (io: Server) => {
           oldVal: berthSensor.right_sensor.oldVal,
           timeout: berthSensor.right_sensor.timestamp + TIMEOUT_DEVICE < new Date().getTime(),
         },
-        raw.berthId,
-        raw.orgId
+        +raw.berthId,
+        +raw.orgId
       );
-
-      deviceRealtime.set(key, berthSensor);
 
       deviceSocket
         .to(getRoomKey(raw.berthId.toString(), raw.orgId.toString(), 'config'))

@@ -140,7 +140,8 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
     const data = await berthService.createBerth(
       {
         ...req.body,
-        
+        leftDeviceId: 1,
+        rightDeviceId: 2,
         orgId,
       },
       userId

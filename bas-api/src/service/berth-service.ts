@@ -34,19 +34,6 @@ import {
   AlarmSettingDto,
 } from '@bas/database/dto/response/alarm-setting-dto';
 import { alarmSettingMapper } from '@bas/database/mapper/alarm-setting-mapper';
-import { AsyncContext } from '@bas/utils/AsyncContext';
-
-const addOrgIdToConditions = () => {
-  const context = AsyncContext.getContext();
-  if (!context?.orgId) {
-    // console.warn('[addOrgIdToConditions] No orgId found in context.');
-    // throw new Error('orgId is required but not found in context');
-    return { orgId: 0 };
-  }
-  return { orgId: context.orgId };
-};
-
-const orgCondition = addOrgIdToConditions();
 
 export const getBerthById = async (berthId: number, orgId: number) => {
   const result = await berthDao.getBerthInfo(berthId, orgId);
@@ -394,16 +381,21 @@ export const createBerth = async (data: BerthUpdateDto, modifier: string) => {
   }
 
   const res = await sequelizeConnection.transaction(async (t) => {
-    const result = await berthDao.createBerth(data, modifier, t);
+    const result = await berthDao.createBerth(
+      {
+        ...data,
+        leftDeviceId: 1,
+        rightDeviceId: 2,
+      },
+      modifier,
+      t
+    );
 
     await alarmSettingService.createNewAlarmSettingSet(result.id, result.orgId, limitZone1, t);
     return result;
   });
 
-  if (res.leftDeviceId && res.rightDeviceId) {
-    realtimeService.addBerthRealtime(res.id, res.orgId, res.leftDeviceId, res.rightDeviceId);
-  }
-
+  realtimeService.addBerthRealtime(res.id, res.orgId, res.leftDeviceId!, res.rightDeviceId!);
   return objectMapper.merge(res, berthDetailMapper) as BerthDetailDto;
 };
 

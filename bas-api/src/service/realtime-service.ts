@@ -34,6 +34,7 @@ import { APP_NAME, LIMIT_CONDITION, SPEED_CONDITION } from '@bas/config';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { SystemRole } from '@bas/database/master-data/system-role';
 import { setIntervalAsync } from 'set-interval-async';
+import { initQueue } from './queue-service';
 
 const TIME_OUT = 30 * 1000;
 const groupId = `GROUP-${APP_NAME}`;
@@ -492,7 +493,10 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
  *
  */
 const errorConverter = (error: string) => {
-  console.log(`[errorConverter] Converting error: ${error}`);
+  if (error) {
+    console.log(`[errorConverter] Converting error: ${error}`);
+  }
+
   const side = error.split('@')?.[1] || '';
   const errorMessage = error.split('@')?.[0] || '';
   switch (errorMessage) {
@@ -591,20 +595,15 @@ const initRealtimeDevice = async (io: Server) => {
   await initKafkaData(
     async (message: KafkaMessage) => {
       const raw: RawRealtimeData = JSON.parse(message?.value?.toString() ?? '{}');
-      console.log(`[initRealtimeDevice] Raw data: ${JSON.stringify(raw)}`);
       const key = generateKey(raw.berthId, raw.orgId);
       const berthSensor = deviceRealtime.get(key);
       if (!berthSensor) {
         console.log(`[initRealtimeDevice] No berth sensor found for key: ${key}`);
         return;
       }
-
       const errorInfo = errorConverter(SENSOR_ERROR_CODE[raw?.error_code?.toString()] || '');
-      console.log(`[initRealtimeDevice] Error info: ${JSON.stringify(errorInfo)}`);
 
       if (raw.sensorsType !== 'RIGHT') {
-        console.log(`[initRealtimeDevice] Updating LEFT sensor for berth ${raw.berthId}`);
-        console.log('Before update:', JSON.stringify(berthSensor.left_sensor));
         berthSensor.left_sensor = {
           ...berthSensor.left_sensor,
           oldVal: berthSensor.left_sensor.value,
@@ -613,10 +612,7 @@ const initRealtimeDevice = async (io: Server) => {
           timestamp: new Date().getTime(),
           error: errorInfo.message,
         };
-        console.log('After update:', JSON.stringify(berthSensor.left_sensor));
       } else {
-        console.log(`[initRealtimeDevice] Updating RIGHT sensor for berth ${raw.berthId}`);
-        console.log('Before update:', JSON.stringify(berthSensor.right_sensor));
         berthSensor.right_sensor = {
           ...berthSensor.right_sensor,
           oldVal: berthSensor.right_sensor.value,
@@ -625,10 +621,8 @@ const initRealtimeDevice = async (io: Server) => {
           timestamp: new Date().getTime(),
           error: errorInfo.message,
         };
-        console.log('After update:', JSON.stringify(berthSensor.right_sensor));
       }
 
-      // Log before database update
       console.log('[initRealtimeDevice] Updating database with sensor data:', {
         left: {
           id: berthSensor.left_sensor.id,
@@ -646,7 +640,6 @@ const initRealtimeDevice = async (io: Server) => {
         },
       });
 
-      // Updating sensors using the new method with berthId and orgId
       await sensorDao.updatePairDevice(
         {
           id: berthSensor.left_sensor.id,
@@ -1045,6 +1038,9 @@ const initWatchBerth = async () => {
 const init = (io: Server) => {
   try {
     revokeTokenService.init();
+    initQueue()
+      .then(() => logSuccess('Init queue successfully'))
+      .catch((error) => logError(`Failed to initialize queue: ${error}`));
     initRealtimeData(io).then(() => logSuccess('Init realtime data successfully'));
     initDeviceData().then(() =>
       initRealtimeDevice(io).then(() => logSuccess('Init realtime device successfully'))
@@ -1066,3 +1062,4 @@ export {
   removeBerthFromWatch,
   addBerthToWatch,
 };
+

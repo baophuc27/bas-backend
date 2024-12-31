@@ -1,6 +1,6 @@
 import kue, { DoneCallback, Job } from 'kue';
 import { REDIS_DB, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT } from '@bas/config';
-import { logInfo, logSuccess } from '@bas/utils/logger';
+import { logInfo, logSuccess, logError } from '@bas/utils/logger';
 import { alarmService } from './index';
 // let queue: kue.Queue;
 import Bull from 'bull';
@@ -43,14 +43,24 @@ export const alarmQueue = new Bull('alarm-queue', {
   },
 });
 
+export const initQueue = async () => {
+  logInfo('Queue is running');
+  await handleQueue("alarm-save", alarmService.saveAlarmFromQueue)
+    .then(() => logSuccess("Handle queue alarm-save success"))
+    .catch((error) => logError(`Failed to initialize alarm-save queue: ${error}`));
+  return alarmQueue;
+};
+
 export const pushToQueue = async (queueName: string, data: any) => {
   try {
-    console.log(`Adding job to queue: ${queueName}`);
+    logInfo(`Adding job to queue: ${queueName}`);
     await alarmQueue.add(queueName, data);
+    logSuccess(`Job added to queue: ${queueName}`);
   } catch (error) {
-    console.error(`Failed to add job to queue: ${error}`);
+    logError(`Failed to add job to queue: ${error}`);
   }
 };
+
 
 export const handleQueue = async (queueName: string, handler: (data: any) => Promise<void>) => {
   try {
@@ -58,7 +68,10 @@ export const handleQueue = async (queueName: string, handler: (data: any) => Pro
       console.log(`Processing job from queue: ${queueName}`);
       await handler(job.data);
     });
+    console.log(`Handler registered for queue: ${queueName}`);
+    return Promise.resolve();
   } catch (error) {
     console.error(`Failed to process queue: ${queueName}`, error);
+    return Promise.reject(error);
   }
 };

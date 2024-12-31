@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   bas_frontend_prod:
     image: bas-fe-prod

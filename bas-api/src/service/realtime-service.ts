@@ -24,7 +24,7 @@ import { realtimeMapper } from '@bas/database/mapper/realtime-mapper';
 import { berthDao, sensorDao } from '@bas/database/dao';
 import { RecordHistoryInput } from '@bas/database/models/record-history-model';
 import { DeviceStatus } from '@bas/constant/device-status';
-import { initKafkaData, kafkaClient } from './kafka-service';
+import { initKafkaData, kafkaClient, createConsumer } from './kafka-service';
 import { BAS_DATA_REALTIME, BAS_DEVICE_REALTIME } from '@bas/constant/kafka-topic';
 import { SENSOR_ERROR_CODE } from '@bas/constant';
 import moment from 'moment-timezone';
@@ -37,7 +37,7 @@ import { setIntervalAsync } from 'set-interval-async';
 import { initQueue } from './queue-service';
 
 const TIME_OUT = 30 * 1000;
-const groupId = `GROUP-${APP_NAME}`;
+const groupId = `GROUP-${APP_NAME}-${Date.now()}`;
 let deviceRealtime = new Map<string, DeviceRealValue>();
 let realtimeSocket: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> =
   null as any;
@@ -110,6 +110,7 @@ const removeBerthRealtime = (berthId: number, orgId: number) => {
     `[removeBerthRealtime] Removing berth ${berthId} of organization ${orgId} from realtime data`
   );
   deviceRealtime.delete(key);
+  
   console.log(
     `[removeBerthRealtime] Successfully removed berth ${berthId} of organization ${orgId}`
   );
@@ -350,7 +351,8 @@ const initRealtimeData = async (io: Server) => {
           const clients = await realtimeSocket.in(roomKey).fetchSockets();
           if (clients.length === 0) {
             rooms.delete(roomKey);
-            console.log(`Room ${roomKey} deleted as it has no clients`);
+            socket.disconnect(true);
+            console.log(`Room ${roomKey} deleted and socket disconnected as it has no clients`);
           }
         } catch (error) {
           logError(error);
@@ -366,9 +368,7 @@ const initRealtimeData = async (io: Server) => {
       });
     });
 
-    const consumer = kafkaClient.consumer({
-      groupId,
-    });
+    const consumer = createConsumer('realtime-data');
     await initKafkaData(handleRealtimeData(realtimeSocket), consumer, BAS_DATA_REALTIME);
   } catch (error) {
     logError(error);
@@ -430,7 +430,7 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
     `[processData] Processing data for berth ${objectData.berthId} and org ${objectData.orgId}`
   );
   console.log(`[processData] Data: ${JSON.stringify(objectData)}`);
-  
+
   try {
     const record = await recordService.getRecordById(+objectData.sessionId, +objectData.orgId);
     console.log(`[processData] Record: ${record}`);
@@ -575,6 +575,8 @@ const initRealtimeDevice = async (io: Server) => {
         const clients = await deviceSocket.in(stringBerthId).fetchSockets();
         if (clients.length === 0) {
           rooms.delete(stringBerthId);
+          socket.disconnect(true);
+          console.log(`Room ${stringBerthId} deleted and socket disconnected as it has no clients`);
         }
       } catch (error) {
         logError(error);
@@ -588,9 +590,7 @@ const initRealtimeDevice = async (io: Server) => {
     });
   });
 
-  const consumer = kafkaClient.consumer({
-    groupId: groupId + '-device',
-  });
+  const consumer = createConsumer('device-data');
 
   await initKafkaData(
     async (message: KafkaMessage) => {
@@ -1062,4 +1062,3 @@ export {
   removeBerthFromWatch,
   addBerthToWatch,
 };
-

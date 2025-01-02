@@ -2,13 +2,13 @@ services:
   bas_frontend_prod:
     image: bas-fe-prod
     build:
-        context: .
-        dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3040:3000"
     networks:
       - bas-prod
     restart: always
 networks:
-    bas-prod:
-        driver: bridge
+  bas-prod:
+    driver: bridge

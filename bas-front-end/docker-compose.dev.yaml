@@ -1,0 +1,19 @@
+services:
+  bas_frontend_dev:
+    image: bas-fe-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3040:3000"
+    networks:
+      - bas-dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+networks:
+  bas-dev:
+    driver: bridge

@@ -144,37 +144,50 @@ export const HomePage = (props) => {
     }
   };
 
+  /**
+   * Checks the status of a specific berth and prompts for confirmation if needed
+   * @param {string|number} berthId - The ID of the berth to check
+   * @returns {Promise<boolean>} - Returns true if berth is available or user confirms, false otherwise
+   */
   const checkBerthStatus = async (berthId) => {
     try {
       const response = await BerthService.getAll();
-      if (response?.data?.success) {
-        const currentBerth = response?.data?.data?.find(
-          (berth) => berth.id === berthId
-        );
-        
-        if (currentBerth?.status?.id !== 0) {
-          const confirm = await swal({
-            title: t("home:dialogs.status-warning.title"),
-            text: t("home:dialogs.status-warning.message"),
-            icon: "warning",
-            buttons: {
-              cancel: t("common:cancel"),
-              confirm: {
-                text: t("common:continue"),
-                value: true,
-              },
-            },
-          });
-          return confirm;
-        }
-        return true;
+      if (!response?.data?.success) {
+        notify("error", t("common:messages.error"));
+        return false;
       }
+
+      const currentBerth = response.data.data?.find(
+        (berth) => berth.id === berthId,
+      );
+
+      if (!currentBerth) {
+        notify("error", t("common:messages.not-found"));
+        return false;
+      }
+
+      // check if berth is NOT available (0) or NOT mooring (1)
+      if (currentBerth.status?.id !== 0 && currentBerth.status?.id !== 1) {
+        const confirm = await swal({
+          title: t("home:dialogs.status-warning.title"),
+          text: t("home:dialogs.status-warning.message"),
+          icon: "warning",
+          buttons: {
+            cancel: t("common:cancel"),
+            confirm: {
+              text: t("common:continue"),
+              value: true,
+            },
+          },
+        });
+        return confirm;
+      }
+      return true;
     } catch (error) {
       notify("error", t("common:messages.error"));
       return false;
     }
   };
-
   const showsCompleteSessionDialog = async (completeDialogs, data) => {
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
@@ -185,7 +198,7 @@ export const HomePage = (props) => {
       dispatch(
         setCurrentSessionCompleteDialog({
           berthId,
-        })
+        }),
       );
 
       const value = await swal({
@@ -223,11 +236,24 @@ export const HomePage = (props) => {
     }
   };
 
+  const cleanupSocket = (socket) => {
+    if (socket) {
+      socket.off("connect");
+      socket.off(DialogType.DEVICE_ERROR); 
+      socket.off(DialogType.COMPLETED_SESSION);
+      socket.disconnect();
+      socket.close();
+    }
+  };
+
   useEffect(() => {
     initSocket();
     fetchBerths();
     fetchHabourData();
 
+    return () => {
+      cleanupSocket(socket);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -251,11 +277,7 @@ export const HomePage = (props) => {
     }
 
     return () => {
-      if (socket) {
-        socket.off("connect");
-        socket.off(DialogType.DEVICE_ERROR);
-        socket.off(DialogType.COMPLETED_SESSION);
-      }
+      cleanupSocket(socket);
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

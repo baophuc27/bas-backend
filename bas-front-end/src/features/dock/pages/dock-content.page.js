@@ -109,6 +109,8 @@ export const DockPageContent = ({
       portsSocket.off("connect");
       portsSocket.off(DialogType.DEVICE_ERROR);
       portsSocket.off(DialogType.COMPLETED_SESSION);
+      portsSocket.disconnect();
+      portsSocket.close();
     }
   };
 
@@ -126,6 +128,7 @@ export const DockPageContent = ({
         }
 
         clearPortsSocket();
+        console.log("cleared ports socket");
 
         dispatch(
           setCurrentSessionCompleteDialog({
@@ -479,6 +482,8 @@ export const DockPageContent = ({
         );
         socket.off("connect");
         socket.off("data");
+        socket.disconnect();
+        socket.close();
       }
     };
 
@@ -568,21 +573,7 @@ export const DockPageContent = ({
       portsSocket?.on("connect", () => {
         portsSocket.on(DialogType.DEVICE_ERROR, (data) => {
           const parsedData = JSON.parse(data);
-          // const errorCode = parsedData?.errorCode;
-          // const berthId = `berth_${parsedData?.berth?.id}`;
-
-          // if (
-          //   !(berthId in errorDialogs) ||
-          //   errorDialogs?.[berthId] !== errorCode
-          // ) {
           showsErrorDialog(parsedData);
-          //   dispatch(
-          //     setCurrentErrorDialog({
-          //       berthId,
-          //       errorCode,
-          //     }),
-          //   );
-          // }
         });
 
         portsSocket.on(DialogType.COMPLETED_SESSION, (data) => {
@@ -597,7 +588,13 @@ export const DockPageContent = ({
     }
 
     return () => {
-      clearPortsSocket();
+      if (portsSocket) {
+        portsSocket.off("connect");
+        portsSocket.off(DialogType.DEVICE_ERROR);
+        portsSocket.off(DialogType.COMPLETED_SESSION);
+        portsSocket.disconnect();
+        portsSocket.close();
+      }
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

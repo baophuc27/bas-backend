@@ -16,6 +16,7 @@ import BerthingSettingDialogComponent from "../components/berthing-setting-dialo
 import { AlarmStatusColor, NORMAL_STATUS_ID } from "../constants/alarm-status";
 import { formatValue, getUnit } from "../helpers";
 import { DockPageContent } from "./dock-content.page";
+import { useSocket } from '../hooks/useSocket';
 
 const AlarmTypeIcon = {
   ANGLE: AngleIcon,
@@ -32,58 +33,12 @@ export const DockVisualizationPage = () => {
   const [showsDetailSettings, setShowsDetailSettings] = useState(false);
   const [showsBerthingSettings, setShowsBerthingSettings] = useState(false);
   const [showsAlarmSetting, setShowsAlarmSetting] = useState(false);
-  const [socket, setSocket] = useState(null);
-  const [deviceSocket, setDeviceSocket] = useState(null);
-  const [socketData, setSocketData] = useState(null);
   const alarmSettingRef = useRef(null);
   const query = useQuery();
   const [pastData, setPastData] = useState([]);
   const [hasPastData, setHasPastData] = useState(false);
-  const [portsSocket, setPortsSocket] = useState(null);
 
-  const initSocket = async () => {
-    try {
-      const resp = await UserManagementService.getSocketAccessToken();
-
-      if (resp?.data?.success) {
-        const newSocket = socketIOClient.io(
-          `${process.env.REACT_APP_API_BASE_URL}/bas-realtime`,
-          {
-            extraHeaders: {
-              authorization: resp.data?.accessToken,
-            },
-          },
-        );
-
-        const newDeviceSocket = socketIOClient.io(
-          `${process.env.REACT_APP_API_BASE_URL}/device-realtime`,
-          {
-            extraHeaders: {
-              authorization: resp.data?.accessToken,
-            },
-            query: {
-              berthId: id,
-            },
-          },
-        );
-
-        const newPortsSocket = socketIOClient.io(
-          `${process.env.REACT_APP_API_BASE_URL}/port-events`,
-          {
-            extraHeaders: {
-              authorization: resp.data?.accessToken,
-            },
-          },
-        );
-
-        setSocket(newSocket);
-        setDeviceSocket(newDeviceSocket);
-        setPortsSocket(newPortsSocket);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const { basSocket, deviceSocket, portsSocket, socketData } = useSocket(id);
 
   const onCloseBerthingSettings = ({ forcesBack = false }) => {
     setShowsBerthingSettings(false);
@@ -173,13 +128,31 @@ export const DockVisualizationPage = () => {
     } catch (error) {}
   };
 
+  const cleanupAllSockets = (basSocket, deviceSocket, portsSocket) => {
+    if (basSocket) {
+      basSocket.removeAllListeners();
+      basSocket.disconnect();
+      basSocket.close();
+    }
+    if (deviceSocket) {
+      deviceSocket.removeAllListeners();
+      deviceSocket.disconnect();
+      deviceSocket.close();
+    }
+    if (portsSocket) {
+      portsSocket.removeAllListeners();
+      portsSocket.disconnect();
+      portsSocket.close();
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
-
-    initSocket();
     fetchBerthDetail(id);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      cleanupAllSockets(basSocket, deviceSocket, portsSocket);
+    };
   }, [id]);
 
   useEffect(() => {
@@ -189,38 +162,6 @@ export const DockVisualizationPage = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, updatedBerth]);
-
-  useEffect(() => {
-    // listen /device-realtime
-    if (deviceSocket) {
-      deviceSocket?.on("connect", () => {
-        deviceSocket.emit(
-          "join",
-          JSON.stringify({
-            berthId: id,
-          }),
-        );
-
-        deviceSocket.on("device", (data) => {
-          const newData = JSON.parse(data);
-          setSocketData(newData);
-        });
-      });
-    }
-
-    return () => {
-      if (deviceSocket) {
-        deviceSocket.emit(
-          "leave",
-          JSON.stringify({
-            berthId: id,
-          }),
-        );
-        deviceSocket.off("connect");
-        deviceSocket.off("device");
-      }
-    };
-  }, [id, deviceSocket]);
 
   useEffect(() => {
     if (JSON.stringify(updatedBerth) !== JSON.stringify(berth)) {
@@ -237,7 +178,7 @@ export const DockVisualizationPage = () => {
   return (
     <>
       <DockPageContent
-        socket={socket}
+        socket={basSocket}
         id={id}
         berth={berth}
         setShowsBerthingSettings={setShowsBerthingSettings}

@@ -17,6 +17,9 @@ services:
     networks:
       - bas-dev
     restart: no
+    volumes:
+      - .:/app
+      - /app/node_modules
 networks:
   bas-dev:
     driver: bridge

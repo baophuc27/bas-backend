@@ -1,6 +1,7 @@
 import { APP_NAME, KAFKA_HOST } from '@bas/config';
-import { Kafka, Consumer } from 'kafkajs';
+import { Kafka, Consumer, ConsumerConfig } from 'kafkajs';
 import { logError } from '@bas/utils';
+import moment from 'moment';
 
 const kafkaClient = new Kafka({
   clientId: `bas-client`,
@@ -15,6 +16,18 @@ const producer = kafkaClient.producer({
   allowAutoTopicCreation: true,
 });
 
+const generateGroupId = (type: string) => {
+  return `bas-${type}-consumer-${moment().format('YYYYMMDD')}-${Date.now()}`;
+};
+
+const createConsumer = (type: string) => {
+  const config: ConsumerConfig = {
+    groupId: generateGroupId(type),
+    readUncommitted: true,
+  };
+  return kafkaClient.consumer(config);
+};
+
 const initKafkaData = async (receiveMessage: Function, consumer: Consumer, topic: string) => {
   try {
     await consumer.connect();
@@ -25,7 +38,6 @@ const initKafkaData = async (receiveMessage: Function, consumer: Consumer, topic
 
     await consumer.run({
       eachMessage: async ({ message, topic: string }) => {
-        // console.log(`[${topic}] Receive message ${message?.value?.toString()}`);
         receiveMessage(message);
       },
     });
@@ -62,4 +74,4 @@ const healthCheck = async () => {
   }
 };
 
-export { initKafkaData, kafkaClient, produceKafkaData, healthCheck };
+export { initKafkaData, kafkaClient, produceKafkaData, healthCheck, createConsumer, generateGroupId };

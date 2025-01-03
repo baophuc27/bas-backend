@@ -5,9 +5,9 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3040:3000"
+      - "3000:3000"
     networks:
-      - bas-dev
+      - host  
     volumes:
       - .:/app
       - /app/node_modules
@@ -15,5 +15,5 @@ services:
       - CHOKIDAR_USEPOLLING=true
     stdin_open: true
 networks:
-  bas-dev:
+  host:
     driver: bridge

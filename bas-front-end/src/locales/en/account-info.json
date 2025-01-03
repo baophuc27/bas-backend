@@ -12,7 +12,8 @@
     "org-logo": "Organization Logo",
     "role-name": "Role Name",
     "permissions": "Permissions",
-    "org-id": "Organization ID"
+    "org-id": "Organization ID",
+    "phone": "Phone"
   },
   "placeholder": {
     "phone-number": "Enter Phone Number"

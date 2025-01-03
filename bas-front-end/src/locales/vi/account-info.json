@@ -12,7 +12,8 @@
     "org-logo": "Organization Logo",
     "role-name": "Quyền",
     "permissions": "Quyền",
-    "org-id": "ID Tổ Chức"
+    "org-id": "ID Tổ Chức",
+    "phone": "Số Điện Thoại"
   },
   "placeholder": {
     "phone-number": "Nhập Số Điện Thoại"

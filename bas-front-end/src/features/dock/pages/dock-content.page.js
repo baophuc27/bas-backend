@@ -241,46 +241,70 @@ export const DockPageContent = ({
     }
   };
 
-  const openFullscreen = () => {
-    const element = document.documentElement;
+  const checkFullscreenPermission = () => {
+    return document.fullscreenEnabled || 
+           document.webkitFullscreenEnabled || 
+           document.mozFullScreenEnabled ||
+           document.msFullscreenEnabled;
+  };
 
-    if (element.requestFullscreen) {
-      element.requestFullscreen();
-    } else if (element.mozRequestFullScreen) {
-      // Firefox
-      element.mozRequestFullScreen();
-    } else if (element.webkitRequestFullscreen) {
-      // Chrome, Safari, and Opera
-      element.webkitRequestFullscreen();
-    } else if (element.msRequestFullscreen) {
-      // IE/Edge
-      element.msRequestFullscreen();
+  const openFullscreen = async () => {
+    try {
+      if (!checkFullscreenPermission()) {
+        console.warn('Fullscreen not supported or permitted');
+        return false;
+      }
+
+      const element = document.documentElement;
+      
+      if (element.requestFullscreen) {
+        await element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        await element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) {
+        await element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        await element.msRequestFullscreen();
+      }
+      return true;
+    } catch (error) {
+      console.error('Error entering fullscreen:', error);
+      return false;
     }
   };
 
-  const closeFullscreen = () => {
+  const closeFullscreen = async () => {
     try {
-      if (document.fullscreenElement) {
-        if (document?.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document?.mozCancelFullScreen) {
-          // Firefox
-          document.mozCancelFullScreen();
-        } else if (document?.webkitExitFullscreen) {
-          // Chrome, Safari, and Opera
-          document.webkitExitFullscreen();
-        } else if (document?.msExitFullscreen) {
-          // IE/Edge
-          document.msExitFullscreen();
-        }
+      if (!document.fullscreenElement && 
+          !document.webkitFullscreenElement && 
+          !document.mozFullScreenElement && 
+          !document.msFullscreenElement) {
+        return;
+      }
+
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        await document.mozCancelFullScreen();
+      } else if (document.webkitExitFullscreen) {
+        await document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        await document.msExitFullscreen();
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error exiting fullscreen:', error);
     }
   };
 
-  const onFullScreen = () => {
-    setIsFullScreen((prev) => !prev);
+  const onFullScreen = async () => {
+    if (isFullScreen) {
+      await closeFullscreen();
+    } else {
+      const success = await openFullscreen();
+      if (!success) {
+        setIsFullScreen(false);
+      }
+    }
   };
 
   const showsErrorDialog = async (data) => {
@@ -373,13 +397,11 @@ export const DockPageContent = ({
     };
 
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        setIsFullScreen(false);
-        closeFullscreen();
-      } else {
-        setIsFullScreen(true);
-        openFullscreen();
-      }
+      const isInFullscreen = !!(document.fullscreenElement || 
+                              document.webkitFullscreenElement || 
+                              document.mozFullScreenElement ||
+                              document.msFullscreenElement);
+      setIsFullScreen(isInFullscreen);
     };
 
     handleResize();

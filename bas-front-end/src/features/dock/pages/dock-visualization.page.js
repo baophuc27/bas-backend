@@ -38,7 +38,7 @@ export const DockVisualizationPage = () => {
   const [pastData, setPastData] = useState([]);
   const [hasPastData, setHasPastData] = useState(false);
 
-  const { basSocket, deviceSocket, portsSocket, socketData } = useSocket(id);
+  const { basSocket, deviceSocket, portsSocket, socketData, joinDockSockets, leaveDockSockets } = useSocket(id);
 
   const onCloseBerthingSettings = ({ forcesBack = false }) => {
     setShowsBerthingSettings(false);
@@ -128,30 +128,13 @@ export const DockVisualizationPage = () => {
     } catch (error) {}
   };
 
-  const cleanupAllSockets = (basSocket, deviceSocket, portsSocket) => {
-    if (basSocket) {
-      basSocket.removeAllListeners();
-      basSocket.disconnect();
-      basSocket.close();
-    }
-    if (deviceSocket) {
-      deviceSocket.removeAllListeners();
-      deviceSocket.disconnect();
-      deviceSocket.close();
-    }
-    if (portsSocket) {
-      portsSocket.removeAllListeners();
-      portsSocket.disconnect();
-      portsSocket.close();
-    }
-  };
-
   useEffect(() => {
-    if (!id) return;
-    fetchBerthDetail(id);
-
+    if (id) {
+      fetchBerthDetail(id);
+      joinDockSockets(id);
+    }
     return () => {
-      cleanupAllSockets(basSocket, deviceSocket, portsSocket);
+      leaveDockSockets(id);
     };
   }, [id]);
 

@@ -22,7 +22,7 @@ COPY . ./
 RUN yarn build
 
 # Expose the port
-EXPOSE 3010
+EXPOSE 3000
 
 # Serve the app
 CMD ["yarn", "serve"]

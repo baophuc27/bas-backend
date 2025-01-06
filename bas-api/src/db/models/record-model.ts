@@ -167,13 +167,7 @@ Record.init(
     paranoid: true,
     tableName: 'Record',
     schema: 'bas',
-    // hooks: {
-    //   beforeCreate: (record: any) => {
-    //     if (!record.orgId) {
-    //       throw new Error('orgId is required but missing in payload.');
-    //     }
-    //   },
-    // },
+    hooks: {},
   }
 );
 

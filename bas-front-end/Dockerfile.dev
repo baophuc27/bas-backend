@@ -6,6 +6,6 @@ COPY yarn.lock ./
 
 RUN yarn install
 
-EXPOSE 3010
+EXPOSE 3000
 
 CMD ["yarn", "start"]

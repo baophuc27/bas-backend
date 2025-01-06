@@ -242,21 +242,23 @@ export const DockPageContent = ({
   };
 
   const checkFullscreenPermission = () => {
-    return document.fullscreenEnabled || 
-           document.webkitFullscreenEnabled || 
-           document.mozFullScreenEnabled ||
-           document.msFullscreenEnabled;
+    return (
+      document.fullscreenEnabled ||
+      document.webkitFullscreenEnabled ||
+      document.mozFullScreenEnabled ||
+      document.msFullscreenEnabled
+    );
   };
 
   const openFullscreen = async () => {
     try {
       if (!checkFullscreenPermission()) {
-        console.warn('Fullscreen not supported or permitted');
+        console.warn("Fullscreen not supported or permitted");
         return false;
       }
 
       const element = document.documentElement;
-      
+
       if (element.requestFullscreen) {
         await element.requestFullscreen();
       } else if (element.mozRequestFullScreen) {
@@ -268,17 +270,19 @@ export const DockPageContent = ({
       }
       return true;
     } catch (error) {
-      console.error('Error entering fullscreen:', error);
+      console.error("Error entering fullscreen:", error);
       return false;
     }
   };
 
   const closeFullscreen = async () => {
     try {
-      if (!document.fullscreenElement && 
-          !document.webkitFullscreenElement && 
-          !document.mozFullScreenElement && 
-          !document.msFullscreenElement) {
+      if (
+        !document.fullscreenElement &&
+        !document.webkitFullscreenElement &&
+        !document.mozFullScreenElement &&
+        !document.msFullscreenElement
+      ) {
         return;
       }
 
@@ -292,7 +296,7 @@ export const DockPageContent = ({
         await document.msExitFullscreen();
       }
     } catch (error) {
-      console.error('Error exiting fullscreen:', error);
+      console.error("Error exiting fullscreen:", error);
     }
   };
 
@@ -397,10 +401,12 @@ export const DockPageContent = ({
     };
 
     const handleFullscreenChange = () => {
-      const isInFullscreen = !!(document.fullscreenElement || 
-                              document.webkitFullscreenElement || 
-                              document.mozFullScreenElement ||
-                              document.msFullscreenElement);
+      const isInFullscreen = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
       setIsFullScreen(isInFullscreen);
     };
 
@@ -479,6 +485,9 @@ export const DockPageContent = ({
   }, [berthData]);
 
   useEffect(() => {
+    if (socket && !socket.connected) {
+      socket.connect();
+    }
     if (socket) {
       socket?.on("connect", () => {
         socket.emit(
@@ -487,7 +496,7 @@ export const DockPageContent = ({
             berthId: id,
           }),
         );
-
+        console.log("Connected to socket");
         socket.on("data", (data) => {
           setLatestData(JSON.parse(data));
         });
@@ -591,6 +600,9 @@ export const DockPageContent = ({
   }, [latestData]);
 
   useEffect(() => {
+    if (portsSocket && !portsSocket.connected) {
+      portsSocket.connect();
+    }
     if (portsSocket) {
       portsSocket?.on("connect", () => {
         portsSocket.on(DialogType.DEVICE_ERROR, (data) => {

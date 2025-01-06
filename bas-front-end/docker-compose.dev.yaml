@@ -1,13 +1,13 @@
 services:
-  bas_frontend_dev:
-    image: bas-fe-dev
+  smartbas_frontend_dev:
+    image: smartbas-fe-dev
     build:
       context: .
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     networks:
-      - host  
+      - smartbas-dev
     volumes:
       - .:/app
       - /app/node_modules
@@ -15,5 +15,5 @@ services:
       - CHOKIDAR_USEPOLLING=true
     stdin_open: true
 networks:
-  host:
+  smartbas-dev:
     driver: bridge

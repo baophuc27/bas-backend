@@ -58,7 +58,7 @@ export const Widget = (props) => {
               src={habour?.weatherWidgetUrl}
               height={300}
               width={250}
-              frameborder={0}
+              frameBorder={0}
               style={{
                 marginTop: 12,
               }}

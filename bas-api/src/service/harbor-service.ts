@@ -5,10 +5,10 @@ import { internalErrorCode } from '@bas/constant';
 
 export const getHarborInfo = async (orgId: number) => {
   const harbor = await harborDao.getHarborInfo(orgId);
-  if (!harbor) {
+  if (!harbor || harbor.orgId !== orgId) {
     throw new NotFoundException('Harbor not found', internalErrorCode.RESOURCE_NOT_FOUND);
   }
-
+  
   const data: HarborDetailDto = {
     name: harbor.name,
     nameEn: harbor.nameEn,

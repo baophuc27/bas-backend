@@ -47,6 +47,7 @@ export const SharedSelectField = memo((props) => {
     onBlur,
     InputProps,
     readOnly,
+    native,
     ...other
   } = props;
 

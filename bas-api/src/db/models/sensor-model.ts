@@ -6,8 +6,8 @@ interface SensorAttributes {
   name: string;
   status?: number;
   realValue?: number | null;
-  berthId: number; // Thêm bến
-  orgId: number; // Thêm tổ chức
+  berthId: number;
+  orgId: number;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;

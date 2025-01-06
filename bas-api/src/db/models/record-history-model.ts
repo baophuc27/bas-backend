@@ -178,11 +178,6 @@ RecordHistory.init(
     tableName: 'RecordHistory',
     schema: 'bas',
     hooks: {
-      beforeCreate: (recordHistory: any) => {
-        if (!recordHistory.orgId) {
-          throw new Error('orgId is required but missing in payload.');
-        }
-      },
     },
     indexes: [
       {

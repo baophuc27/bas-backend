@@ -1,0 +1,35 @@
+FROM --platform=linux/amd64 node:18-alpine
+
+WORKDIR /app
+
+# Install development dependencies
+RUN apk add --no-cache python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    musl-dev \
+    giflib-dev \
+    font-liberation \
+    pangomm-dev \
+    libpng-dev \
+    librsvg-dev \
+    pango-dev \
+    bash \
+    && rm -rf /var/cache/apk/*
+
+# Copy package files
+COPY package*.json ./
+COPY nodemon.json ./
+COPY wait-for-it.sh ./
+
+# Make wait-for-it.sh executable
+RUN chmod +x ./wait-for-it.sh
+
+# Install dependencies without skipping dev dependencies
+RUN npm install
+
+EXPOSE 8000
+
+# Use nodemon for development
+CMD ["npm", "run", "dev"]

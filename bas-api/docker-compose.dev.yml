@@ -1,0 +1,17 @@
+services:
+  bas_backend_test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: bas_backend_dev
+    network_mode: host
+    command: ['/bin/bash', '-c', 'chmod +x /app/wait-for-it.sh && /app/wait-for-it.sh ${KAFKA_HOST} && npm run dev']
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./public:/app/public
+      - '/etc/timezone:/etc/timezone:ro'
+      - '/etc/localtime:/etc/localtime:ro'
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped

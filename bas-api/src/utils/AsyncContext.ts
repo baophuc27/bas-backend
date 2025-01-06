@@ -16,7 +16,7 @@ export const AsyncContext = {
   getContext(): RequestContext | undefined {
     const context = asyncLocalStorage.getStore();
     if (!context) {
-      console.warn('[AsyncContext] No context found');
+      // console.warn('[AsyncContext] No context found');
     }
     return context;
   },

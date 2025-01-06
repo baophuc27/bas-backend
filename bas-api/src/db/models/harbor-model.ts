@@ -85,23 +85,6 @@ Harbor.init(
     tableName: 'Harbor',
     schema: 'bas',
     hooks: {
-      beforeCreate: (harbor: any) => {
-        if (!harbor.orgId) {
-          throw new Error('orgId is required but missing in payload.');
-        }
-      },
-      beforeFind: (options: any) => {
-        if (!options.where) options.where = {};
-        if (options.context?.orgId) {
-          options.where['orgId'] = options.context.orgId;
-        }
-      },
-      beforeUpdate: (options: any) => {
-        if (!options.where) options.where = {};
-        if (options.context?.orgId) {
-          options.where['orgId'] = options.context.orgId;
-        }
-      },
     },
   }
 );

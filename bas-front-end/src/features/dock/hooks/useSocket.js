@@ -25,6 +25,30 @@ export const useSocket = (berthId) => {
     }
   };
 
+  const joinDockSockets = (id) => {
+    if (sockets?.deviceSocket && sockets?.deviceSocket.connected) {
+      sockets.deviceSocket.emit('join', JSON.stringify({ berthId: id }));
+    }
+    if (sockets?.basSocket && sockets?.basSocket.connected) {
+      // any needed join for basSocket
+    }
+    if (sockets?.portsSocket && sockets?.portsSocket.connected) {
+      // any needed join for portsSocket
+    }
+  };
+
+  const leaveDockSockets = (id) => {
+    if (sockets?.deviceSocket) {
+      cleanupSocket(sockets.deviceSocket, 'device', { berthId: id });
+    }
+    if (sockets?.basSocket) {
+      cleanupSocket(sockets.basSocket);
+    }
+    if (sockets?.portsSocket) {
+      cleanupSocket(sockets.portsSocket);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -81,15 +105,7 @@ export const useSocket = (berthId) => {
 
     return () => {
       mounted = false;
-      if (sockets.deviceSocket) {
-        cleanupSocket(sockets.deviceSocket, 'device', { berthId });
-      }
-      if (sockets.basSocket) {
-        cleanupSocket(sockets.basSocket);
-      }
-      if (sockets.portsSocket) {
-        cleanupSocket(sockets.portsSocket);
-      }
+      leaveDockSockets(berthId);
       setSockets({
         basSocket: null,
         deviceSocket: null,
@@ -98,5 +114,10 @@ export const useSocket = (berthId) => {
     };
   }, [berthId]);
 
-  return { ...sockets, socketData };
+  return {
+    ...sockets,
+    socketData,
+    joinDockSockets,
+    leaveDockSockets
+  };
 };

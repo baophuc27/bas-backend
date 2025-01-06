@@ -255,11 +255,17 @@ const findAllWithoutPagination = async (recordId: number, orgId: number) => {
     ],
     where: { id: recordId, orgId: orgId },
     logging: true,
+    attributes: {
+      exclude: ['orgId']
+    }
   });
 
   const recordHistories = await RecordHistory.findAll({
     where: { recordId, orgId },
     order: [['time', 'DESC']],
+    attributes: {
+      exclude: ['orgId']
+    }
   });
 
   return {
@@ -367,7 +373,6 @@ const updateStatus = async (recordId: number, orgId: number, status: string, t?:
     {
       where: {
         id: recordId,
-        orgId: orgId,
       },
       ...(t && { transaction: t }),
     }

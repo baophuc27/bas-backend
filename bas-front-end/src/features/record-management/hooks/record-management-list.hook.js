@@ -138,43 +138,39 @@ export const useRecordList = () => {
   };
 
   const resyncData = async (id) => {
-    try {
-      const resp = await RecordManagementService.resyncData(id);
-
-      if (resp?.data?.success) {
-        notify("success", t("record-management:messages.resync_success"));
-
-        if (page > 0 && data?.data?.length === 1) {
-          let newPage = page - 1;
-
-          setPage(newPage);
-        }
-
-        fetchData();
-      }
-    } catch (error) {
-      console.error(error?.response?.data?.message);
-      notify("error", t("record-management:messages.resync_failed"));
-    }
+    // try {
+    //   const resp = await RecordManagementService.resyncData(id);
+    //   if (resp?.data?.success) {
+    //     notify("success", t("record-management:messages.resync_success"));
+    //     if (page > 0 && data?.data?.length === 1) {
+    //       let newPage = page - 1;
+    //       setPage(newPage);
+    //     }
+    //     fetchData();
+    //   }
+    // } catch (error) {
+    //   console.error(error?.response?.data?.message);
+    //   notify("error", t("record-management:messages.resync_failed"));
+    // }
   };
 
   const onResync = (item) => {
-    try {
-      swal({
-        title: t("record-management:dialog.resync_title"),
-        text: t("record-management:dialog.resync_description", {
-          sessionId: item?.sessionId,
-        }),
-        icon: "info",
-        buttons: [t("common:button.no"), t("common:button.yes")],
-      }).then((yes) => {
-        if (yes) {
-          resyncData(item?.id);
-        }
-      });
-    } catch (error) {
-      console.error(error?.response?.data?.message);
-    }
+    // try {
+    //   swal({
+    //     title: t("record-management:dialog.resync_title"),
+    //     text: t("record-management:dialog.resync_description", {
+    //       sessionId: item?.sessionId,
+    //     }),
+    //     icon: "info",
+    //     buttons: [t("common:button.no"), t("common:button.yes")],
+    //   }).then((yes) => {
+    //     if (yes) {
+    //       resyncData(item?.id);
+    //     }
+    //   });
+    // } catch (error) {
+    //   console.error(error?.response?.data?.message);
+    // }
   };
 
   const onReplay = async (item) => {

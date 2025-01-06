@@ -73,17 +73,17 @@ export const usePortInfo = (t) => {
       initialValue: data?.weatherWidgetDashboardUrl,
       validationType: "string",
       placeholder: t("port-info:placeholder.weather-widget-dashboard-url"),
-      // required: true,
-      // validations: [
-      //   {
-      //     type: "required",
-      //     params: [t("common:note.required-field")],
-      //   },
-      //   {
-      //     type: "matches",
-      //     params: [urlRegExp, t("port-info:messages.invalid-url")],
-      //   },
-      // ],
+      required: true,
+      validations: [
+        {
+          type: "required",
+          params: [t("common:note.required-field")],
+        },
+        {
+          type: "matches",
+          params: [urlRegExp, t("port-info:messages.invalid-url")],
+        },
+      ],
     },
     {
       name: "weatherWidgetUrl",
@@ -92,17 +92,17 @@ export const usePortInfo = (t) => {
       initialValue: data?.weatherWidgetUrl,
       validationType: "string",
       placeholder: t("port-info:placeholder.weather-widget-url"),
-      // required: true,
-      // validations: [
-      //   {
-      //     type: "required",
-      //     params: [t("common:note.required-field")],
-      //   },
-      //   {
-      //     type: "matches",
-      //     params: [urlRegExp, t("port-info:messages.invalid-url")],
-      //   },
-      // ],
+      required: true,
+      validations: [
+        {
+          type: "required",
+          params: [t("common:note.required-field")],
+        },
+        {
+          type: "matches",
+          params: [urlRegExp, t("port-info:messages.invalid-url")],
+        },
+      ],
     },
   ];
 

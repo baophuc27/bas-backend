@@ -2,7 +2,6 @@ import { Harbor } from '@bas/database/models';
 import { NextFunction, Request, Response } from 'express';
 import { harborDefault } from '@bas/database/master-data';
 import { getFromCache } from '@bas/utils/cache';
-import { col } from 'sequelize';
 
 export const checkAndCreateHarbor = async (req: Request, res: Response, next: NextFunction) => {
   try {

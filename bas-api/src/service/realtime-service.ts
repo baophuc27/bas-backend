@@ -236,7 +236,7 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
       if (!result) {
         return;
       }
-      console.log(`[handleRealtimeData] Data: ${JSON.stringify(result)}`);
+      // console.log(`[handleRealtimeData] Data: ${JSON.stringify(result)}`);
       const { data, record } = result;
 
       const isRunning = berthIsRunning.get(key) || null;
@@ -382,7 +382,6 @@ const initRealtimeData = async (io: Server) => {
  * @returns
  */
 function cleanData(data: SocketRealtimeData, berth: Berth | null) {
-  console.log('[cleanData] Cleaning data for berth:', berth?.id, 'of organization:', berth?.orgId);
   if (!berth?.leftDevice?.name || !berth?.rightDevice?.name) {
     return;
   }
@@ -429,13 +428,13 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
   console.log(
     `[processData] Processing data for berth ${objectData.berthId} and org ${objectData.orgId}`
   );
-  console.log(`[processData] Data: ${JSON.stringify(objectData)}`);
+  // console.log(`[processData] Data: ${JSON.stringify(objectData)}`);
 
   try {
     const record = await recordService.getRecordById(+objectData.sessionId, +objectData.orgId);
-    console.log(`[processData] Record: ${record}`);
+    // console.log('[processData] Record:', record?.toJSON ? record.toJSON() : record);
     const berth = await berthDao.getBerthInfo(+objectData.berthId, +objectData.orgId);
-    console.log(`[processData] Berth: ${berth}`);
+    // console.log('[processData] Berth:', berth?.toJSON ? berth.toJSON() : berth);
     if (!record || !berth?.leftDevice?.name || !berth?.rightDevice?.name) {
       return null;
     }

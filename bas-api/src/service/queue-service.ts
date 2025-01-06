@@ -53,9 +53,9 @@ export const initQueue = async () => {
 
 export const pushToQueue = async (queueName: string, data: any) => {
   try {
-    logInfo(`Adding job to queue: ${queueName}`);
+    // logInfo(`Adding job to queue: ${queueName}`);
     await alarmQueue.add(queueName, data);
-    logSuccess(`Job added to queue: ${queueName}`);
+    // logSuccess(`Job added to queue: ${queueName}`);
   } catch (error) {
     logError(`Failed to add job to queue: ${error}`);
   }
@@ -65,7 +65,7 @@ export const pushToQueue = async (queueName: string, data: any) => {
 export const handleQueue = async (queueName: string, handler: (data: any) => Promise<void>) => {
   try {
     alarmQueue.process(queueName, async (job) => {
-      console.log(`Processing job from queue: ${queueName}`);
+      // console.log(`Processing job from queue: ${queueName}`);
       await handler(job.data);
     });
     console.log(`Handler registered for queue: ${queueName}`);

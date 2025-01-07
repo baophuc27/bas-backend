@@ -1,7 +1,7 @@
 const ROLE = {
-  ADMIN: 1,
-  CONFIGURATOR: 2,
-  VIEWER: 3,
+  ADMIN: 8,
+  CONFIGURATOR: 9,
+  VIEWER: 10,
 };
 
 export const getRoleLabel = (t, id) => {

@@ -350,7 +350,10 @@ export const DockPageContent = ({
 
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
-    if (!(berthId in completeDialogs)) {
+    if (
+      !(berthId in completeDialogs) &&
+      hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT)
+    ) {
       dispatch(
         setCurrentSessionCompleteDialog({
           berthId,

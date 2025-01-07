@@ -72,7 +72,7 @@ export interface BerthFilter extends BaseQueryParams {
   vesselId?: number;
   page?: number | null | undefined;
   amount?: number | null | undefined;
-  orgId?: number;
+  orgId: number;
 }
 
 export interface RecordFilter extends BaseQueryParams {

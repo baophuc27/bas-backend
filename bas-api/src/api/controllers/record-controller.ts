@@ -95,7 +95,7 @@ const exportData = async (req: Request, res: Response, next: NextFunction) => {
 const sync = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const orgId = req.identification.orgId;
+    const {orgId} = req.identification;
     const isSync = await recordService.sync(+id, +orgId);
     return res.success({ isSync }, 'Sync record successfully');
   } catch (error: any) {

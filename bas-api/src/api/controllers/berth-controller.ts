@@ -7,7 +7,7 @@ import { configurationBerth } from '@bas/service/berth-service';
 const getOne = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const orgId = req.identification.orgId;
+    const {orgId} = req.identification;
     const data = await berthService.getBerthById(+id, +orgId);
     return res.success({ data });
   } catch (error: any) {
@@ -36,6 +36,7 @@ const getStatus = async (req: Request, res: Response, next: NextFunction) => {
 const getAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { status, search, mode, page, amount } = req.query;
+    const { orgId } = req.identification;
     let sortMode: 'ASC' | 'DESC' | undefined = undefined;
     if (typeof mode === 'string') {
       const normalizedMode = mode.trim().toLowerCase();
@@ -52,6 +53,7 @@ const getAll = async (req: Request, res: Response, next: NextFunction) => {
       mode: sortMode,
       amount: amount != undefined ? Number(amount) : undefined,
       page: page != undefined ? Number(page) : undefined,
+      orgId: +orgId,
     });
 
     return res.success({ data, count });

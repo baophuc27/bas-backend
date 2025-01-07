@@ -41,7 +41,6 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
       return next(new Unauthorized('Unauthorized'));
     }
 
-    // Gắn thông tin vào req.identification
     req.identification = {
       userId: user.id,
       permissions: user.permission,

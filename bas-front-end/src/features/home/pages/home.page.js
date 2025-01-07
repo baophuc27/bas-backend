@@ -1,4 +1,5 @@
-import { Avatar, Box, Grid } from "@material-ui/core";
+import { Avatar, Box, Grid, IconButton, Tooltip } from "@material-ui/core";
+import RefreshIcon from "@material-ui/icons/Refresh";
 import { HomeLayout } from "common/components";
 import { mapSensorStatusText } from "common/constants/berth.constant";
 import {
@@ -19,7 +20,9 @@ import socketIOClient from "socket.io-client";
 import swal from "sweetalert";
 import { BerthCard } from "../components";
 import styles from "./home.style.module.css";
-
+import { usePermission } from "common/hooks";
+import { FEATURES } from "common/constants/feature.constant";
+import { ACTIONS } from "common/constants/permission.constant";
 const DialogType = {
   DEVICE_ERROR: "DEVICE_ERROR",
   COMPLETED_SESSION: "COMPLETED_SESSION",
@@ -31,6 +34,7 @@ export const HomePage = (props) => {
   const [habour, setHabour] = useState({});
   const [socket, setSocket] = useState(null);
   const dispatch = useDispatch();
+  const { hasPermission } = usePermission();
   const { errorDialogs, sessionCompleteDialogs } = useSelector(
     (state) => state?.dialog,
   );
@@ -162,7 +166,6 @@ export const HomePage = (props) => {
       );
 
       if (!currentBerth) {
-        notify("error", t("common:messages.not-found"));
         return false;
       }
 
@@ -191,7 +194,10 @@ export const HomePage = (props) => {
   const showsCompleteSessionDialog = async (completeDialogs, data) => {
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
-    if (!(berthId in completeDialogs)) {
+    if (
+      !(berthId in completeDialogs) &&
+      hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT)
+    ) {
       const canProceed = await checkBerthStatus(data?.berth?.id);
       if (!canProceed) return;
 
@@ -239,11 +245,15 @@ export const HomePage = (props) => {
   const cleanupSocket = (socket) => {
     if (socket) {
       socket.off("connect");
-      socket.off(DialogType.DEVICE_ERROR); 
+      socket.off(DialogType.DEVICE_ERROR);
       socket.off(DialogType.COMPLETED_SESSION);
       socket.disconnect();
       socket.close();
     }
+  };
+
+  const handleReload = () => {
+    window.location.reload();
   };
 
   useEffect(() => {
@@ -286,19 +296,25 @@ export const HomePage = (props) => {
   return (
     <HomeLayout>
       <Box className={styles.container}>
-        <Box className={styles.habourDetails}>
-          <Avatar
-            src="/images/icons/anchor.png"
-            className={styles.habourIcon}
-            alt="Habour Icon"
-          />
-
-          <Box>
-            <Box className={styles.habourName}>
-              {i18next.language.includes("en") ? habour?.nameEn : habour?.name}
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box className={styles.habourDetails}>
+            <Avatar
+              src="/images/icons/anchor.png"
+              className={styles.habourIcon}
+              alt="Habour Icon"
+            />
+            <Box>
+              <Box className={styles.habourName}>
+                {i18next.language.includes("en") ? habour?.nameEn : habour?.name}
+              </Box>
+              <Box className={styles.habourAddress}>{habour?.address}</Box>
             </Box>
-            <Box className={styles.habourAddress}>{habour?.address}</Box>
           </Box>
+          <Tooltip title="Reload" arrow>
+            <IconButton color="primary" onClick={handleReload}>
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <Grid container spacing={3}>

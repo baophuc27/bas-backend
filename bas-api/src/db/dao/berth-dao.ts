@@ -41,6 +41,7 @@ export const getAllBerths = async (filter: BerthFilter) => {
       },
     ],
     where: {
+      orgId: filter.orgId,
       ...(filter?.status && { status: filter.status }),
       ...(filter?.search && {
         [Op.or]: [

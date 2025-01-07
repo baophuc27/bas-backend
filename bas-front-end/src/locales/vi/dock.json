@@ -34,6 +34,11 @@
       "cancel": "Hủy",
       "available": "Trống",
       "mooring": "Neo đậu"
+    },
+    "status-changed": {
+      "title": "Trạng Thái Đã Thay Đổi",
+      "message": "Trạng thái đã được thay đổi. Trang sẽ được chuyển hướng.",
+      "ok": "Đồng Ý"
     }
   },
   "messages": {

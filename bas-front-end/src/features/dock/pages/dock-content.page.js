@@ -776,7 +776,8 @@ export const DockPageContent = ({
             </SidebarMainContainer>
 
             {berthData?.status?.id !== BERTH_STATUS.AVAILABLE &&
-              berthData?.status?.id !== BERTH_STATUS.MOORING && (
+              berthData?.status?.id !== BERTH_STATUS.MOORING &&
+              hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT) && (
                 <Box mt="auto">
                   <Divider />
 

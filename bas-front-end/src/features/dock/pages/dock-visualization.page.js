@@ -10,13 +10,14 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import swal from "sweetalert";
 // import socketIOClient from "socket.io-client";
 import AlarmSettingDialog from "../components/alarm-setting-dialog/alarm-setting-dialog.component";
 import BerthingSettingDialogComponent from "../components/berthing-setting-dialog/berthing-setting-dialog.component";
 import { AlarmStatusColor, NORMAL_STATUS_ID } from "../constants/alarm-status";
 import { formatValue, getUnit } from "../helpers";
 import { DockPageContent } from "./dock-content.page";
-import { useSocket } from '../hooks/useSocket';
+import { useSocket } from '../hooks/use-socket';
 
 const AlarmTypeIcon = {
   ANGLE: AngleIcon,
@@ -38,7 +39,8 @@ export const DockVisualizationPage = () => {
   const [pastData, setPastData] = useState([]);
   const [hasPastData, setHasPastData] = useState(false);
 
-  const { basSocket, deviceSocket, portsSocket, socketData, joinDockSockets, leaveDockSockets } = useSocket(id);
+  const { basSocket, deviceSocket, portsSocket, socketData, joinDockSockets, leaveDockSockets, lastDataTimestamp } = useSocket(id);
+  const [lastStatusCheck, setLastStatusCheck] = useState(Date.now());
 
   const onCloseBerthingSettings = ({ forcesBack = false }) => {
     setShowsBerthingSettings(false);
@@ -157,6 +159,34 @@ export const DockVisualizationPage = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updatedBerth]);
+
+  useEffect(() => {
+    const statusCheckInterval = setInterval(() => {
+      const timeSinceLastData = Date.now() - lastDataTimestamp;
+      if (timeSinceLastData > 10000 && Date.now() - lastStatusCheck > 10000) { // Check every 10 seconds
+        setLastStatusCheck(Date.now());
+        swal({
+          title: t("dock:dialogs.status-changed.title"),
+          text: t("dock:dialogs.status-changed.message"),
+          icon: "warning",
+          buttons: {
+            ok: {
+              text: t("dock:dialogs.status-changed.ok"),
+              value: true,
+            },
+          },
+        }).then(() => {
+          navigate("/");
+        });
+      }
+    }, 5000);
+
+    return () => {
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+      }
+    };
+  }, [lastDataTimestamp, lastStatusCheck, navigate, t]);
 
   return (
     <>

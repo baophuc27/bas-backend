@@ -7,8 +7,8 @@ import { roleMatrix } from '@bas/constant/role-matrix';
 
 const roleMap = {
   [SystemRole.ADMIN]: 8,
-  [SystemRole.CONFIGURE]: 2,
-  [SystemRole.VIEW]: 3,
+  [SystemRole.CONFIGURE]: 9,
+  [SystemRole.VIEW]: 10,
 };
 
 export const usePermissions = (requiredPermissions: string[]) => {

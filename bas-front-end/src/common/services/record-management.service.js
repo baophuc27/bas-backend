@@ -27,10 +27,10 @@ export const RecordManagementService = {
     const url = `${ROOT_PATH}/chart/${id}`;
     return authAxiosClient.get(url);
   },
-  resyncData(id) {
-    const url = `${ROOT_PATH}/${id}/sync`;
-    return authAxiosClient.post(url);
-  },
+  // resyncData(id) {
+  //   const url = `${ROOT_PATH}/${id}/sync`;
+  //   return authAxiosClient.post(url);
+  // },
   exportData(id, language = "en") {
     const url = `${ROOT_PATH}/export-data/${id}?language=${language}`;
 

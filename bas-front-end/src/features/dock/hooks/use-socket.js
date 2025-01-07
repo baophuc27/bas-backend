@@ -9,6 +9,7 @@ export const useSocket = (berthId) => {
     portsSocket: null
   });
   const [socketData, setSocketData] = useState(null);
+  const [lastDataTimestamp, setLastDataTimestamp] = useState(Date.now());
 
   const cleanupSocket = (socket, eventName = null, data = null) => {
     if (socket) {
@@ -51,6 +52,7 @@ export const useSocket = (berthId) => {
 
   useEffect(() => {
     let mounted = true;
+    let dataCheckInterval;
 
     const initializeSockets = async () => {
       try {
@@ -67,6 +69,13 @@ export const useSocket = (berthId) => {
           `${process.env.REACT_APP_API_BASE_URL}/bas-realtime`,
           socketConfig
         );
+
+        // Add data reception monitor for basSocket
+        basSocket.on('data', () => {
+          if (mounted) {
+            setLastDataTimestamp(Date.now());
+          }
+        });
 
         const deviceSocket = socketIOClient.io(
           `${process.env.REACT_APP_API_BASE_URL}/device-realtime`,
@@ -93,6 +102,14 @@ export const useSocket = (berthId) => {
               setSocketData(JSON.parse(data));
             }
           });
+
+          // Start monitoring data reception
+          dataCheckInterval = setInterval(() => {
+            const timeSinceLastData = Date.now() - lastDataTimestamp;
+            if (timeSinceLastData > 10000) { // 10 seconds threshold
+              basSocket.emit('check_connection');
+            }
+          }, 5000);
         }
       } catch (error) {
         console.error('Socket initialization error:', error);
@@ -105,6 +122,9 @@ export const useSocket = (berthId) => {
 
     return () => {
       mounted = false;
+      if (dataCheckInterval) {
+        clearInterval(dataCheckInterval);
+      }
       leaveDockSockets(berthId);
       setSockets({
         basSocket: null,
@@ -112,12 +132,13 @@ export const useSocket = (berthId) => {
         portsSocket: null
       });
     };
-  }, [berthId]);
+  }, [berthId, lastDataTimestamp]);
 
   return {
     ...sockets,
     socketData,
     joinDockSockets,
-    leaveDockSockets
+    leaveDockSockets,
+    lastDataTimestamp
   };
 };

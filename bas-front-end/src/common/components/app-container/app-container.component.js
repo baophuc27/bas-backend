@@ -13,8 +13,8 @@ import {
 import { setHabourData } from "redux/slices/habour.slice";
 import { setOrganizationData } from "redux/slices/organization.slice";
 
-const MAX_RETRIES = 3;
-const TIMEOUT_DURATION = 5000;
+const MAX_RETRIES = 1;
+const TIMEOUT_DURATION = 1000;
 
 export const AppContainer = (props) => {
   const dispatch = useDispatch();
@@ -22,7 +22,8 @@ export const AppContainer = (props) => {
 
   const [loading, setLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [reloadCountdown, setReloadCountdown] = useState(null);
   const abortControllerRef = useRef(null);
 
   const spinnerStyle = {
@@ -36,22 +37,36 @@ export const AppContainer = (props) => {
 
   const fetchWithTimeout = async (promise) => {
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), TIMEOUT_DURATION);
+      setTimeout(() => reject(new Error("Request timeout")), TIMEOUT_DURATION);
     });
     return Promise.race([promise, timeoutPromise]);
   };
 
   const fetchData = async () => {
     if (retryCount >= MAX_RETRIES) {
-      setErrorMessage('Maximum retry attempts reached. Please refresh the page.');
+      setLoading(false);
+      setErrorMessage("Page will reload in 1 seconds...");
+      setReloadCountdown(1);
+
+      const countdownInterval = setInterval(() => {
+        setReloadCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            window.location.reload();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
       return;
     }
 
     setLoading(true);
-    setErrorMessage('');
-    
+    setErrorMessage("");
+
     abortControllerRef.current = new AbortController();
-    
+
     try {
       const promises = [
         CommonService.getOrganizationData(abortControllerRef.current.signal),
@@ -62,28 +77,29 @@ export const AppContainer = (props) => {
       ];
 
       const responses = await fetchWithTimeout(Promise.all(promises));
-      
+
       const [org, harbour, berthStatuses, userRoles, berths] = responses;
-      
+
       if (org?.data?.success) dispatch(setOrganizationData(org.data.data));
       if (harbour?.data?.success) dispatch(setHabourData(harbour.data.data));
-      if (berthStatuses?.data?.success) dispatch(setBerthStatuses(berthStatuses.data.data));
+      if (berthStatuses?.data?.success)
+        dispatch(setBerthStatuses(berthStatuses.data.data));
       if (userRoles?.data?.success) dispatch(setUserRoles(userRoles.data.data));
       if (berths?.data?.success) dispatch(setBerths(berths.data.data));
 
       setRetryCount(0);
-      
     } catch (error) {
-      if (error.name === 'AbortError') return;
-      
+      if (error.name === "AbortError") return;
+
       console.error("Error fetching data:", error);
-      setErrorMessage(error.message || 'Failed to load data');
-      setRetryCount(prev => prev + 1);
-      
-      // Retry after 2 seconds
-      setTimeout(() => {
-        fetchData();
-      }, 1000);
+      setErrorMessage(error.message || "Failed to load data");
+      setRetryCount((prev) => prev + 1);
+
+      if (retryCount < MAX_RETRIES - 1) {
+        setTimeout(() => {
+          fetchData();
+        }, 1000);
+      }
     } finally {
       setLoading(false);
     }
@@ -93,26 +109,43 @@ export const AppContainer = (props) => {
     if (isLoggedIn) {
       fetchData();
     }
-    
+
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
 
   return (
     <>
       {loading ? (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+          }}
+        >
           <div style={spinnerStyle}></div>
-          <span style={{ marginLeft: "12px" }}>Loading{'.'.repeat(retryCount + 1)}</span>
+          <span style={{ marginLeft: "12px" }}>
+            Loading{".".repeat(retryCount + 1)}
+          </span>
           {errorMessage && (
-            <div style={{ color: 'red', marginTop: '10px' }}>{errorMessage}</div>
+            <div style={{ color: "red", marginTop: "10px" }}>
+              {errorMessage}
+              {reloadCountdown && (
+                <div style={{ marginTop: "5px" }}>
+                  Reloading in {reloadCountdown} seconds...
+                </div>
+              )}
+            </div>
           )}
-          {retryCount > 0 && (
-            <div style={{ marginTop: '5px' }}>
+          {retryCount > 0 && retryCount < MAX_RETRIES && (
+            <div style={{ marginTop: "5px" }}>
               Retry attempt {retryCount} of {MAX_RETRIES}
             </div>
           )}

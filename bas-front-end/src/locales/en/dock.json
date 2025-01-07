@@ -34,6 +34,11 @@
       "cancel": "Cancel",
       "mooring": "Mooring",
       "available": "Available"
+    },
+    "status-changed": {
+      "title": "Status Changed",
+      "message": "The status has been changed. The page will be redirected.",
+      "ok": "OK"
     }
   },
   "messages": {

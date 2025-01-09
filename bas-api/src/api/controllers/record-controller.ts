@@ -6,7 +6,10 @@ import { exportDataToExcel } from '@bas/service/export-data-record-service';
 
 const findAll = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const filterConditions = req.query;
+    const filterConditions = {
+      ...req.query,
+      orgId: req.identification.orgId,
+    };
     const { data, count } = await recordService.findAll(filterConditions);
     return res.success({ data, count });
   } catch (error: any) {

@@ -346,13 +346,31 @@ const initRealtimeData = async (io: Server) => {
           }
 
           const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'bas');
+          
+          // Leave the room
           socket.leave(roomKey);
 
-          const clients = await realtimeSocket.in(roomKey).fetchSockets();
-          if (clients.length === 0) {
+          // Check if room is empty
+          const roomSockets = await realtimeSocket.in(roomKey).fetchSockets();
+          if (roomSockets.length === 0) {
             rooms.delete(roomKey);
-            socket.disconnect(true);
-            console.log(`Room ${roomKey} deleted and socket disconnected as it has no clients`);
+            console.log(`Room ${roomKey} deleted as it has no clients`);
+            
+            // Force disconnect all sockets in the room
+            roomSockets.forEach((s) => {
+              s.disconnect(true);
+            });
+            
+            // Double-check and cleanup any remaining sockets
+            const remainingSockets = await realtimeSocket.in(roomKey).allSockets();
+            if (remainingSockets.size > 0) {
+              remainingSockets.forEach((socketId) => {
+                const s = realtimeSocket.sockets.get(socketId);
+                if (s) {
+                  s.disconnect(true);
+                }
+              });
+            }
           }
         } catch (error) {
           logError(error);
@@ -361,9 +379,14 @@ const initRealtimeData = async (io: Server) => {
 
       socket.on('disconnect', () => {
         console.log(`Socket ${socket.id} disconnected`);
-        socket.rooms?.forEach((room: any) => {
+        // Cleanup all rooms this socket was in
+        socket.rooms?.forEach(async (room) => {
           socket.leave(room);
-          console.log(`Socket ${socket.id} left room ${room}`);
+          const roomSockets = await realtimeSocket.in(room).fetchSockets();
+          if (roomSockets.length === 0) {
+            rooms.delete(room);
+            console.log(`Room ${room} deleted during disconnect as it has no clients`);
+          }
         });
       });
     });

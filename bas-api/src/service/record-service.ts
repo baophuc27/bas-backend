@@ -17,6 +17,9 @@ import { BadRequestException } from '@bas/api/errors';
 import { internalErrorCode, RecordSyncStatus } from '@bas/constant';
 
 export const findAll = async (recordFilter: RecordFilter) => {
+  if (!recordFilter.orgId) {
+    throw new BadRequestException('orgId is required');
+  }
   const result = await recordDao.findAll(recordFilter);
 
   const data = result.rows.map((row) => {

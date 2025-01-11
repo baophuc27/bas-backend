@@ -157,7 +157,7 @@ export const createAlarmFromDataPoint = async (
 
     if (data.LDistanceAlarm && data.LDistanceAlarm > alarmStatus.WARNING) {
       await createRecordAlarm({
-        orgId: data.berthId,
+        orgId: data.orgId,
         berthId: data.berthId,
         message: undefined,
         zone: data.LDistanceZone,
@@ -193,7 +193,7 @@ export const createAlarmFromDataPoint = async (
 
     if (data.RDistanceAlarm && data.RDistanceAlarm > alarmStatus.WARNING) {
       await createRecordAlarm({
-        orgId: data.berthId,
+        orgId: data.orgId,
         berthId: data.berthId,
         message: undefined,
         zone: data.RDistanceZone,

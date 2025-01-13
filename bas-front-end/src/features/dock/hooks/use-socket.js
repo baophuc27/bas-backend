@@ -74,6 +74,53 @@ export const useSocket = (berthId) => {
     }
   };
 
+  const setupSocketEvents = (socket, type) => {
+    if (!socket) return;
+
+    socket.on("connect", () => {
+      console.log(`${type} socket connected`);
+      if (type === 'device' && berthId) {
+        socket.emit("join", JSON.stringify({ berthId }));
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`${type} socket disconnected`);
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error(`${type} socket connection error:`, error);
+    });
+
+    if (type === 'device' && isListening) {
+      socket.on("device", (data) => {
+        if (mountedRef.current) {
+          setSocketData(JSON.parse(data));
+          setLastDataTimestamp(Date.now());
+        }
+      });
+    }
+
+    if (type === 'bas') {
+      socket.on("data", () => {
+        if (mountedRef.current) {
+          setLastDataTimestamp(Date.now());
+        }
+      });
+    }
+  };
+
+  const initializeSocket = async (url, type, config = {}) => {
+    try {
+      const socket = socketIOClient.io(url, config);
+      setupSocketEvents(socket, type);
+      return socket;
+    } catch (error) {
+      console.error(`Failed to initialize ${type} socket:`, error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     mountedRef.current = true;
     let dataCheckInterval;
@@ -87,64 +134,35 @@ export const useSocket = (berthId) => {
           extraHeaders: {
             authorization: resp.data?.accessToken,
           },
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
         };
 
-        // Tạo basSocket
-        const basSocket = socketIOClient.io(
+        const basSocket = await initializeSocket(
           `${process.env.REACT_APP_API_BASE_URL}/bas-realtime`,
-          socketConfig,
+          'bas',
+          socketConfig
         );
-        basSocket.on("connect", () => {
-          console.log("BAS socket connected");
-        });
-        basSocket.on("disconnect", () => {
-          console.log("BAS socket disconnected");
-        });
-        // Ghi nhận thời gian nhận data
-        basSocket.on("data", () => {
-          if (mountedRef.current) {
-            setLastDataTimestamp(Date.now());
-          }
-        });
 
-        // Tạo deviceSocket
-        const deviceSocket = socketIOClient.io(
+        const deviceSocket = await initializeSocket(
           `${process.env.REACT_APP_API_BASE_URL}/device-realtime`,
-          {
-            ...socketConfig,
-            query: { berthId },
-          },
+          'device',
+          { ...socketConfig, query: { berthId } }
         );
-        deviceSocket.on("connect", () => {
-          console.log("Device socket connected");
-          deviceSocket.emit("join", JSON.stringify({ berthId }));
-        });
-        if (isListening) {
-          deviceSocket.on("device", (data) => {
-            if (mountedRef.current) {
-              setSocketData(JSON.parse(data));
-              setLastDataTimestamp(Date.now());
-            }
-          });
-        }
 
-        // Tạo portsSocket
-        const portsSocket = socketIOClient.io(
+        const portsSocket = await initializeSocket(
           `${process.env.REACT_APP_API_BASE_URL}/port-events`,
-          socketConfig,
+          'ports',
+          socketConfig
         );
 
         if (mountedRef.current) {
           setSockets({ basSocket, deviceSocket, portsSocket });
-
-          // Nếu vẫn muốn “ping” server để check “no data” ở đây
-          // thì giữ lại dataCheckInterval, còn không thì bỏ đi
+          
           dataCheckInterval = setInterval(() => {
             const timeSinceLastData = Date.now() - lastDataTimestamp;
-            if (timeSinceLastData > 10000) {
-              // Ở đây chỉ emit lên server,
-              // còn phần cảnh báo SweetAlert đã được
-              // DockVisualizationPage xử lý
+            if (timeSinceLastData > 10000 && basSocket?.connected) {
               basSocket.emit("check_connection");
             }
           }, 5000);
@@ -160,7 +178,9 @@ export const useSocket = (berthId) => {
 
     return () => {
       mountedRef.current = false;
-      if (dataCheckInterval) clearInterval(dataCheckInterval);
+      if (dataCheckInterval) {
+        clearInterval(dataCheckInterval);
+      }
       leaveDockSockets(berthId);
       setSockets({
         basSocket: null,
@@ -168,7 +188,30 @@ export const useSocket = (berthId) => {
         portsSocket: null,
       });
     };
-  }, [berthId, isListening, lastDataTimestamp]);
+  }, [berthId]);
+
+  // Move device event handling to a separate effect
+  useEffect(() => {
+    const { deviceSocket } = sockets;
+    if (deviceSocket) {
+      if (isListening) {
+        deviceSocket.on("device", (data) => {
+          if (mountedRef.current) {
+            setSocketData(JSON.parse(data));
+            setLastDataTimestamp(Date.now());
+          }
+        });
+      } else {
+        deviceSocket.off("device");
+      }
+    }
+    
+    return () => {
+      if (deviceSocket) {
+        deviceSocket.off("device");
+      }
+    };
+  }, [sockets.deviceSocket, isListening]);
 
   return {
     ...sockets,

@@ -37,6 +37,10 @@ export const DockVisualizationPage = () => {
   const query = useQuery();
   const [pastData, setPastData] = useState([]);
   const [hasPastData, setHasPastData] = useState(false);
+  const [isBerthingStarted, setIsBerthingStarted] = useState(false);
+  const [currentBerthStatus, setCurrentBerthStatus] = useState(null);
+  const [lastStatusCheck, setLastStatusCheck] = useState(Date.now());
+
   const {
     basSocket,
     deviceSocket,
@@ -46,9 +50,8 @@ export const DockVisualizationPage = () => {
     leaveDockSockets,
     pauseDeviceData,
     resumeDeviceData,
+    lastDataTimestamp,
   } = useSocket(id);
-  const [isBerthingStarted, setIsBerthingStarted] = useState(false);
-  const [currentBerthStatus, setCurrentBerthStatus] = useState(null);
 
   const onCloseBerthingSettings = ({ forcesBack = false }) => {
     setShowsBerthingSettings(false);

@@ -499,7 +499,6 @@ export const DockPageContent = ({
             berthId: id,
           }),
         );
-        console.log("Connected to socket");
         socket.on("data", (data) => {
           setLatestData(JSON.parse(data));
         });

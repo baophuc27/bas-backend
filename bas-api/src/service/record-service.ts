@@ -373,7 +373,7 @@ export const sync = async (recordId: number, orgId: number) => {
     },
   };
   const sync = await cloudService.syncRecordToCloud(payload);
-  const status = sync ? RecordSyncStatus.SUCCESS : RecordSyncStatus.FAILED;
+  const status = RecordSyncStatus.PENDING;
   await recordDao.updateStatus(recordId, orgId, status);
 
   return sync;

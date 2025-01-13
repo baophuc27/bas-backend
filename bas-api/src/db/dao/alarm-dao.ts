@@ -250,7 +250,7 @@ export const deleteAlarmById = async (id: number, orgId: number) => {
   });
 };
 
-export const deleteALlAlarm = async (orgId: number, berthId: number) => {
+export const deleteALlAlarm = async (orgId: number) => {
   return await Alarm.destroy({
     where: {
       orgId,
@@ -258,6 +258,7 @@ export const deleteALlAlarm = async (orgId: number, berthId: number) => {
     force: true,
   });
 };
+
 
 export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
   const { berth, orgId, type, alarm, search, page, amount, order, mode } = params;

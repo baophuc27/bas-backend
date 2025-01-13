@@ -121,13 +121,13 @@ const removeBerthRealtime = (berthId: number, orgId: number) => {
  * @param next
  */
 const authorizationSocket = (socket: AuthSocket, next: (err?: any) => void) => {
-  console.log(`[authorizationSocket] Authorizing socket ${socket.id}`);
+  // console.log(`[authorizationSocket] Authorizing socket ${socket.id}`);
   try {
     const token: string | undefined | string[] = socket.handshake.headers.authorization;
     if (!token) {
       return next(new Error('Token is required'));
     }
-    console.log(`[authorizationSocket] Token: ${token}`);
+    // console.log(`[authorizationSocket] Token: ${token}`);
 
     const userInformation: TokenData | null = verifyTokenForSocket(<string>token);
 
@@ -141,8 +141,8 @@ const authorizationSocket = (socket: AuthSocket, next: (err?: any) => void) => {
       orgId: userInformation.orgId,
     };
 
-    console.log(`[authorizationSocket] Successfully authorized socket ${socket.id}`);
-    console.log('User information:', userInformation);
+    // console.log(`[authorizationSocket] Successfully authorized socket ${socket.id}`);
+    // console.log('User information:', userInformation);
     next();
   } catch (error) {
     return next(new Error('Token is invalid'));
@@ -209,7 +209,7 @@ const getRoomKey = (berthId: string, orgId: string, type: string) => {
  * @param socket
  */
 const handleJoinSocket = async (socket: AuthSocket) => {
-  console.log(`[handleJoinSocket] Socket ${socket.id} joining`);
+  // console.log(`[handleJoinSocket] Socket ${socket.id} joining`);
   if (!socket.auth) {
     return;
   }

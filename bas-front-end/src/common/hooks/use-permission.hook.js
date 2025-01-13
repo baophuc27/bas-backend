@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { SESSION_DURATION } from "../../redux/store";
 
 export const usePermission = () => {
   const userPermissions = useSelector((state) => state?.user?.permissions);
@@ -14,6 +15,13 @@ export const usePermission = () => {
   useEffect(() => {
     if (!parsedPermissions.length) {
       alert("Your session has ended. Please login again.");
+      navigate("/auth/login");
+      return;
+    }
+    // Compare current time with the session start time from Redux
+    const sessionStart = Date.now(); // e.g., from state?.user?.sessionStart
+    if (Date.now() - sessionStart > SESSION_DURATION) {
+      alert("Your session has timed out. Please login again.");
       navigate("/auth/login");
     }
   }, [parsedPermissions, navigate]);

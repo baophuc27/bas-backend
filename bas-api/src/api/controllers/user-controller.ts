@@ -194,7 +194,7 @@ const getSocketToken = async (req: Request, res: Response, next: NextFunction) =
   try {
     const { userId, roleId, orgId } = req.identification;
     const token = userService.generateAccessTokenForSocket(userId, roleId, orgId);
-    console.log('Access token: ', token);
+    // console.log('Access token: ', token);
     return res.success({ accessToken: token }, 'Get socket token successfully');
   } catch (error: any) {
     trace(getSocketToken.name);

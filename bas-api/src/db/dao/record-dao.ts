@@ -14,7 +14,6 @@ const findAll = async (recordFilter: RecordFilter) => {
       //   [Op.not]: null,
       // },
       // Remove 'endTime' condition
-      orgId,
     },
     include: [
       {

@@ -146,43 +146,45 @@ export const DockVisualizationPage = () => {
   }, [updatedBerth]);
 
   useEffect(() => {
-    if (basSocket?.connected) {
-      setIsBerthingStarted(true);
-    }
-  }, [basSocket]);
-
-  const checkBerthStatus = async () => {
-    try {
-      const response = await BerthService.getDetail(id);
-      if (response?.data?.success) {
-        const newStatus = response?.data?.data?.status?.id;
-        if (currentBerthStatus && newStatus !== BERTH_STATUS.PROCESSING) {
-          swal({
-            title: t("dock:dialogs.status-changed.title"),
-            text: t("dock:dialogs.status-changed.message"),
-            icon: "warning",
-            buttons: {
-              ok: {
-                text: t("dock:dialogs.status-changed.ok"),
-                value: true,
-              },
-            },
-          }).then(() => {
-            navigate("/");
-          });
+    const statusCheckInterval = setInterval(async () => {
+      const timeSinceLastData = Date.now() - lastDataTimestamp;
+      if (timeSinceLastData > 10000 && Date.now() - lastStatusCheck > 10000) {
+        setLastStatusCheck(Date.now());
+        
+        try {
+          const response = await BerthService.getDetail(id);
+          if (response?.data?.success && response?.data?.data) {
+            const currentStatus = berth?.status?.id;
+            const newStatus = response?.data?.data?.status?.id;
+            
+            if (currentStatus !== newStatus) {
+              swal({
+                title: t("dock:dialogs.status-changed.title"),
+                text: t("dock:dialogs.status-changed.message"),
+                icon: "warning",
+                buttons: {
+                  ok: {
+                    text: t("dock:dialogs.status-changed.ok"),
+                    value: true,
+                  },
+                },
+              }).then(() => {
+                navigate("/");
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Failed to check berth status:', error);
         }
-        setCurrentBerthStatus(newStatus);
       }
-    } catch (error) {
-      console.error("Error checking berth status:", error);
-    }
-  };
+    }, 5000);
 
-  useEffect(() => {
-    if (!isBerthingStarted) return;
-    const statusCheckInterval = setInterval(checkBerthStatus, 10000);
-    return () => clearInterval(statusCheckInterval);
-  }, [isBerthingStarted, id]);
+    return () => {
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+      }
+    };
+  }, [lastDataTimestamp, lastStatusCheck, navigate, t, id, berth?.status?.id]);
 
   return (
     <>

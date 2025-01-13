@@ -121,11 +121,11 @@ export const DockPageContent = ({
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
 
-        if (response?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        // if (response?.data?.isSync === true) {
+        //   notify("success", t("dock:messages.sync-success"));
+        // } else {
+        //   notify("error", t("dock:messages.sync-error"));
+        // }
 
         clearPortsSocket();
         console.log("cleared ports socket");
@@ -150,11 +150,11 @@ export const DockPageContent = ({
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
 
-        if (response?.data?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        // if (response?.data?.data?.isSync === true) {
+        //   notify("success", t("dock:messages.sync-success"));
+        // } else {
+        //   notify("error", t("dock:messages.sync-error"));
+        // }
       }
 
       clearPortsSocket();

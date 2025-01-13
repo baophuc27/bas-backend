@@ -26,9 +26,10 @@ const removeAlarm = async (id: number, orgId: number) => {
   return await alarmDao.deleteAlarmById(id, orgId);
 };
 
-const removeAllAlarm = async (berthId: number, orgId: number) => {
-  return await alarmDao.deleteALlAlarm(berthId, orgId);
+const removeAllAlarm = async (orgId: number) => {
+  return await alarmDao.deleteALlAlarm(orgId);
 };
+
 
 const saveAlarmFromQueue = async (data: any) => {
   if (data?.type === 'stop') {

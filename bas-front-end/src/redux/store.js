@@ -12,6 +12,8 @@ import {
 import storage from "redux-persist/lib/storage";
 import { rootReducers } from "./root.reducer";
 
+export const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
+
 const persistConfig = {
   key: "bas_dev",
   version: 1,

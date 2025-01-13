@@ -176,11 +176,11 @@ const BerthingSettingDialog = ({
 
         notify("success", t("berthing:confirm.vessel_is_mooring."));
 
-        if (result?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        // if (result?.data?.isSync === true) {
+        //   notify("success", t("dock:messages.sync-success"));
+        // } else {
+        //   notify("error", t("dock:messages.sync-error"));
+        // }
 
         _handleClose({
           forcesBack: true,

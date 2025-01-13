@@ -87,11 +87,11 @@ export const HomePage = (props) => {
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
 
-        if (response?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        // if (response?.data?.isSync === true) {
+        //   notify("success", t("dock:messages.sync-success"));
+        // } else {
+        //   notify("error", t("dock:messages.sync-error"));
+        // }
       }
     } catch (error) {
       notify("error", t("dock:messages.stop-error"));
@@ -105,11 +105,11 @@ export const HomePage = (props) => {
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
 
-        if (response?.data?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        // if (response?.data?.data?.isSync === true) {
+        //   notify("success", t("dock:messages.sync-success"));
+        // } else {
+        //   notify("error", t("dock:messages.sync-error"));
+        // }
       }
     } catch (error) {
       notify("error", t("dock:messages.stop-error"));
@@ -253,7 +253,8 @@ export const HomePage = (props) => {
   };
 
   const handleReload = () => {
-    window.location.reload();
+    fetchBerths();
+    fetchHabourData();
   };
 
   useEffect(() => {
@@ -305,7 +306,9 @@ export const HomePage = (props) => {
             />
             <Box>
               <Box className={styles.habourName}>
-                {i18next.language.includes("en") ? habour?.nameEn : habour?.name}
+                {i18next.language.includes("en")
+                  ? habour?.nameEn
+                  : habour?.name}
               </Box>
               <Box className={styles.habourAddress}>{habour?.address}</Box>
             </Box>

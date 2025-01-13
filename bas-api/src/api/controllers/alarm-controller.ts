@@ -33,9 +33,9 @@ const removeAlarm = async (req: Request, res: Response, next: NextFunction) => {
 const removeAllAlarm = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { orgId } = req.identification;
-    const { berthId } = req.query;
-    if (!berthId) throw new BadRequestException('BerthId is required');
-    const isDeleted = await alarmService.removeAllAlarm(+berthId, +orgId);
+    // const { berthId } = req.query;
+    // if (!berthId) throw new BadRequestException('BerthId is required');
+    const isDeleted = await alarmService.removeAllAlarm(+orgId);
     if (!isDeleted) throw new BadRequestException('Delete alarm failed');
     return res.success({}, 'Delete alarm successfully');
   } catch (error: any) {

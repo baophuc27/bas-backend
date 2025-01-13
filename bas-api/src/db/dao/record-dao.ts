@@ -10,10 +10,9 @@ const findAll = async (recordFilter: RecordFilter) => {
   const { berthId, amount, vesselId, orgId, mode, order, page, search } = recordFilter;
   let conditions: FindOptions = {
     where: {
-      // endTime: {
-      //   [Op.not]: null,
-      // },
-      // Remove 'endTime' condition
+      endTime: {
+        [Op.not]: null,
+      },
     },
     include: [
       {

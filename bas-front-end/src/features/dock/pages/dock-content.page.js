@@ -1,6 +1,7 @@
 import { Box, Button, Divider, IconButton } from "@material-ui/core";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import StopIcon from "@material-ui/icons/Stop";
+import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import { AuthCheck, ProfileInformation } from "common/components";
 import {
   BERTH_STATUS,
@@ -810,6 +811,7 @@ export const DockPageContent = ({
           bottom={150}
           onClickSettings={() => setShowsDetailSettings(true)}
           onFullScreen={onFullScreen}
+          isFullScreen={isFullScreen}
         />
         {/* )} */}
       </Box>

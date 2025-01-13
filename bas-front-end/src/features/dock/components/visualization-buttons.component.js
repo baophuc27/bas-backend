@@ -1,5 +1,7 @@
 import { Box, IconButton } from "@material-ui/core";
 import CropFreeIcon from "@material-ui/icons/CropFree";
+import FullscreenIcon from "@material-ui/icons/Fullscreen";
+import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import styles from "./visualization-buttons.style.module.css";
 
 const MAX_ZOOM = 1.8;
@@ -12,6 +14,7 @@ export const VisualizationButtons = ({
   bottom = 0,
   onClickSettings = () => {},
   onFullScreen = () => {},
+  isFullScreen = false,
 }) => {
   const handleZoomIn = () => {
     if (zoom + 0.1 <= MAX_ZOOM) {
@@ -37,7 +40,7 @@ export const VisualizationButtons = ({
     >
       <Box className={styles.buttonContainer}>
         <IconButton onClick={onFullScreen} disableRipple>
-          <CropFreeIcon />
+          {isFullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
         </IconButton>
       </Box>
 

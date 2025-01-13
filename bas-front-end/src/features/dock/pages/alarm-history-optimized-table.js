@@ -1,5 +1,6 @@
 import { Box, IconButton } from "@material-ui/core";
 import CropFreeIcon from "@material-ui/icons/CropFree";
+import FullscreenExitIcon from '@material-ui/icons/FullscreenExit';
 import SettingsIcon from "@material-ui/icons/Settings";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FEATURES } from "common/constants/feature.constant";
@@ -24,7 +25,7 @@ const FullScreenContainer = ({ children, onClickFullScreen = () => {} }) => {
 
         <Box display="flex">
           <IconButton onClick={onClickFullScreen} disableRipple>
-            <CropFreeIcon />
+            <FullscreenExitIcon />
           </IconButton>
         </Box>
       </Box>

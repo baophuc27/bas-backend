@@ -20,11 +20,11 @@ const ALTER = false;
 const FORCE = false;
 
 const initDb = async () => {
-  await Harbor.sync({ alter: ALTER, force: FORCE }).then(createDefaultHarbor);
+  await Harbor.sync({ alter: ALTER, force: FORCE });
   await Sensor.sync({ alter: ALTER, force: FORCE }).then(createDefaultDevice);
   await Role.sync({ alter: ALTER, force: FORCE });
   await User.sync({ alter: ALTER, force: FORCE });
-  await Account.sync({ alter: ALTER, force: FORCE }).then(createDefaultAuth);
+  await Account.sync({ alter: ALTER, force: FORCE });
   await RefreshToken.sync({ alter: ALTER, force: FORCE });
   await Vessel.sync({ alter: ALTER, force: FORCE });
   await Berth.sync({ alter: ALTER, force: FORCE });

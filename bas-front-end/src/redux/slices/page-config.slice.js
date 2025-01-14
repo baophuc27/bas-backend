@@ -25,7 +25,6 @@ export const pageConfigSlice = createSlice({
     },
     setBreadcrumbsList: (state, action) => {
       const { id } = action?.payload;
-      console.log("id", id);
       const [featureId, pageId] = id?.split(":");
 
       state.featureBreadcrumbs = breadcrumbs?.[featureId] || {};

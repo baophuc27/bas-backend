@@ -1,6 +1,7 @@
 import { alarmDao, recordDao, recordHistoryDao } from '@bas/database/dao';
 import { AlarmDataUnit, RecordFilter, RecordHistoryQueryParams } from './typing';
 import { RecordDetailDto } from '@bas/database/dto/response/record-detail.dto';
+import { RecordData } from '@bas/database/dto/request/record-sync-dto';
 import * as objectMapper from 'object-mapper';
 import { recordAggregateMapper, recordDetailMapper } from '@bas/database/mapper/record-mapper';
 import { Transaction } from 'sequelize';
@@ -31,6 +32,31 @@ export const findAll = async (recordFilter: RecordFilter) => {
     count: result.count,
   };
 };
+
+export const syncDataApp = async (data : RecordData[]) =>{
+  if (data.length == 0){
+    return {
+      count: 0,
+      "msg": "No data to sync"
+    }
+  }
+  const recordId = data[0].recordId;
+  const orgId = data[0].orgId;
+  const recordExist = await recordDao.getRecordById(recordId, orgId);
+  if (!recordExist){
+    throw new BadRequestException('Record not found', internalErrorCode.INVALID_INPUT);
+  }
+  if (! recordExist.endTime){
+    throw new BadRequestException('Record is not ended', internalErrorCode.INVALID_INPUT);
+  }
+  const syncStatus = recordExist.syncStatus = RecordSyncStatus.SUCCESS;
+  await recordDao.updateStatus(recordId, orgId, syncStatus);
+  return {
+    count: data.length,
+    "msg": "Sync data success"
+  }
+
+}
 
 export const getAggregatesByRecordId = async (recordId: number, orgId: number) => {
   const result = await recordDao.getAggregatesByRecordId(recordId, orgId);
@@ -372,6 +398,7 @@ export const sync = async (recordId: number, orgId: number) => {
       ...result.record.vessel?.dataValues,
     },
   };
+  console.log("Payload",payload);
   const sync = await cloudService.syncRecordToCloud(payload);
   const status = RecordSyncStatus.PENDING;
   await recordDao.updateStatus(recordId, orgId, status);

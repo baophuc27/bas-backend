@@ -150,44 +150,40 @@ export const DockVisualizationPage = () => {
 
   useEffect(() => {
     const statusCheckInterval = setInterval(async () => {
-      const timeSinceLastData = Date.now() - lastDataTimestamp;
-      if (timeSinceLastData > 10000 && Date.now() - lastStatusCheck > 10000) {
-        setLastStatusCheck(Date.now());
-        
-        try {
-          const response = await BerthService.getDetail(id);
-          if (response?.data?.success && response?.data?.data) {
-            const currentStatus = berth?.status?.id;
-            const newStatus = response?.data?.data?.status?.id;
-            
-            if (currentStatus !== newStatus) {
-              swal({
-                title: t("dock:dialogs.status-changed.title"),
-                text: t("dock:dialogs.status-changed.message"),
-                icon: "warning",
-                buttons: {
-                  ok: {
-                    text: t("dock:dialogs.status-changed.ok"),
-                    value: true,
-                  },
+      try {
+        const response = await BerthService.getDetail(id);
+        if (response?.data?.success && response?.data?.data) {
+          const newBerthData = response?.data?.data;
+          console.log("New berth data:", newBerthData);
+          console.log("Current berth data:", berth);
+          if (berth?.status?.id !== newBerthData?.status?.id) {
+            setBerth(newBerthData);
+            swal({
+              title: t("dock:dialogs.status-changed.title"),
+              text: t("dock:dialogs.status-changed.message"),
+              icon: "warning",
+              buttons: {
+                ok: {
+                  text: t("dock:dialogs.status-changed.ok"),
+                  value: true,
                 },
-              }).then(() => {
+              },
+            }).then(() => {
+              if (newBerthData?.status?.id === BERTH_STATUS.AVAILABLE) {
                 navigate("/");
-              });
-            }
+              }
+            });
           }
-        } catch (error) {
-          console.error('Failed to check berth status:', error);
         }
+      } catch (error) {
+        console.error("Failed to check berth status:", error);
       }
-    }, 5000);
+    }, 10000);
 
     return () => {
-      if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-      }
+      clearInterval(statusCheckInterval);
     };
-  }, [lastDataTimestamp, lastStatusCheck, navigate, t, id, berth?.status?.id]);
+  }, [berth?.status?.id, id, navigate, t]);
 
   return (
     <>

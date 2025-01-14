@@ -1,4 +1,11 @@
-import { Avatar, Box, Grid, IconButton, Tooltip } from "@material-ui/core";
+import {
+  Avatar,
+  Box,
+  Grid,
+  IconButton,
+  Tooltip,
+  Button,
+} from "@material-ui/core";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import { HomeLayout } from "common/components";
 import { mapSensorStatusText } from "common/constants/berth.constant";
@@ -33,6 +40,8 @@ export const HomePage = (props) => {
   const [berths, setBerths] = useState([]);
   const [habour, setHabour] = useState({});
   const [socket, setSocket] = useState(null);
+  const [isReloadDisabled, setIsReloadDisabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const { hasPermission } = usePermission();
   const { errorDialogs, sessionCompleteDialogs } = useSelector(
@@ -253,8 +262,15 @@ export const HomePage = (props) => {
   };
 
   const handleReload = () => {
-    fetchBerths();
-    fetchHabourData();
+    setIsLoading(true);
+    setIsReloadDisabled(true);
+
+    Promise.all([fetchBerths(), fetchHabourData()]).finally(() => {
+      setTimeout(() => {
+        setIsLoading(false);
+        setIsReloadDisabled(false);
+      }, 1000);
+    });
   };
 
   useEffect(() => {
@@ -313,11 +329,19 @@ export const HomePage = (props) => {
               <Box className={styles.habourAddress}>{habour?.address}</Box>
             </Box>
           </Box>
-          <Tooltip title="Reload" arrow>
-            <IconButton color="primary" onClick={handleReload}>
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
+          <Button
+            variant="outlined"
+            className={styles.reloadButton}
+            onClick={handleReload}
+            disabled={isReloadDisabled}
+            startIcon={
+              <RefreshIcon
+                className={`${styles.reloadIcon} ${isLoading ? styles.loading : ""}`}
+              />
+            }
+          >
+            {isLoading ? t("common:button.loading") : t("common:button.reload")}
+          </Button>
         </Box>
 
         <Grid container spacing={3}>

@@ -22,7 +22,9 @@
     "no": "Không",
     "add": "Thêm Mới",
     "delete_all": "Xóa Tất Cả",
-    "management": "Quản Lý"
+    "management": "Quản Lý",
+    "reload": "Tải Lại",
+    "loading": "Đang Tải..."
   },
   "menu": {
     "sections": {

@@ -9,7 +9,7 @@ import User, { UserInput } from '@bas/database/models/user-model';
 import { UserQueryParams, UserUpdatePayload } from '@bas/service/typing';
 import { removeTokenByUserId } from '@bas/database/dao/refresh-token-dao';
 
-const DEFAULT_REFRESH_TERM = 604800000;
+const DEFAULT_REFRESH_TERM = 30 * 24 * 60 * 60 * 1000;
 
 const createUser = async (payload: UserInput, transaction?: any) => {
   return await User.create(payload, {
@@ -81,27 +81,22 @@ const generateRefreshToken = async (user: User, ipAddress: string, transaction?:
     {
       token: randomString(),
       userId: user.id,
-      expires: new Date(Date.now() + (REFRESH_TERM ? DEFAULT_REFRESH_TERM : + REFRESH_TERM)),
+      expires: new Date(Date.now() + (REFRESH_TERM ? DEFAULT_REFRESH_TERM : +REFRESH_TERM)),
       createdByIp: ipAddress,
     },
     transaction
   );
 };
 
+
 const getRefreshToken = async (token: string, ip: string) => {
   const refreshToken = await refreshTokenDao.findOneByTokenAndIp(token, ip);
-  console.log({ refreshToken, token, ip });
-
-  if (!refreshToken) {
-    throw new InternalException('Token not found or expired');
-  }
-
-  if (!refreshToken.isActive) {
-    throw new InternalException('Token is inactive');
-  }
-
+  console.log({ refreshToken , token, ip});
+  if (!refreshToken || !refreshToken.isActive)
+    throw new InternalException('Invalid token');
   return refreshToken;
 };
+
 
 
 const revokeToken = async (token: string, revokedByIpAddress: string) => {
@@ -114,9 +109,11 @@ const revokeToken = async (token: string, revokedByIpAddress: string) => {
   await refreshToken.save();
 };
 
+
 const cleanupToken = async () => {
   return await refreshTokenDao.removeUnusedToken();
 };
+
 
 const refreshUserToken = async (token: string, ipAddress: string, transaction?: any) => {
   const refreshToken = await getRefreshToken(token, ipAddress);
@@ -140,6 +137,7 @@ const refreshUserToken = async (token: string, ipAddress: string, transaction?: 
     data: user,
   };
 };
+
 
 const findUserByRole = async (role: string) => {
   return await userDao.findUserByRole(role);

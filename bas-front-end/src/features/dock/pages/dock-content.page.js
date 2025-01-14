@@ -107,33 +107,28 @@ export const DockPageContent = ({
 
   const clearPortsSocket = () => {
     if (portsSocket) {
-      portsSocket.off("connect");
-      portsSocket.off(DialogType.DEVICE_ERROR);
-      portsSocket.off(DialogType.COMPLETED_SESSION);
-      portsSocket.disconnect();
-      portsSocket.close();
+      // Only remove listeners specific to this berth's events
+      portsSocket.off(`${DialogType.DEVICE_ERROR}_${id}`);
+      portsSocket.off(`${DialogType.COMPLETED_SESSION}_${id}`);
     }
   };
 
-  const onFinishSession = async (id) => {
+  const onFinishSession = async (berthId) => {
     try {
-      const response = await BerthService.finishSession(id);
+      const response = await BerthService.finishSession(berthId);
 
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
-
         // if (response?.data?.isSync === true) {
         //   notify("success", t("dock:messages.sync-success"));
         // } else {
         //   notify("error", t("dock:messages.sync-error"));
         // }
-
         clearPortsSocket();
-        console.log("cleared ports socket");
 
         dispatch(
           setCurrentSessionCompleteDialog({
-            berthId: id,
+            berthId: berthId,
           }),
         );
       }
@@ -144,13 +139,12 @@ export const DockPageContent = ({
     }
   };
 
-  const onResetSession = async (id) => {
+  const onResetSession = async (berthId) => {
     try {
-      const response = await BerthService.reset(id);
+      const response = await BerthService.reset(berthId);
 
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
-
         // if (response?.data?.data?.isSync === true) {
         //   notify("success", t("dock:messages.sync-success"));
         // } else {
@@ -313,16 +307,14 @@ export const DockPageContent = ({
   };
 
   const showsErrorDialog = async (data) => {
+    // Only show error dialog if it belongs to current berth
+    if (data?.berth?.id !== parseInt(id)) {
+      return;
+    }
+
     let errorContent = `${t(
       mapSensorStatusText(data?.errorCode?.toLowerCase()),
     )}`;
-
-    // await swal({
-    //   title: t("home:dialogs.device-error.title"),
-    //   text: errorContent,
-    //   icon: "error",
-    //   buttons: t("home:dialogs.device-error.ok"),
-    // });
 
     const errorCode = data?.errorCode;
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
@@ -565,27 +557,39 @@ export const DockPageContent = ({
       setSensorErrors(_sensorError);
 
       if (!sensorAHasErrors) {
-        const leftSpeed = latestData?.speed?.[sensorAId]?.value;
+        const leftDistance = latestData?.distance?.[sensorAId]?.value;
+        let leftSpeed = latestData?.speed?.[sensorAId]?.value;
+        
+        // Convert null speed to 0 if distance exists
+        if (leftDistance != null && leftSpeed == null) {
+          leftSpeed = 0;
+        }
 
         setSensorAData({
           speed: leftSpeed,
-          distance: latestData?.distance?.[sensorAId]?.value,
+          distance: leftDistance,
           distance_status_id: latestData?.distance?.[sensorAId]?.alarm,
           speed_status_id: latestData?.speed?.[sensorAId]?.alarm,
-          original_distance: latestData?.distance?.[sensorAId]?.value,
+          original_distance: leftDistance,
         });
       }
 
       if (!sensorBHasErrors) {
-        const rightSpeed = latestData?.speed?.[sensorBId]?.value;
+        const rightDistance = latestData?.distance?.[sensorBId]?.value;
+        let rightSpeed = latestData?.speed?.[sensorBId]?.value;
+
+        // Convert null speed to 0 if distance exists
+        if (rightDistance != null && rightSpeed == null) {
+          rightSpeed = 0;
+        }
 
         setSensorBData({
           speed: rightSpeed,
-          distance: latestData?.distance?.[sensorBId]?.value,
+          distance: rightDistance,
           status_id: latestData?.distance?.[sensorBId]?.alarm,
           distance_status_id: latestData?.distance?.[sensorBId]?.alarm,
           speed_status_id: latestData?.speed?.[sensorBId]?.alarm,
-          original_distance: latestData?.distance?.[sensorBId]?.value,
+          original_distance: rightDistance,
         });
       }
 
@@ -608,34 +612,28 @@ export const DockPageContent = ({
     }
     if (portsSocket) {
       portsSocket?.on("connect", () => {
-        portsSocket.on(DialogType.DEVICE_ERROR, (data) => {
+        // Listen for events specific to this berth
+        portsSocket.on(`${DialogType.DEVICE_ERROR}_${id}`, (data) => {
           const parsedData = JSON.parse(data);
           showsErrorDialog(parsedData);
         });
 
-        portsSocket.on(DialogType.COMPLETED_SESSION, (data) => {
+        portsSocket.on(`${DialogType.COMPLETED_SESSION}_${id}`, (data) => {
           const parsedData = JSON.parse(data);
-          const berthId = `berth_${parsedData?.berth?.id}_${parsedData?.sessionId}`;
-
-          if (!(berthId in sessionCompleteDialogs)) {
-            showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
+          if (parsedData?.berth?.id === parseInt(id)) {
+            const berthId = `berth_${parsedData?.berth?.id}_${parsedData?.sessionId}`;
+            if (!(berthId in sessionCompleteDialogs)) {
+              showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
+            }
           }
         });
       });
     }
 
     return () => {
-      if (portsSocket) {
-        portsSocket.off("connect");
-        portsSocket.off(DialogType.DEVICE_ERROR);
-        portsSocket.off(DialogType.COMPLETED_SESSION);
-        portsSocket.disconnect();
-        portsSocket.close();
-      }
+      clearPortsSocket();
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [errorDialogs, sessionCompleteDialogs, portsSocket]);
+  }, [errorDialogs, sessionCompleteDialogs, portsSocket, id]);
 
   if (
     berthData?.status?.id === BERTH_STATUS.AVAILABLE &&

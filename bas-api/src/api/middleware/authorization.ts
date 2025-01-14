@@ -50,7 +50,7 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
       originalId: user.originalId,
     };
 
-    console.log(`[Authorization] User authenticated: ${user.fullName} (orgId: ${user.orgId})`);
+    // console.log(`[Authorization] User authenticated: ${user.fullName} (orgId: ${user.orgId})`);
 
     AsyncContext.run(
       {

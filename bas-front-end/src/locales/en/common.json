@@ -22,7 +22,9 @@
     "no": "No",
     "add": "Add New",
     "delete_all": "Delete All",
-    "management": "Management"
+    "management": "Management",
+    "reload": "Reload",
+    "loading": "Loading..."
   },
   "menu": {
     "sections": {

@@ -5,7 +5,7 @@ const sequelizeConnection = new Sequelize(DB_NAME, DB_USERNAME, DB_PASSWORD, {
   host: DB_HOST,
   dialect: 'postgres',
   port: DB_PORT ? +DB_PORT : 5432,
-  logging: false, // Disable query logging
+  logging: false,
   pool: {
     max: 20,
     min: 0,

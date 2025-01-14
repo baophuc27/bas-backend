@@ -6,7 +6,7 @@ import { DEFAULT_AMOUNT, DEFAULT_PAGE } from '@bas/constant/common';
 export const getBerthInfo = async (id: number, orgId: number) => {
   try {
     return await Berth.findOne({
-      where: { id, orgId },
+      where: { id },
       include: [
         {
           model: Vessel,
@@ -130,17 +130,17 @@ export const getAllBerthWithSensor = async () => {
 };
 
 export const getBerthsWithHaveRecording = async () => {
-  // return Record.findAll({
-  //   include: [
-  //     {
-  //       model: Berth,
-  //       as: 'berth',
-  //       attributes: ['id', 'orgId', 'name'],
-  //     },
-  //   ],
-  //   where: {
-  //     endTime: null,
-  //   },
-  // });
-return [];
+  return Record.findAll({
+    include: [
+      {
+        model: Berth,
+        as: 'berth',
+        attributes: ['id', 'name'],
+      },
+    ],
+    attributes: ['id', 'startTime', 'mooringStatus', 'orgId'],
+    where: {
+      endTime: null,
+    },
+  });
 };

@@ -6,6 +6,7 @@ import commonController from './common-controller';
 import vesselController from './vessel-controller';
 import alarmSettingController from './alarm-setting-controller';
 import alarmController from './alarm-controller';
+import syncController from './sync-controller';
 
 export {
   userController,
@@ -15,5 +16,6 @@ export {
   commonController,
   vesselController,
   alarmSettingController,
-  alarmController
+  alarmController,
+  syncController
 };

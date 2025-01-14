@@ -223,9 +223,10 @@ export const configurationBerth = async (
         alarm: await alarmSettingData(berthId, orgId),
       } as StartRecordPayload)
     );
-    const key = `${berthId}-${orgId}`;
+    // const key = `${berthId}-${orgId}`;
     realtimeService.addBerthToWatch(
-      key,
+      berthId,
+      orgId,
       new Date(res.startTime).getTime(),
       res?.mooringStatus == BerthStatus.BERTHING ? BerthStatus.BERTHING : BerthStatus.DEPARTING
     );

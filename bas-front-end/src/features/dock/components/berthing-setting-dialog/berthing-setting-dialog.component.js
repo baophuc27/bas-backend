@@ -244,22 +244,22 @@ const BerthingSettingDialog = ({
           currentBerth?.status?.id !== BERTH_STATUS.MOORING &&
           !isValidTransition
         ) {
-          const confirm = await swal({
-            title: t("home:dialogs.status-warning.title"),
-            text: t("home:dialogs.status-warning.message"),
-            icon: "warning",
-            buttons: {
-              cancel: t("common:cancel"),
-              confirm: {
-                text: t("common:continue"),
-                value: true,
-              },
-            },
-          });
-          if (confirm) {
-            window.location.reload();
-            return false;
-          }
+          // const confirm = await swal({
+          //   title: t("home:dialogs.status-warning.title"),
+          //   text: t("home:dialogs.status-warning.message"),
+          //   icon: "warning",
+          //   buttons: {
+          //     cancel: t("common:cancel"),
+          //     confirm: {
+          //       text: t("common:continue"),
+          //       value: true,
+          //     },
+          //   },
+          // });
+          // if (confirm) {
+          //   window.location.reload();
+          //   return false;
+          // }
           return false;
         }
         return true;
@@ -284,16 +284,25 @@ const BerthingSettingDialog = ({
     if (
       (BERTH_STATUS[values.currentStatus] === BERTH_STATUS.BERTHING ||
        BERTH_STATUS[values.currentStatus] === BERTH_STATUS.DEPARTING) &&
-      (BERTH_STATUS[values.upcomingStatus] === BERTH_STATUS.AVAILABLE ||
-       BERTH_STATUS[values.upcomingStatus] === BERTH_STATUS.MOORING)
+      BERTH_STATUS[values.upcomingStatus] === BERTH_STATUS.AVAILABLE
     ) {
       handleUpdate(values).then((res) => {
         if (res) {
-          const message = 
-            BERTH_STATUS[values.upcomingStatus] === BERTH_STATUS.AVAILABLE
-              ? t("berthing:confirm.update_success")
-              : t("berthing:confirm.vessel_is_mooring.");
-          notify("success", message);
+          notify("success", t("berthing:confirm.update_success"));
+        }
+      });
+      return;
+    }
+
+    // Handle transition to mooring status
+    if (
+      (BERTH_STATUS[values.currentStatus] === BERTH_STATUS.BERTHING ||
+       BERTH_STATUS[values.currentStatus] === BERTH_STATUS.DEPARTING) &&
+      BERTH_STATUS[values.upcomingStatus] === BERTH_STATUS.MOORING
+    ) {
+      handleUpdate(values).then((res) => {
+        if (res) {
+          handleFinishSession();
         }
       });
       return;

@@ -545,7 +545,6 @@ export const OptimizedAlarmHistoryTable = ({
         moment()?.subtract(2, "hours")?.format("YYYY-MM-DD HH:mm:ss"),
         moment()?.format("YYYY-MM-DD HH:mm:ss"),
       );
-
       if (response?.data?.success) {
         // const dataPoints = response?.data?.record?.slice(0, 100);
 

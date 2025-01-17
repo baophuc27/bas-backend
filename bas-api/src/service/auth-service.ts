@@ -35,7 +35,7 @@ export const login = async (username: string, password: string, ipAddress: strin
     if (user === null) {
       throw new BadRequestException('Invalid username or password');
     }
-    saveToCache(data.user.organization.id.toString(), data.user.organization, 3600);
+    saveToCache(data.user.organization.id.toString(), data.user.organization, 86400000);
     const token = userService.generateAccessToken(user);
     const refreshToken = await userService.generateRefreshToken(user, ipAddress);
     return {

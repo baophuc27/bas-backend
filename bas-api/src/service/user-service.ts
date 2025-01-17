@@ -81,7 +81,7 @@ const generateRefreshToken = async (user: User, ipAddress: string, transaction?:
     {
       token: randomString(),
       userId: user.id,
-      expires: new Date(Date.now() + (REFRESH_TERM ? DEFAULT_REFRESH_TERM : +REFRESH_TERM)),
+      expires: new Date(Date.now() + (+REFRESH_TERM || DEFAULT_REFRESH_TERM)),
       createdByIp: ipAddress,
     },
     transaction

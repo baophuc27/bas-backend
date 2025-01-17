@@ -1,21 +1,24 @@
-import AngleIcon from "assets/images/angle.svg";
-import DistanceIcon from "assets/images/distance.svg";
-import SpeedIcon from "assets/images/speed.svg";
-import { BERTH_STATUS } from "common/constants/berth.constant";
-import { useQuery } from "common/hooks";
-import { BerthService } from "common/services";
-import { isEmpty } from "lodash";
-import moment from "moment";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import swal from "sweetalert";
+import moment from "moment";
+import { isEmpty } from "lodash";
+
+import AngleIcon from "assets/images/angle.svg";
+import DistanceIcon from "assets/images/distance.svg";
+import SpeedIcon from "assets/images/speed.svg";
+
+import { useQuery } from "common/hooks";
+import { BerthService } from "common/services";
+import { BERTH_STATUS } from "common/constants/berth.constant";
+
+import { DockPageContent } from "./dock-content.page";
 import AlarmSettingDialog from "../components/alarm-setting-dialog/alarm-setting-dialog.component";
 import BerthingSettingDialogComponent from "../components/berthing-setting-dialog/berthing-setting-dialog.component";
 import { AlarmStatusColor, NORMAL_STATUS_ID } from "../constants/alarm-status";
 import { formatValue, getUnit } from "../helpers";
-import { DockPageContent } from "./dock-content.page";
 import { useSocket } from "../hooks/use-socket";
 
 const AlarmTypeIcon = {
@@ -28,18 +31,18 @@ export const DockVisualizationPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
-  const [updatedBerth, setUpdatedBerth] = useState({});
+  const query = useQuery();
+
   const [berth, setBerth] = useState({});
+  const [updatedBerth, setUpdatedBerth] = useState({});
+  const [pastData, setPastData] = useState([]);
+  const [hasPastData, setHasPastData] = useState(false);
+
   const [showsDetailSettings, setShowsDetailSettings] = useState(false);
   const [showsBerthingSettings, setShowsBerthingSettings] = useState(false);
   const [showsAlarmSetting, setShowsAlarmSetting] = useState(false);
+
   const alarmSettingRef = useRef(null);
-  const query = useQuery();
-  const [pastData, setPastData] = useState([]);
-  const [hasPastData, setHasPastData] = useState(false);
-  const [isBerthingStarted, setIsBerthingStarted] = useState(false);
-  const [currentBerthStatus, setCurrentBerthStatus] = useState(null);
-  const [lastStatusCheck, setLastStatusCheck] = useState(Date.now());
 
   const {
     basSocket,
@@ -53,92 +56,117 @@ export const DockVisualizationPage = () => {
     lastDataTimestamp,
   } = useSocket(id);
 
+  /**
+   * Handle opening/closing dialogs
+   */
   const onCloseBerthingSettings = ({ forcesBack = false }) => {
     setShowsBerthingSettings(false);
-    if (forcesBack === true) {
+    if (forcesBack) {
       navigate("/");
-    }
-  };
-
-  const fetchBerthDetail = async (id) => {
-    try {
-      const response = await BerthService.getDetail(id);
-      if (!response?.data?.success) {
-        toast.error(response?.data?.message ?? "Error");
-        return;
-      }
-      setBerth(response?.data?.data);
-      setUpdatedBerth(response?.data?.data);
-    } catch (error) {
-      console.error(error);
     }
   };
 
   const onCloseAlarmSettings = () => setShowsAlarmSetting(false);
   const onCloseDetailSettings = () => setShowsDetailSettings(false);
-  const onRefetchAlarmData = () => alarmSettingRef.current?.fetchData();
+  const onRefetchAlarmData = () => alarmSettingRef.current?.fetchData?.();
 
-  const fetchPastData = async (id, updatedBerth) => {
+  /**
+   * Fetch the Berth details from your API
+   */
+  const fetchBerthDetail = async (berthId) => {
+    try {
+      const response = await BerthService.getDetail(berthId);
+      if (!response?.data?.success) {
+        toast.error(response?.data?.message ?? "Error");
+        return;
+      }
+      setBerth(response.data.data);
+      setUpdatedBerth(response.data.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  /**
+   * Fetch past data (e.g., alarm records) within last 2 hours
+   */
+  const fetchPastData = async (berthId, berthInfo) => {
     try {
       const response = await BerthService.getLatestRecords(
-        id,
-        moment()?.subtract(2, "hours")?.format("YYYY-MM-DD HH:mm:ss"),
-        moment()?.format("YYYY-MM-DD HH:mm:ss"),
+        berthId,
+        moment().subtract(2, "hours").format("YYYY-MM-DD HH:mm:ss"),
+        moment().format("YYYY-MM-DD HH:mm:ss"),
       );
       if (response?.data?.success) {
         let records = [];
-        let recordsCount = 0;
-        for (let record of response?.data?.record) {
-          if (record?.alarm && record?.alarm !== NORMAL_STATUS_ID) {
+        let count = 0;
+        for (let record of response.data.record) {
+          if (
+            record?.alarm &&
+            record.alarm !== NORMAL_STATUS_ID &&
+            record.endTime
+          ) {
             let type = record?.type?.toUpperCase();
-            let value = formatValue(Math.abs(record?.value));
-            if (record?.endTime) {
-              records.push({
-                type,
-                value: `${value}${getUnit(record?.type)}`,
-                zone: record?.zone,
-                sensor: record?.side
-                  ? record?.side === 1
-                    ? t("alarm:left")
-                    : t("alarm:right")
-                  : "-",
-                startTime: moment(record?.startTime).format("HH:mm:ss:SSS"),
-                endTime: record?.endTime
-                  ? moment(record?.endTime).format("HH:mm:ss:SSS")
-                  : "-",
-                alarmColor: AlarmStatusColor[record?.alarm],
-                iconType: AlarmTypeIcon[record?.type?.toUpperCase()],
-              });
-              recordsCount += 1;
-            }
+            let value = formatValue(Math.abs(record.value));
+
+            records.push({
+              type,
+              value: `${value}${getUnit(record.type)}`,
+              zone: record.zone,
+              sensor: record.side
+                ? record.side === 1
+                  ? t("alarm:left")
+                  : t("alarm:right")
+                : "-",
+              startTime: moment(record.startTime).format("HH:mm:ss:SSS"),
+              endTime: moment(record.endTime).format("HH:mm:ss:SSS"),
+              alarmColor: AlarmStatusColor[record.alarm],
+              iconType: AlarmTypeIcon[type],
+            });
+            count++;
           }
         }
-        if (recordsCount > 0) {
+        if (count > 0) {
           setPastData(records);
           setHasPastData(true);
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Failed to fetch past data", error);
+    }
   };
 
+  /**
+   * On mount (and whenever `id` changes), fetch berth detail,
+   * join the dock sockets, and resume device data.
+   */
   useEffect(() => {
     if (id) {
       fetchBerthDetail(id);
       joinDockSockets(id);
       resumeDeviceData();
     }
+
     return () => {
       leaveDockSockets(id);
       pauseDeviceData();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  /**
+   * Whenever `updatedBerth` is set, fetch past data.
+   */
   useEffect(() => {
     if (!isEmpty(updatedBerth)) {
       fetchPastData(id, updatedBerth);
     }
   }, [id, updatedBerth]);
 
+  /**
+   * Sync `berth` with `updatedBerth`. If status changes to AVAILABLE,
+   * navigate back to home.
+   */
   useEffect(() => {
     if (JSON.stringify(updatedBerth) !== JSON.stringify(berth)) {
       setBerth(updatedBerth);
@@ -146,31 +174,32 @@ export const DockVisualizationPage = () => {
         navigate("/");
       }
     }
-  }, [updatedBerth]);
+  }, [updatedBerth, berth, navigate]);
 
+  /**
+   * Periodically re-check the berth status from server every 10s.
+   * If it changes from your local state, show a SweetAlert and navigate if needed.
+   */
   useEffect(() => {
-    const statusCheckInterval = setInterval(async () => {
+    const interval = setInterval(async () => {
       try {
         const response = await BerthService.getDetail(id);
         if (response?.data?.success && response?.data?.data) {
-          const newBerthData = response?.data?.data;
-          console.log("New berth data:", newBerthData);
-          console.log("Current berth data:", berth);
-          if (berth?.status?.id !== newBerthData?.status?.id) {
-            setBerth(newBerthData);
+          const newData = response.data.data;
+          if (berth?.status?.id !== newData?.status?.id) {
+            setBerth(newData);
             swal({
               title: t("dock:dialogs.status-changed.title"),
               text: t("dock:dialogs.status-changed.message"),
               icon: "warning",
               buttons: {
-                ok: {
-                  text: t("dock:dialogs.status-changed.ok"),
-                  value: true,
-                },
+                ok: { text: t("dock:dialogs.status-changed.ok"), value: true },
               },
             }).then(() => {
-              if (newBerthData?.status?.id === BERTH_STATUS.AVAILABLE) {
+              if (newData?.status?.id === BERTH_STATUS.AVAILABLE) {
                 navigate("/");
+              } else if (newData?.status?.id === BERTH_STATUS.BERTHING) {
+                navigate(`/docks/${id}`);
               }
             });
           }
@@ -180,11 +209,12 @@ export const DockVisualizationPage = () => {
       }
     }, 10000);
 
-    return () => {
-      clearInterval(statusCheckInterval);
-    };
+    return () => clearInterval(interval);
   }, [berth?.status?.id, id, navigate, t]);
 
+  /**
+   * Render the main Dock visualization page
+   */
   return (
     <>
       <DockPageContent
@@ -200,6 +230,7 @@ export const DockVisualizationPage = () => {
         portsSocket={portsSocket}
       />
 
+      {/* Berthing Settings Dialog */}
       <BerthingSettingDialogComponent
         open={showsBerthingSettings}
         handleClose={onCloseBerthingSettings}
@@ -209,6 +240,7 @@ export const DockVisualizationPage = () => {
         refetchAlarmData={onRefetchAlarmData}
       />
 
+      {/* Alarm Settings Dialog */}
       <AlarmSettingDialog
         ref={alarmSettingRef}
         open={showsAlarmSetting}

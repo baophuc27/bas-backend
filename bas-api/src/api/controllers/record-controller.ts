@@ -71,10 +71,9 @@ const getChart = async (req: Request, res: Response, next: NextFunction) => {
 const findLatestRecord = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { berthId, startTime, endTime } = req.query;
-    const orgId = req.identification.orgId;
     const record = await alarmService.findLatestAlarm(
       Number(berthId),
-      Number(orgId),
+      Number(req.identification.orgId),
       moment(startTime?.toString()).toDate(),
       moment(endTime?.toString()).toDate()
     );

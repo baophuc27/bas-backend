@@ -47,10 +47,9 @@ const removeAllAlarm = async (req: Request, res: Response, next: NextFunction) =
 const exportData = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const queryParams = req.query;
-    const orgId = req.identification.orgId;
-    queryParams.orgId = orgId.toString();
     const { language } = req.query;
-    const { data } = await alarmService.findAll({ ...queryParams, withoutPagination: true });
+    const combinedQuery = { ...queryParams, withoutPagination: true };
+    const { data } = await alarmService.findAll(combinedQuery);
     await exportDataAlarmService.exportDataToExcel(res, data, language?.toString() || 'en');
   } catch (error: any) {
     next(error);

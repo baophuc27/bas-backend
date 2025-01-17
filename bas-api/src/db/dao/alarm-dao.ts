@@ -261,12 +261,11 @@ export const deleteALlAlarm = async (orgId: number) => {
 
 
 export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
-  const { berth, orgId, type, alarm, search, page, amount, order, mode } = params;
+  console.log('params',params);
+  const { berth, type, alarm, search, page, amount, order, mode, withoutPagination } = params;
 
   const whereConditions: any = {};
-  if (orgId) {
-    whereConditions['$record.orgId$'] = orgId;
-  }
+
   if (berth) {
     whereConditions['$record.berthId$'] = berth;
   }
@@ -294,13 +293,13 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
       model: Record,
       required: true,
       as: 'record',
-      attributes: ['id', 'orgId', 'startTime', 'endTime', 'berthId', 'sessionId'],
+      attributes: ['id', 'startTime', 'endTime', 'berthId', 'sessionId'],
       include: [
         {
           model: Berth,
           required: true,
           as: 'berth',
-          attributes: ['id', 'orgId', 'name', 'nameEn'],
+          attributes: ['id', 'name', 'nameEn'],
         },
       ],
     },
@@ -308,14 +307,14 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
       model: Sensor,
       required: true,
       as: 'sensor',
-      attributes: ['id', 'berthId', 'orgId', 'name'],
+      attributes: ['id', 'name'],
     },
   ];
 
-  let orderConditions: any = [[order ?? 'id', mode?.toUpperCase() ?? 'DESC']];
+  let orderConditions: any = [[order || 'id', mode?.toUpperCase() || 'DESC']];
 
   if (order === 'sessionId') {
-    orderConditions = [[{ model: Record, as: 'record' }, order, mode?.toUpperCase() ?? 'DESC']];
+    orderConditions = [[{ model: Record, as: 'record' }, order, mode?.toUpperCase() || 'DESC']];
   }
 
   if (order === 'berth.nameEn') {
@@ -324,7 +323,7 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
         { model: Record, as: 'record' },
         { model: Berth, as: 'berth' },
         'nameEn',
-        mode?.toUpperCase() ?? 'DESC',
+        mode?.toUpperCase() || 'DESC',
       ],
     ];
   }
@@ -335,17 +334,15 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
         { model: Record, as: 'record' },
         { model: Berth, as: 'berth' },
         'name',
-        mode?.toUpperCase() ?? 'DESC',
+        mode?.toUpperCase() || 'DESC',
       ],
     ];
   }
 
-  return await Alarm.findAndCountAll({
+  let options: any = {
     attributes: [
       'id',
       'recordId',
-      'berthId',
-      'orgId',
       'endTime',
       'alarm',
       'side',
@@ -360,7 +357,6 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
       WHERE
         bas."AlarmSetting"."alarmZone" = CONCAT('zone_', "Alarm"."zone")
         AND bas."AlarmSetting"."berthId" = "record"."berthId"
-        AND bas."AlarmSetting"."orgId" = "Alarm"."orgId"
         AND bas."AlarmSetting"."alarmType" = "Alarm"."type"
         AND bas."AlarmSetting"."statusId" = "Alarm"."alarm"
         AND bas."AlarmSetting"."alarmSensor" = (
@@ -376,11 +372,17 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
     ],
     where: whereConditions,
     include: joinConditions,
-    limit: amount ?? 10,
-    offset: (page ?? 0) * (amount ?? 10),
     order: orderConditions,
-  });
+  };
+
+  if (!withoutPagination) {
+    options.limit = amount || 10;
+    options.offset = (page || 0) * (amount || 10);
+  }
+
+  return await Alarm.findAndCountAll(options);
 };
+
 
 export const endAllAlarm = async (recordId: number, orgId: number, t?: Transaction) => {
   await Record.update(

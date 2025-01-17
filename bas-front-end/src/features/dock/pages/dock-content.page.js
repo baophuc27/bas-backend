@@ -107,9 +107,8 @@ export const DockPageContent = ({
 
   const clearPortsSocket = () => {
     if (portsSocket) {
-      // Only remove listeners specific to this berth's events
-      portsSocket.off(`${DialogType.DEVICE_ERROR}_${id}`);
-      portsSocket.off(`${DialogType.COMPLETED_SESSION}_${id}`);
+      portsSocket.off(`${DialogType.DEVICE_ERROR}`);
+      portsSocket.off(`${DialogType.COMPLETED_SESSION}`);
     }
   };
 
@@ -307,14 +306,16 @@ export const DockPageContent = ({
   };
 
   const showsErrorDialog = async (data) => {
-    // Only show error dialog if it belongs to current berth
-    if (data?.berth?.id !== parseInt(id)) {
-      return;
-    }
-
     let errorContent = `${t(
       mapSensorStatusText(data?.errorCode?.toLowerCase()),
     )}`;
+
+    // await swal({
+    //   title: t("home:dialogs.device-error.title"),
+    //   text: errorContent,
+    //   icon: "error",
+    //   buttons: t("home:dialogs.device-error.ok"),
+    // });
 
     const errorCode = data?.errorCode;
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
@@ -343,10 +344,7 @@ export const DockPageContent = ({
 
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
-    if (
-      !(berthId in completeDialogs) &&
-      hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT)
-    ) {
+    if (!(berthId in completeDialogs)) {
       dispatch(
         setCurrentSessionCompleteDialog({
           berthId,
@@ -559,7 +557,7 @@ export const DockPageContent = ({
       if (!sensorAHasErrors) {
         const leftDistance = latestData?.distance?.[sensorAId]?.value;
         let leftSpeed = latestData?.speed?.[sensorAId]?.value;
-        
+
         // Convert null speed to 0 if distance exists
         if (leftDistance != null && leftSpeed == null) {
           leftSpeed = 0;
@@ -607,33 +605,39 @@ export const DockPageContent = ({
   }, [latestData]);
 
   useEffect(() => {
-    if (portsSocket && !portsSocket.connected) {
-      portsSocket.connect();
-    }
     if (portsSocket) {
-      portsSocket?.on("connect", () => {
-        // Listen for events specific to this berth
-        portsSocket.on(`${DialogType.DEVICE_ERROR}_${id}`, (data) => {
-          const parsedData = JSON.parse(data);
-          showsErrorDialog(parsedData);
-        });
+      if (!portsSocket.connected) {
+        portsSocket.connect();
+      }
 
-        portsSocket.on(`${DialogType.COMPLETED_SESSION}_${id}`, (data) => {
-          const parsedData = JSON.parse(data);
-          if (parsedData?.berth?.id === parseInt(id)) {
-            const berthId = `berth_${parsedData?.berth?.id}_${parsedData?.sessionId}`;
-            if (!(berthId in sessionCompleteDialogs)) {
-              showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
-            }
-          }
-        });
-      });
+      const handleDeviceError = (data) => {
+        showsErrorDialog(JSON.parse(data));
+      };
+
+      const handleCompletedSession = (data) => {
+        showsCompleteSessionDialog(sessionCompleteDialogs, JSON.parse(data));
+      };
+
+      portsSocket.on(DialogType.DEVICE_ERROR, handleDeviceError);
+      portsSocket.on(DialogType.COMPLETED_SESSION, handleCompletedSession);
+
+      return () => {
+        clearPortsSocket();
+        portsSocket.off(DialogType.DEVICE_ERROR, handleDeviceError);
+        portsSocket.off(DialogType.COMPLETED_SESSION, handleCompletedSession);
+      };
     }
-
-    return () => {
-      clearPortsSocket();
-    };
   }, [errorDialogs, sessionCompleteDialogs, portsSocket, id]);
+
+  useEffect(() => {
+    return () => {
+      if (portsSocket) {
+        clearPortsSocket();
+        portsSocket.disconnect();
+        portsSocket.close();
+      }
+    };
+  }, []);
 
   if (
     berthData?.status?.id === BERTH_STATUS.AVAILABLE &&

@@ -1,224 +1,231 @@
 import { useEffect, useState, useRef } from "react";
-import socketIOClient from "socket.io-client";
+import { io } from "socket.io-client";
 import { UserManagementService } from "common/services";
 
 export const useSocket = (berthId) => {
-  const [sockets, setSockets] = useState({
-    basSocket: null,
-    deviceSocket: null,
-    portsSocket: null,
+  // Keep references to each socket (bas, device, ports)
+  const socketsRef = useRef({
+    bas: null,
+    device: null,
+    ports: null,
   });
+
+  // Track incoming data and timestamp
   const [socketData, setSocketData] = useState(null);
   const [lastDataTimestamp, setLastDataTimestamp] = useState(Date.now());
-  const [isListening, setIsListening] = useState(true);
 
-  // Tạo cờ mounted để kiểm soát trong toàn hook
+  // A ref to detect unmount (avoid setting state on unmounted component)
   const mountedRef = useRef(true);
 
-  const cleanupSocket = (socket, eventName = null, data = null) => {
-    if (socket) {
-      if (eventName && data) {
-        socket.emit("leave", JSON.stringify(data));
-      }
-      socket.off("connect");
-      if (eventName) {
-        socket.off(eventName);
-      }
-      socket.removeAllListeners();
-      socket.disconnect();
-      socket.close();
-    }
-  };
+  // A ref to track if BAS has received data for the first time
+  const firstBasDataReceivedRef = useRef(false);
 
-  const joinDockSockets = (id) => {
-    if (sockets?.deviceSocket && sockets.deviceSocket.connected) {
-      sockets.deviceSocket.emit("join", JSON.stringify({ berthId: id }));
-    }
-    if (sockets?.basSocket && sockets.basSocket.connected) {
-      // ...
-    }
-    if (sockets?.portsSocket && sockets.portsSocket.connected) {
-      // ...
-    }
-  };
+  // A ref to store the baseConfig
+  const baseConfigRef = useRef(null);
 
-  const leaveDockSockets = (id) => {
-    if (sockets?.deviceSocket) {
-      cleanupSocket(sockets.deviceSocket, "device", { berthId: id });
-    }
-    if (sockets?.basSocket) {
-      cleanupSocket(sockets.basSocket);
-    }
-    if (sockets?.portsSocket) {
-      cleanupSocket(sockets.portsSocket);
-    }
-  };
+  /**
+   * Initialize a single Socket.IO client with relevant event listeners.
+   */
+  const createSocket = (url, type, config) => {
+    const socket = io(url, config);
 
-  const pauseDeviceData = () => {
-    if (sockets?.deviceSocket) {
-      sockets.deviceSocket.off("device");
-      setIsListening(false);
-    }
-  };
-
-  const resumeDeviceData = () => {
-    if (sockets?.deviceSocket) {
-      // Bắt sự kiện device
-      sockets.deviceSocket.on("device", (data) => {
-        if (mountedRef.current) {
-          setSocketData(JSON.parse(data));
-          setLastDataTimestamp(Date.now());
-        }
-      });
-      setIsListening(true);
-    }
-  };
-
-  const setupSocketEvents = (socket, type) => {
-    if (!socket) return;
-
+    // Once connected, optionally "join" a room for bas/device
     socket.on("connect", () => {
       console.log(`${type} socket connected`);
-      if (type === 'device' && berthId) {
+      if (berthId && (type === "bas" || type === "device")) {
         socket.emit("join", JSON.stringify({ berthId }));
       }
-    });
-
-    socket.on("disconnect", () => {
-      console.log(`${type} socket disconnected`);
     });
 
     socket.on("connect_error", (error) => {
       console.error(`${type} socket connection error:`, error);
     });
 
-    if (type === 'device' && isListening) {
+    // Register event handlers per socket type
+    if (type === "device") {
       socket.on("device", (data) => {
         if (mountedRef.current) {
           setSocketData(JSON.parse(data));
           setLastDataTimestamp(Date.now());
         }
       });
-    }
-
-    if (type === 'bas') {
-      socket.on("data", () => {
+    } else if (type === "bas") {
+      socket.on("data", (data) => {
         if (mountedRef.current) {
+          setLastDataTimestamp(Date.now());
+          const parsedData = JSON.parse(data);
+          setSocketData((prev) => ({ ...prev, ...parsedData }));
+
+          if (!firstBasDataReceivedRef.current) {
+            firstBasDataReceivedRef.current = true;
+            cleanupSocket(socketsRef.current.ports);
+            socketsRef.current.ports = createSocket(
+              `${process.env.REACT_APP_API_BASE_URL}/port-events`,
+              "ports",
+              baseConfigRef.current,
+            );
+          }
+        }
+      });
+
+      socket.on("error", (error) => {
+        console.error("BAS socket error:", error);
+      });
+    } else if (type === "ports") {
+      socket.on("port_event", (data) => {
+        if (mountedRef.current) {
+          const parsedData = JSON.parse(data);
+          setSocketData((prev) => ({ ...prev, portEvent: parsedData }));
           setLastDataTimestamp(Date.now());
         }
       });
+
+      socket.on("error", (error) => {
+        console.error("Ports socket error:", error);
+      });
+    }
+
+    return socket;
+  };
+
+  /**
+   * Helper to cleanly close a socket.
+   */
+  const cleanupSocket = (socket) => {
+    if (socket) {
+      socket.removeAllListeners();
+      socket.disconnect();
     }
   };
 
-  const initializeSocket = async (url, type, config = {}) => {
-    try {
-      const socket = socketIOClient.io(url, config);
-      setupSocketEvents(socket, type);
-      return socket;
-    } catch (error) {
-      console.error(`Failed to initialize ${type} socket:`, error);
-      return null;
+  /**
+   * Public method: forcibly disconnect all sockets (and clean them up).
+   */
+  const disconnectSockets = () => {
+    const { bas, device, ports } = socketsRef.current;
+    cleanupSocket(bas);
+    cleanupSocket(device);
+    cleanupSocket(ports);
+    socketsRef.current.bas = null;
+    socketsRef.current.device = null;
+    socketsRef.current.ports = null;
+  };
+
+  /**
+   * Public method: join all relevant "rooms" on the server side,
+   * if the sockets are connected.
+   */
+  const joinDockSockets = (id) => {
+    const { bas, device, ports } = socketsRef.current;
+    const payload = JSON.stringify({ berthId: id });
+
+    if (bas?.connected) bas.emit("join", payload);
+    if (device?.connected) device.emit("join", payload);
+    if (ports?.connected) ports.emit("join", payload);
+  };
+
+  /**
+   * Public method: leave all relevant "rooms."
+   */
+  const leaveDockSockets = (id) => {
+    const { bas, device, ports } = socketsRef.current;
+    const payload = JSON.stringify({ berthId: id });
+
+    if (bas?.connected) bas.emit("leave", payload);
+    if (device?.connected) device.emit("leave", payload);
+    if (ports?.connected) ports.emit("leave", payload);
+  };
+
+  /**
+   * Public method: pause/resume device socket streaming
+   */
+  const pauseDeviceData = () => {
+    const { device } = socketsRef.current;
+    if (device?.connected) {
+      device.emit("pause", JSON.stringify({ berthId }));
+      console.log("Paused device data streaming");
     }
   };
 
+  const resumeDeviceData = () => {
+    const { device } = socketsRef.current;
+    if (device?.connected) {
+      device.emit("resume", JSON.stringify({ berthId }));
+      console.log("Resumed device data streaming");
+    }
+  };
+
+  /**
+   * useEffect: initialize sockets when `berthId` is available,
+   * then clean up on unmount or when `berthId` changes.
+   */
   useEffect(() => {
     mountedRef.current = true;
-    let dataCheckInterval;
 
-    const initializeSockets = async () => {
+    const initSockets = async () => {
       try {
+        // Fetch token (if your backend requires auth)
         const resp = await UserManagementService.getSocketAccessToken();
         if (!resp?.data?.success || !mountedRef.current) return;
 
-        const socketConfig = {
-          extraHeaders: {
-            authorization: resp.data?.accessToken,
-          },
+        // Base socket config
+        const accessToken = resp.data.accessToken;
+        const baseConfig = {
+          extraHeaders: { authorization: accessToken },
           reconnection: true,
           reconnectionAttempts: 5,
           reconnectionDelay: 1000,
         };
 
-        const basSocket = await initializeSocket(
+        // Store the baseConfig in a ref
+        baseConfigRef.current = baseConfig;
+
+        // Initialize all sockets
+        socketsRef.current.bas = createSocket(
           `${process.env.REACT_APP_API_BASE_URL}/bas-realtime`,
-          'bas',
-          socketConfig
+          "bas",
+          baseConfig,
         );
 
-        const deviceSocket = await initializeSocket(
+        // Device can have additional query param
+        socketsRef.current.device = createSocket(
           `${process.env.REACT_APP_API_BASE_URL}/device-realtime`,
-          'device',
-          { ...socketConfig, query: { berthId } }
+          "device",
+          { ...baseConfig, query: { berthId } },
         );
 
-        const portsSocket = await initializeSocket(
+        socketsRef.current.ports = createSocket(
           `${process.env.REACT_APP_API_BASE_URL}/port-events`,
-          'ports',
-          socketConfig
+          "ports",
+          baseConfig,
         );
-
-        if (mountedRef.current) {
-          setSockets({ basSocket, deviceSocket, portsSocket });
-          
-          dataCheckInterval = setInterval(() => {
-            const timeSinceLastData = Date.now() - lastDataTimestamp;
-            if (timeSinceLastData > 10000 && basSocket?.connected) {
-              basSocket.emit("check_connection");
-            }
-          }, 5000);
-        }
       } catch (error) {
         console.error("Socket initialization error:", error);
       }
     };
 
     if (berthId) {
-      initializeSockets();
+      initSockets();
     }
 
+    // Cleanup when unmounting or berthId changes
     return () => {
       mountedRef.current = false;
-      if (dataCheckInterval) {
-        clearInterval(dataCheckInterval);
-      }
-      leaveDockSockets(berthId);
-      setSockets({
-        basSocket: null,
-        deviceSocket: null,
-        portsSocket: null,
-      });
+      disconnectSockets();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [berthId]);
 
-  // Move device event handling to a separate effect
-  useEffect(() => {
-    const { deviceSocket } = sockets;
-    if (deviceSocket) {
-      if (isListening) {
-        deviceSocket.on("device", (data) => {
-          if (mountedRef.current) {
-            setSocketData(JSON.parse(data));
-            setLastDataTimestamp(Date.now());
-          }
-        });
-      } else {
-        deviceSocket.off("device");
-      }
-    }
-    
-    return () => {
-      if (deviceSocket) {
-        deviceSocket.off("device");
-      }
-    };
-  }, [sockets.deviceSocket, isListening]);
-
+  // Return an object with the sockets and public methods
   return {
-    ...sockets,
+    basSocket: socketsRef.current.bas,
+    deviceSocket: socketsRef.current.device,
+    portsSocket: socketsRef.current.ports,
     socketData,
+    lastDataTimestamp,
     joinDockSockets,
     leaveDockSockets,
-    lastDataTimestamp,
+    disconnectSockets,
     pauseDeviceData,
     resumeDeviceData,
   };

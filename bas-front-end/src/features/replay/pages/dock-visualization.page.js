@@ -180,7 +180,7 @@ export const DockVisualizationPage = () => {
 
   const onReplay = () => {
     clearInterval(intervalRef.current);
-    setIsPlaying(false);
+    setIsPlaying(true);
     setIndex(0);
     setLatestData(pagesRef.current?.[0]?.["items"]?.[0]);
   };

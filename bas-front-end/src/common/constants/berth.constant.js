@@ -48,15 +48,31 @@ export const sensorStatusColor = (errorCode) => {
   switch (errorCode) {
     case "lost_target":
     case "disconnected":
+    case "lost_connect":
       return "#B0BEC5";
     case "weak_signal":
     case "data_noise":
       return "#FBC02D";
-    default: // success
-      return "#69AE3A";
+    case "normal":
+      return "#00FF00";
+    default: // no connection
+      return "#B0BEC5";
   }
 };
 
+export const sensorStatusColorDock = (errorCode) => {
+  switch (errorCode) {
+    case "lost_target":
+    case "disconnected":
+    case "lost_connect":
+      return "#B0BEC5";
+    case "weak_signal":
+    case "data_noise":
+      return "#FBC02D";
+    default:
+      return "#00FF00";
+  }
+};
 export const getSyncStatus = (t, status) => {
   switch (status) {
     case "SUCCESS":

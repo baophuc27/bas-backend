@@ -1,6 +1,6 @@
 import {
   mapSensorStatusText,
-  sensorStatusColor,
+  sensorStatusColorDock,
 } from "common/constants/berth.constant";
 import { t } from "i18next";
 import { useEffect, useState } from "react";
@@ -277,7 +277,7 @@ export const VisualizationV2 = ({
             //     ? "white"
             //     : AlarmStatusColor[sensorAData?.status_id]
             // }
-            fill={sensorStatusColor(leftError) || "white"}
+            fill={sensorStatusColorDock(leftError) || "white"}
           />
 
           <Group name="sensor-left-detection-line" visible={gettingRTData}>
@@ -368,7 +368,7 @@ export const VisualizationV2 = ({
               //     ? "white"
               //     : AlarmStatusColor[sensorBData?.status_id]
               // }
-              fill={sensorStatusColor(rightError) || "white"}
+              fill={sensorStatusColorDock(rightError) || "white"}
             />
           </Group>
 

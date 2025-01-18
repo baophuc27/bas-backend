@@ -205,9 +205,9 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
       ) as SocketRealtimeData;
       const key = generateKey(objectData.berthId, objectData.orgId);
       const room = getRoomKey(objectData.berthId.toString(), objectData.orgId.toString(), 'bas');
-      
+
       const { data, record } = await processData(objectData);
-      
+
       const isRunning = berthIsRunning.get(key) || null;
       if (isRunning) {
         const beginTs = isRunning.beginTs;
@@ -228,6 +228,7 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
       if (realtimeSocket != null && data != null) {
         console.log(JSON.stringify(data));
         realtimeSocket.to(room.toString()).emit('data', JSON.stringify(data));
+
         if (data?.error_code) {
           await handleError(
             objectData.sessionId,
@@ -237,7 +238,7 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
             record?.mooringStatus || 'DEPARTING'
           );
         } else {
-          if (record?.mooringStatus !== 'DEPARTING') {
+          if (record?.mooringStatus !== 'DEPARTING' && record?.mooringStatus !== 'MOORING') {
             const speedCondition = Object.values(data?.speed).every((val: any) => {
               if (!val?.value) {
                 return false;
@@ -250,6 +251,7 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
               }
               return val.value <= +LIMIT_CONDITION;
             });
+
             const isShouldEndRecording = speedCondition && distanceCondition;
             if (isShouldEndRecording) {
               const berth = await berthDao.getBerthInfo(objectData.berthId, objectData.orgId);
@@ -272,6 +274,7 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
     }
   };
 };
+
 
 /**
  * Init realtime data for visualizing data
@@ -404,9 +407,9 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
 
   try {
     const record = await recordService.getRecordById(+objectData.sessionId, +objectData.orgId);
-    console.log('[processData] Record:', record?.toJSON ? record.toJSON() : record);
+    // console.log('[processData] Record:', record?.toJSON ? record.toJSON() : record);
     const berth = await berthDao.getBerthInfo(+objectData.berthId, +objectData.orgId);
-    console.log('[processData] Berth:', berth?.toJSON ? berth.toJSON() : berth);
+    // console.log('[processData] Berth:', berth?.toJSON ? berth.toJSON() : berth);
     if (!record || !berth?.leftDevice?.name || !berth?.rightDevice?.name) {
       return null;
     }
@@ -417,6 +420,7 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
     const left = ['both', 'left'].includes(device.side) ? device.status : DeviceStatus.CONNECT;
     const right = ['both', 'right'].includes(device.side) ? device.status : DeviceStatus.CONNECT;
 
+    if (record.mooringStatus !== 'MOORING') {
     await recordHistoryService.createRecordHistory(
       {
         leftDistance: objectData.distance[berth?.leftDevice?.name]?.value,
@@ -447,6 +451,8 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
       },
       record?.mooringStatus ?? 'DEPARTING'
     );
+    }
+
 
     return {
       data: cleanData(objectData, berth),
@@ -820,7 +826,7 @@ const deviceIsError = (portEventSocketDeviceError: PortEventSocketDeviceError) =
   console.log(
     `[deviceIsError] Device error for berth ${portEventSocketDeviceError.berth.id}`
   );
-  const eventName = `DEVICE_ERROR_${portEventSocketDeviceError.berth.id}`;
+  const eventName = `DEVICE_ERROR`;
   const eventData = JSON.stringify(portEventSocketDeviceError);
 
   // Emit to both general and berth-specific channels with consistent format

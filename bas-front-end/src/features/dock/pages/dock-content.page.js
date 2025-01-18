@@ -61,6 +61,7 @@ export const DockPageContent = ({
   pastData,
   hasPastData,
   portsSocket,
+  reload,
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ export const DockPageContent = ({
     (state) => state?.dialog,
   );
   const dispatch = useDispatch();
-
+  const berthFormValues = useSelector((state) => state.berth.berthFormValues);
   const onBack = () => navigate("/");
 
   const clearPortsSocket = () => {
@@ -111,33 +112,41 @@ export const DockPageContent = ({
       portsSocket.off(`${DialogType.COMPLETED_SESSION}`);
     }
   };
-
   const onFinishSession = async (berthId) => {
     try {
       const response = await BerthService.finishSession(berthId);
 
+      console.log("berth form values", berthFormValues);
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
-        // if (response?.data?.isSync === true) {
-        //   notify("success", t("dock:messages.sync-success"));
-        // } else {
-        //   notify("error", t("dock:messages.sync-error"));
-        // }
-        clearPortsSocket();
 
-        dispatch(
-          setCurrentSessionCompleteDialog({
-            berthId: berthId,
-          }),
-        );
+        const newValues = {
+          ...berthFormValues,
+          currentStatus: "MOORING",
+          upcomingStatus: "",
+        };
+
+        await BerthService.updateConfig(berthId, {
+          status:
+            BERTH_STATUS[newValues.upcomingStatus || newValues.currentStatus],
+          distanceToLeft: newValues.leftSensorDistance,
+          distanceToRight: newValues.rightSensorDistance,
+          vessel: {
+            code: newValues.vesselIMO,
+            name: newValues.vesselName,
+            flag: newValues.vesselFlag,
+            length: newValues.vesselLength,
+            beam: newValues.vesselBeam,
+          },
+          vesselDirection: !!newValues.vesselDirection,
+        });
       }
     } catch (error) {
       notify("error", t("dock:messages.stop-error"));
     } finally {
-      navigate("/");
+      navigate(`/`);
     }
   };
-
   const onResetSession = async (berthId) => {
     try {
       const response = await BerthService.reset(berthId);
@@ -160,21 +169,27 @@ export const DockPageContent = ({
   };
 
   const triggerStopRecording = () => {
+    const buttons = {
+      cancel: t("dock:dialogs.stop-recording.cancel"),
+      available: {
+        text: t("dock:dialogs.stop-recording.available"),
+        value: "available",
+      },
+    };
+
+    // departing will not show mooring button
+    if (berthData?.status?.id !== BERTH_STATUS.DEPARTING) {
+      buttons.mooring = {
+        text: t("dock:dialogs.stop-recording.mooring"),
+        value: "mooring",
+      };
+    }
+
     swal({
       title: t("dock:dialogs.stop-recording.title"),
       text: t("dock:dialogs.stop-recording.message"),
       icon: "warning",
-      buttons: {
-        cancel: t("dock:dialogs.stop-recording.cancel"),
-        available: {
-          text: t("dock:dialogs.stop-recording.available"),
-          value: "available",
-        },
-        mooring: {
-          text: t("dock:dialogs.stop-recording.mooring"),
-          value: "mooring",
-        },
-      },
+      buttons: buttons,
       showCloseButton: true,
     }).then((value) => {
       switch (value) {
@@ -515,8 +530,11 @@ export const DockPageContent = ({
   }, [id, socket]);
 
   const isShipVisible = useMemo(() => {
-    // Still visualize the ship in the case of weak signal
     const isMooring = berthData?.status?.id === BERTH_STATUS.MOORING;
+
+    if (isMooring) {
+      return true;
+    }
 
     const leftNoErrors = !("left_sensor" in sensorErrors);
     const leftWeakSignal = sensorErrors["left_sensor"] === "weak_signal";
@@ -528,18 +546,7 @@ export const DockPageContent = ({
 
     const sensorsWorking = leftWorking && rightWorking;
 
-    if (isMooring) {
-      if (!gettingRTData) {
-        return true;
-      }
-    } else {
-      if (gettingRTData && sensorsWorking) {
-        return true;
-      }
-    }
-
-    return false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return gettingRTData && sensorsWorking;
   }, [berthData?.status?.id, gettingRTData, sensorErrors]);
 
   useEffect(() => {

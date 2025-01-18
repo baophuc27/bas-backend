@@ -121,7 +121,7 @@
   "role": {
     "admin": "Quản Lý",
     "config": "Cấu Hình",
-    "viewer": "Xem Dữ Liệu"
+    "viewer": "Nguời Xem"
   },
   "player": {
     "loading": "Đang tải dữ liệu"

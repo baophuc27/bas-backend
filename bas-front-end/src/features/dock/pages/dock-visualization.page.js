@@ -56,6 +56,8 @@ export const DockVisualizationPage = () => {
     lastDataTimestamp,
   } = useSocket(id);
 
+  const [isDialogShowing, setIsDialogShowing] = useState(false);
+
   /**
    * Handle opening/closing dialogs
    */
@@ -181,36 +183,53 @@ export const DockVisualizationPage = () => {
    * If it changes from your local state, show a SweetAlert and navigate if needed.
    */
   useEffect(() => {
+    let isChecking = false;
     const interval = setInterval(async () => {
+      if (isDialogShowing || isChecking) return;
+
+      isChecking = true;
       try {
         const response = await BerthService.getDetail(id);
         if (response?.data?.success && response?.data?.data) {
           const newData = response.data.data;
           if (berth?.status?.id !== newData?.status?.id) {
-            setBerth(newData);
-            swal({
-              title: t("dock:dialogs.status-changed.title"),
-              text: t("dock:dialogs.status-changed.message"),
-              icon: "warning",
-              buttons: {
-                ok: { text: t("dock:dialogs.status-changed.ok"), value: true },
-              },
-            }).then(() => {
-              if (newData?.status?.id === BERTH_STATUS.AVAILABLE) {
-                navigate("/");
-              } else if (newData?.status?.id === BERTH_STATUS.BERTHING) {
-                navigate(`/docks/${id}`);
-              }
-            });
+            setIsDialogShowing(true);
+            setTimeout(() => {
+              swal({
+                title: t("dock:dialogs.status-changed.title"),
+                text: t("dock:dialogs.status-changed.message"),
+                icon: "warning",
+                buttons: {
+                  ok: {
+                    text: t("dock:dialogs.status-changed.ok"),
+                    value: true,
+                  },
+                },
+              }).then(() => {
+                setIsDialogShowing(false);
+                if (newData?.status?.id === BERTH_STATUS.AVAILABLE) {
+                  navigate("/");
+                } else if (
+                  [
+                    BERTH_STATUS.BERTHING,
+                    BERTH_STATUS.DEPARTING,
+                    BERTH_STATUS.MOORING,
+                  ].includes(newData?.status?.id)
+                ) {
+                  window.location.reload();
+                }
+              });
+            }, 3000); // 3 second delay
           }
         }
       } catch (error) {
-        console.error("Failed to check berth status:", error);
+        // console.error("Failed to check berth status:", error);
       }
-    }, 10000);
+      isChecking = false;
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [berth?.status?.id, id, navigate, t]);
+  }, [berth?.status?.id, id, navigate, t, isDialogShowing]);
 
   /**
    * Render the main Dock visualization page

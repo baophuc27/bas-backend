@@ -6,7 +6,6 @@ import {
   Tooltip,
   Button,
 } from "@material-ui/core";
-import RefreshIcon from "@material-ui/icons/Refresh";
 import { HomeLayout } from "common/components";
 import { mapSensorStatusText } from "common/constants/berth.constant";
 import {
@@ -30,6 +29,7 @@ import styles from "./home.style.module.css";
 import { usePermission } from "common/hooks";
 import { FEATURES } from "common/constants/feature.constant";
 import { ACTIONS } from "common/constants/permission.constant";
+import { useNavigate } from "react-router-dom";
 const DialogType = {
   DEVICE_ERROR: "DEVICE_ERROR",
   COMPLETED_SESSION: "COMPLETED_SESSION",
@@ -44,6 +44,7 @@ export const HomePage = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const { hasPermission } = usePermission();
+  const navigate = useNavigate();
   const { errorDialogs, sessionCompleteDialogs } = useSelector(
     (state) => state?.dialog,
   );
@@ -61,7 +62,7 @@ export const HomePage = (props) => {
   const fetchBerths = async () => {
     try {
       const response = await BerthService.getAll();
-
+      console.log(response);
       if (response?.data?.success) {
         setBerths(response?.data?.data);
       }
@@ -157,49 +158,6 @@ export const HomePage = (props) => {
     }
   };
 
-  /**
-   * Checks the status of a specific berth and prompts for confirmation if needed
-   * @param {string|number} berthId - The ID of the berth to check
-   * @returns {Promise<boolean>} - Returns true if berth is available or user confirms, false otherwise
-   */
-  const checkBerthStatus = async (berthId) => {
-    try {
-      const response = await BerthService.getAll();
-      if (!response?.data?.success) {
-        notify("error", t("common:messages.error"));
-        return false;
-      }
-
-      const currentBerth = response.data.data?.find(
-        (berth) => berth.id === berthId,
-      );
-
-      if (!currentBerth) {
-        return false;
-      }
-
-      // check if berth is NOT available (0) or NOT mooring (1)
-      if (currentBerth.status?.id !== 0 && currentBerth.status?.id !== 1) {
-        const confirm = await swal({
-          title: t("home:dialogs.status-warning.title"),
-          text: t("home:dialogs.status-warning.message"),
-          icon: "warning",
-          buttons: {
-            cancel: t("common:cancel"),
-            confirm: {
-              text: t("common:continue"),
-              value: true,
-            },
-          },
-        });
-        return confirm;
-      }
-      return true;
-    } catch (error) {
-      notify("error", t("common:messages.error"));
-      return false;
-    }
-  };
   const showsCompleteSessionDialog = async (completeDialogs, data) => {
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
@@ -303,12 +261,67 @@ export const HomePage = (props) => {
       });
     }
 
+    const checkBerthsStatus = async () => {
+      try {
+        const response = await BerthService.getAll();
+        if (response?.data?.success && response?.data?.data) {
+          const newBerthsData = response.data.data;
+          let hasStatusChange = false;
+
+          newBerthsData.forEach((newBerthData) => {
+            const currentBerth = berths.find((b) => b.id === newBerthData.id);
+
+            if (
+              currentBerth &&
+              currentBerth?.status?.id !== newBerthData?.status?.id
+            ) {
+              const berthName = i18next.language.includes("en")
+                ? newBerthData.nameEn || newBerthData.name
+                : newBerthData.name;
+
+              const oldStatus = i18next.language.includes("en")
+                ? currentBerth?.status?.nameEn
+                : currentBerth?.status?.name;
+              const newStatus = i18next.language.includes("en")
+                ? newBerthData?.status?.nameEn
+                : newBerthData?.status?.name;
+
+              notify(
+                "info",
+                t("dock:messages.status-changed", {
+                  berthName,
+                  oldStatus,
+                  newStatus,
+                }),
+              );
+
+              hasStatusChange = true;
+            }
+          });
+
+          if (hasStatusChange) {
+            await fetchBerths();
+            Promise.all([fetchBerths(), fetchHabourData()]).finally(() => {
+              setTimeout(() => {
+                setIsLoading(false);
+                setIsReloadDisabled(false);
+              }, 500);
+            });
+          }
+        }
+      } catch (error) {
+      }
+    };
+
+    const interval = setInterval(checkBerthsStatus, 5000);
+
     return () => {
+      clearInterval(interval);
       cleanupSocket(socket);
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [errorDialogs, sessionCompleteDialogs, socket]);
+  }, [errorDialogs, sessionCompleteDialogs, socket, berths]);
 
   return (
     <HomeLayout>
@@ -329,19 +342,6 @@ export const HomePage = (props) => {
               <Box className={styles.habourAddress}>{habour?.address}</Box>
             </Box>
           </Box>
-          <Button
-            variant="outlined"
-            className={styles.reloadButton}
-            onClick={handleReload}
-            disabled={isReloadDisabled}
-            startIcon={
-              <RefreshIcon
-                className={`${styles.reloadIcon} ${isLoading ? styles.loading : ""}`}
-              />
-            }
-          >
-            {isLoading ? t("common:button.loading") : t("common:button.reload")}
-          </Button>
         </Box>
 
         <Grid container spacing={3}>

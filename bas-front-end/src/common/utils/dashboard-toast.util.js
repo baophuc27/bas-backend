@@ -11,6 +11,8 @@ export const notify = (status, message, containerId = "standard-toast") => {
     progress: undefined,
     theme: "light",
     containerId,
+    position: toast.POSITION.TOP_RIGHT,
+    style: { top: "60px" },
   };
 
   switch (status) {

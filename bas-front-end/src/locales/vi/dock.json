@@ -45,7 +45,8 @@
     "stop-success": "Kết thúc bản ghi thành công!",
     "stop-error": "Kết thúc bản ghi thất bại!",
     "sync-success": "Đồng bộ bản ghi thành công!",
-    "sync-error": "Đồng bộ bản ghi thất bại!"
+    "sync-error": "Đồng bộ bản ghi thất bại!",
+    "status-changed": "Trạng thái của {{berthName}} đã thay đổi từ {{oldStatus}} sang {{newStatus}}"
   },
   "hud": {
     "left-sensor": "Cảm Biến Trái",

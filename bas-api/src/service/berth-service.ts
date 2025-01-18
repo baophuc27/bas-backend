@@ -106,6 +106,7 @@ export const updateBerth = async (
       internalErrorCode.RESOURCE_NOT_FOUND
     );
   }
+
   const results = await alarmSettingDao.findSetting({
     berthId,
     orgId,
@@ -122,15 +123,19 @@ export const updateBerth = async (
         `Value of limitZone1 must greater than ${alarmSettings[0].value}`
       );
     }
-
     await alarmSettingDao.updateDefaultValue(+data.limitZone1, orgId, berthId);
   }
 
+  // Validate limit zones
   if (limitZone1 && limitZone2 && limitZone3) {
     if (+limitZone1 >= +limitZone2 || +limitZone2 >= +limitZone3) {
-      throw new BadRequestException('Invalid limit zone value', internalErrorCode.INVALID_INPUT);
+      throw new BadRequestException(
+        'Invalid limit zone value',
+        internalErrorCode.INVALID_INPUT
+      );
     }
   }
+
   const updated = await berthDao.updateBerth(berthId, orgId, data, modifier);
   return objectMapper.merge(updated[1][0], berthDetailMapper) as BerthDetailDto;
 };
@@ -151,33 +156,84 @@ export const configurationBerth = async (
   if (!orgId) {
     throw new Error('orgId is required');
   }
+
   let isSend = true;
+
+  let mooringStatus =
+    fromBerthStatus(berth.status) === BerthStatus.MOORING
+      ? BerthStatus.MOORING
+      : fromBerthStatus(berth.status) === BerthStatus.AVAILABLE ||
+        fromBerthStatus(berth.status) === BerthStatus.BERTHING
+      ? BerthStatus.BERTHING
+      : BerthStatus.DEPARTING;
+
   const res = await sequelizeConnection.transaction(async (t) => {
-    let vessel = (await vesselService.upsertVessel(data.vessel, t))[0];
+    const [vessel] = await vesselService.upsertVessel(data.vessel, t);
+
     const existRecord = await recordService.getCurrentRecord(berthId, orgId, t);
 
-    if (existRecord) {
-      isSend = false;
+    if (
+      fromBerthStatus(berth.status) === BerthStatus.MOORING &&
+      data.status === toBerthStatus(BerthStatus.DEPARTING)
+    ) {
+      if (existRecord) {
+        await recordService.endRecord(existRecord.id, orgId, t);
+      }
+      data.status = toBerthStatus(BerthStatus.DEPARTING);
+      mooringStatus = BerthStatus.DEPARTING;
     }
 
-    const updated = await berthDao.updateBerth(
+    if (existRecord) {
+      const currentStatus = fromBerthStatus(berth.status);
+      if (currentStatus) {
+        isSend = [
+          BerthStatus.BERTHING,
+          BerthStatus.DEPARTING,
+          BerthStatus.MOORING,
+        ].includes(currentStatus);
+      }
+    }
+
+    await berthDao.updateBerth(
       berthId,
       orgId,
       {
         distanceToRight: data.distanceToRight,
         distanceToLeft: data.distanceToLeft,
         vesselId: vessel.id,
-        status: data.status,
+        status: data.status, // potentially updated above
         vesselDirection: data.vesselDirection,
       },
       modifier,
       t
     );
-    const mooringStatus =
-      fromBerthStatus(berth.status) === BerthStatus.AVAILABLE ||
-      fromBerthStatus(berth.status) === BerthStatus.BERTHING
-        ? BerthStatus.BERTHING
-        : BerthStatus.DEPARTING;
+
+    if (data.status === toBerthStatus(BerthStatus.DEPARTING)) {
+      const departingRecord = await recordService.createRecord(
+        {
+          berthId,
+          orgId,
+          vesselId: vessel.id,
+          sessionId: generateRecordSession(berthId, vessel.id),
+          createdBy: modifier,
+          startTime: moment().utc().toDate(),
+          endTime: null,
+          vesselDirection: data.vesselDirection ? 1 : 0,
+          limitZone1: berth.limitZone1,
+          limitZone2: berth.limitZone2,
+          limitZone3: berth.limitZone3,
+          directionCompass: berth.directionCompass,
+          distanceFender: berth.distanceFender,
+          distanceDevice: berth.distanceDevice,
+          distanceToLeft: data.distanceToLeft,
+          distanceToRight: data.distanceToRight,
+          syncStatus: 'PENDING',
+          mooringStatus: mooringStatus, // e.g. DEPARTING
+        },
+        t
+      );
+      return departingRecord;
+    }
 
     return (
       existRecord ||
@@ -206,14 +262,22 @@ export const configurationBerth = async (
       ))
     );
   });
+
   if (isSend && res?.id) {
+    const finalBerthStatus = res.mooringStatus
+      ? res.mooringStatus
+      : fromBerthStatus(data.status);
+
+    const mode =
+      finalBerthStatus === BerthStatus.MOORING ? 'start-mooring' : 'start';
+
     await kafkaService.produceKafkaData(
       BAS_RECORD_DATA,
       JSON.stringify({
         orgId: orgId,
         berth_id: berthId,
         session_id: res.id,
-        mode: 'start',
+        mode,
         distance_left_sensor_to_fender: data.distanceToLeft,
         distance_right_sensor_to_fender: data.distanceToRight,
         distance_between_sensors: berth.distanceDevice,
@@ -221,14 +285,16 @@ export const configurationBerth = async (
         limit_zone_2: berth.limitZone2,
         limit_zone_3: berth.limitZone3,
         alarm: await alarmSettingData(berthId, orgId),
-      } as StartRecordPayload)
+      })
     );
-    // const key = `${berthId}-${orgId}`;
+
     realtimeService.addBerthToWatch(
       berthId,
       orgId,
       new Date(res.startTime).getTime(),
-      res?.mooringStatus == BerthStatus.BERTHING ? BerthStatus.BERTHING : BerthStatus.DEPARTING
+      finalBerthStatus === BerthStatus.MOORING
+        ? BerthStatus.MOORING
+        : BerthStatus.DEPARTING
     );
   }
 

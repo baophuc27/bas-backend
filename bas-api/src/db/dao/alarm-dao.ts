@@ -384,7 +384,7 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
 };
 
 
-export const endAllAlarm = async (recordId: number, orgId: number, t?: Transaction) => {
+export const endAllAlarm = async (recordId: number, t?: Transaction) => {
   await Record.update(
     {
       doneAlarm: true,
@@ -392,7 +392,6 @@ export const endAllAlarm = async (recordId: number, orgId: number, t?: Transacti
     {
       where: {
         id: recordId,
-        orgId: orgId,
       },
       ...(t && { transaction: t }),
     }

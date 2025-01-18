@@ -62,7 +62,6 @@ export const HomePage = (props) => {
   const fetchBerths = async () => {
     try {
       const response = await BerthService.getAll();
-      console.log(response);
       if (response?.data?.success) {
         setBerths(response?.data?.data);
       }
@@ -219,25 +218,15 @@ export const HomePage = (props) => {
     }
   };
 
-  const handleReload = () => {
-    setIsLoading(true);
-    setIsReloadDisabled(true);
-
-    Promise.all([fetchBerths(), fetchHabourData()]).finally(() => {
-      setTimeout(() => {
-        setIsLoading(false);
-        setIsReloadDisabled(false);
-      }, 1000);
-    });
-  };
-
   useEffect(() => {
     initSocket();
     fetchBerths();
     fetchHabourData();
 
     return () => {
-      cleanupSocket(socket);
+      if (socket) {
+        cleanupSocket(socket);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -309,8 +298,7 @@ export const HomePage = (props) => {
             });
           }
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     const interval = setInterval(checkBerthsStatus, 5000);

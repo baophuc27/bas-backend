@@ -713,7 +713,12 @@ const initRealtimeDevice = async (io: Server) => {
  */
 const shouldEndRecording = (portEventSocketEndSession: PortEventSocketEndSession) => {
   console.log(`[shouldEndRecording] Ending recording for berth ${portEventSocketEndSession.berth.id}`);
-  generalSocket.emit('COMPLETED_SESSION', JSON.stringify(portEventSocketEndSession));
+  const room = getRoomKey(
+    portEventSocketEndSession.berth.id.toString(),
+    portEventSocketEndSession.orgId.toString(),
+    'general'
+  );
+  generalSocket.to(room).emit('COMPLETED_SESSION', JSON.stringify(portEventSocketEndSession));
 };
 
 
@@ -823,21 +828,23 @@ const handleError = async (
  * @param portEventSocketDeviceError
  */
 const deviceIsError = (portEventSocketDeviceError: PortEventSocketDeviceError) => {
-  console.log(
-    `[deviceIsError] Device error for berth ${portEventSocketDeviceError.berth.id}`
-  );
   const eventName = `DEVICE_ERROR`;
   const eventData = JSON.stringify(portEventSocketDeviceError);
 
-  // Emit to both general and berth-specific channels with consistent format
-  generalSocket.emit(eventName, eventData);
+  const room = getRoomKey(
+    portEventSocketDeviceError.berth.id.toString(),
+    portEventSocketDeviceError.orgId.toString(),
+    'general'
+  );
+  generalSocket.to(room).emit(eventName, eventData);
+  console.log(`[deviceIsError] Emitting ${eventName} to room ${room}`);
   if (realtimeSocket) {
-    const room = getRoomKey(
-      portEventSocketDeviceError.berth.id.toString(),
-      portEventSocketDeviceError.orgId.toString(),
-      'bas'
-    );
-    realtimeSocket.to(room).emit(eventName, eventData);
+    // const realtimeRoom = getRoomKey(
+    //   portEventSocketDeviceError.berth.id.toString(),
+    //   portEventSocketDeviceError.orgId.toString(),
+    //   'bas'
+    // );
+    // realtimeSocket.to(realtimeRoom).emit(eventName, eventData);
   }
 };
 
@@ -849,15 +856,57 @@ const initRealtimeGeneral = async (io: Server) => {
   console.log('[initRealtimeGeneral] Initializing general realtime socket');
   generalSocket = io.of('/port-events');
   generalSocket.use(authorizationSocket);
+  
   generalSocket.on('connection', async (socket: AuthSocket) => {
     await handleJoinSocket(socket);
+    
     setTimeout(function () {
       if (!socket.auth) {
-        console.log(`Disconnect socket {id: ${socket?.id} of port-events`);
+        console.log(`Disconnect socket {id: ${socket?.id} of port-events}`);
         socket.disconnect(true);
       }
     }, TIME_OUT);
-    socket.on('disconnect', () => {});
+
+    socket.on('join', async (data: any) => {
+      try {
+        const { berthId } = JSON.parse(data);
+        if (!berthId || !socket.auth?.orgId) {
+          return;
+        }
+        const room = getRoomKey(berthId, socket.auth.orgId.toString(), 'general');
+        socket.join(room);
+        rooms.add(room);
+        console.log(`Socket ${socket.id} joined general events room ${room}`);
+      } catch (error) {
+        logError(error);
+      }
+    });
+
+    socket.on('leave', async (data: any) => {
+      try {
+        const { berthId } = JSON.parse(data);
+        if (!berthId || !socket.auth?.orgId) {
+          return;
+        }
+        const room = getRoomKey(berthId, socket.auth.orgId.toString(), 'general');
+        socket.leave(room);
+        
+        const clients = await generalSocket.in(room).fetchSockets();
+        if (clients.length === 0) {
+          rooms.delete(room);
+          console.log(`Room ${room} deleted as it has no clients`);
+        }
+      } catch (error) {
+        logError(error);
+      }
+    });
+
+    socket.on('disconnect', () => {
+      socket.rooms?.forEach((room: any) => {
+        socket.leave(room);
+        console.log(`Socket ${socket.id} left room ${room}`);
+      });
+    });
   });
 };
 
@@ -1012,7 +1061,7 @@ const initWatchBerth = async () => {
   console.log('Init watch berth: ', records.length);
   records.forEach((frame: any) => {
     if (!frame.berth || !frame.orgId) {
-      console.log(`Skipping record because no berth found or missing orgId for record: ${frame?.id}`);
+      // console.log(`Skipping record because no berth found or missing orgId for record: ${frame?.id}`);
       return;
     }
     const beginTs = new Date(frame?.startTime).getTime();

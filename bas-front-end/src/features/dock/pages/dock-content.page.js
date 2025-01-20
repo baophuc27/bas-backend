@@ -325,13 +325,6 @@ export const DockPageContent = ({
       mapSensorStatusText(data?.errorCode?.toLowerCase()),
     )}`;
 
-    // await swal({
-    //   title: t("home:dialogs.device-error.title"),
-    //   text: errorContent,
-    //   icon: "error",
-    //   buttons: t("home:dialogs.device-error.ok"),
-    // });
-
     const errorCode = data?.errorCode;
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
@@ -343,12 +336,13 @@ export const DockPageContent = ({
         }),
       );
 
-      swal({
+      await swal({
         title: t("home:dialogs.device-error.title"),
         text: errorContent,
         icon: "error",
         buttons: t("home:dialogs.device-error.ok"),
       });
+      portsSocket?.off("DEVICE_ERROR");
     }
   };
 
@@ -383,6 +377,7 @@ export const DockPageContent = ({
         },
         showCloseButton: true,
       });
+      portsSocket?.off("COMPLETED_SESSION");
 
       switch (value) {
         case "available":
@@ -610,41 +605,34 @@ export const DockPageContent = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latestData]);
-
   useEffect(() => {
-    if (portsSocket) {
-      if (!portsSocket.connected) {
-        portsSocket.connect();
-      }
+    if (!portsSocket) return;
 
-      const handleDeviceError = (data) => {
-        showsErrorDialog(JSON.parse(data));
-      };
-
-      const handleCompletedSession = (data) => {
-        showsCompleteSessionDialog(sessionCompleteDialogs, JSON.parse(data));
-      };
-
-      portsSocket.on(DialogType.DEVICE_ERROR, handleDeviceError);
-      portsSocket.on(DialogType.COMPLETED_SESSION, handleCompletedSession);
-
-      return () => {
-        clearPortsSocket();
-        portsSocket.off(DialogType.DEVICE_ERROR, handleDeviceError);
-        portsSocket.off(DialogType.COMPLETED_SESSION, handleCompletedSession);
-      };
-    }
-  }, [errorDialogs, sessionCompleteDialogs, portsSocket, id]);
-
-  useEffect(() => {
-    return () => {
-      if (portsSocket) {
-        clearPortsSocket();
-        portsSocket.disconnect();
-        portsSocket.close();
-      }
+    const handleCompletedSession = (data) => {
+      showsCompleteSessionDialog(sessionCompleteDialogs, JSON.parse(data));
     };
-  }, []);
+    const handleDeviceError = (data) => {
+      showsErrorDialog(JSON.parse(data));
+    };
+
+    portsSocket.on("COMPLETED_SESSION", handleCompletedSession);
+    portsSocket.on("DEVICE_ERROR", handleDeviceError);
+
+    const handleConnect = () => {
+      portsSocket.emit("join", JSON.stringify({ berthId: id }));
+    };
+    portsSocket.on("connect", handleConnect);
+
+    if (portsSocket.connected) {
+      handleConnect();
+    }
+
+    return () => {
+      portsSocket.off("COMPLETED_SESSION", handleCompletedSession);
+      portsSocket.off("DEVICE_ERROR", handleDeviceError);
+      portsSocket.off("connect", handleConnect);
+    };
+  }, [portsSocket, id]);
 
   if (
     berthData?.status?.id === BERTH_STATUS.AVAILABLE &&

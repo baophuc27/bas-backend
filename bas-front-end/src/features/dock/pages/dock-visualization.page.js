@@ -207,6 +207,10 @@ export const DockVisualizationPage = () => {
                 },
               }).then(() => {
                 setIsDialogShowing(false);
+                setShowsBerthingSettings(false);
+                setShowsAlarmSetting(false);
+                setShowsDetailSettings(false);
+                
                 if (newData?.status?.id === BERTH_STATUS.AVAILABLE) {
                   navigate("/");
                 } else if (
@@ -230,6 +234,18 @@ export const DockVisualizationPage = () => {
 
     return () => clearInterval(interval);
   }, [berth?.status?.id, id, navigate, t, isDialogShowing]);
+
+  useEffect(() => {
+    return () => {
+      setShowsBerthingSettings(false);
+      setShowsAlarmSetting(false);
+      setShowsDetailSettings(false);
+      setIsDialogShowing(false);
+      if (swal.getState().isOpen) {
+        swal.close();
+      }
+    };
+  }, []);
 
   /**
    * Render the main Dock visualization page

@@ -9,6 +9,9 @@ export const useSocket = (berthId) => {
     ports: null,
   });
 
+  const timeoutRef = useRef(null);
+  const hasReceivedFirstBasMessage = useRef(false);
+
   const [socketData, setSocketData] = useState(null);
   const [lastDataTimestamp, setLastDataTimestamp] = useState(Date.now());
 
@@ -16,17 +19,31 @@ export const useSocket = (berthId) => {
 
   const baseConfigRef = useRef(null);
 
+  const recreatePortsSocket = () => {
+    if (socketsRef.current.ports) {
+      cleanupSocket(socketsRef.current.ports);
+    }
+    if (baseConfigRef.current && mountedRef.current) {
+      socketsRef.current.ports = createSocket(
+        `${process.env.REACT_APP_API_BASE_URL}/port-events`,
+        "ports",
+        baseConfigRef.current
+      );
+    }
+  };
+
+  const handleBasTimeout = () => {
+    if (mountedRef.current) {
+      console.log("BAS socket timeout - recreating ports socket");
+      recreatePortsSocket();
+    }
+  };
+
   const createSocket = (url, type, config) => {
     const socket = io(url, config);
 
     socket.on("connect", () => {
-      console.log(`${type} socket connected`);
-      if (
-        berthId &&
-        (type === "bas" || type === "device" || type === "ports")
-      ) {
-        socket.emit("join", JSON.stringify({ berthId }));
-      }
+      socket.emit("join", JSON.stringify({ berthId }));
     });
 
     socket.on("connect_error", (error) => {
@@ -43,9 +60,20 @@ export const useSocket = (berthId) => {
     } else if (type === "bas") {
       socket.on("data", (data) => {
         if (mountedRef.current) {
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+          
+          timeoutRef.current = setTimeout(handleBasTimeout, 5000);
+          
           setLastDataTimestamp(Date.now());
           const parsedData = JSON.parse(data);
           setSocketData((prev) => ({ ...prev, ...parsedData }));
+          
+          if (!hasReceivedFirstBasMessage.current) {
+            hasReceivedFirstBasMessage.current = true;
+            recreatePortsSocket();
+          }
         }
       });
 
@@ -77,6 +105,9 @@ export const useSocket = (berthId) => {
   };
 
   const disconnectSockets = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     const { bas, device, ports } = socketsRef.current;
     cleanupSocket(bas);
     cleanupSocket(device);
@@ -122,6 +153,7 @@ export const useSocket = (berthId) => {
 
   useEffect(() => {
     mountedRef.current = true;
+    hasReceivedFirstBasMessage.current = false;
 
     const initSockets = async () => {
       try {
@@ -166,6 +198,9 @@ export const useSocket = (berthId) => {
 
     return () => {
       mountedRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       disconnectSockets();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

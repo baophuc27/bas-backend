@@ -16,6 +16,7 @@ import * as queueService from './queue-service';
 import * as authService from './auth-service';
 import * as dataAppService from './data-app-service';
 import * as axiosClient from './axios-client';
+import * as deviceService from './device-service';
 
 export {
   userService,
@@ -36,4 +37,5 @@ export {
   authService,
   dataAppService,
   axiosClient,
+  deviceService,
 };

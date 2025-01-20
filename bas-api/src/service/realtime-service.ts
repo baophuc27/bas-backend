@@ -571,6 +571,7 @@ const initRealtimeDevice = async (io: Server) => {
       const raw: RawRealtimeData = JSON.parse(message?.value?.toString() ?? '{}');
       const key = generateKey(raw.berthId, raw.orgId);
       const berthSensor = deviceRealtime.get(key);
+      // console.log('[Berth sensor]', berthSensor);
       if (!berthSensor) {
         console.log(`[initRealtimeDevice] No berth sensor found for key: ${key}`);
         return;
@@ -712,13 +713,15 @@ const initRealtimeDevice = async (io: Server) => {
  * @param portEventSocketEndSession
  */
 const shouldEndRecording = (portEventSocketEndSession: PortEventSocketEndSession) => {
-  console.log(`[shouldEndRecording] Ending recording for berth ${portEventSocketEndSession.berth.id}`);
+  const eventName = `COMPLETED_SESSION`;
+  const eventData = JSON.stringify(portEventSocketEndSession);
   const room = getRoomKey(
     portEventSocketEndSession.berth.id.toString(),
     portEventSocketEndSession.orgId.toString(),
     'general'
   );
-  generalSocket.to(room).emit('COMPLETED_SESSION', JSON.stringify(portEventSocketEndSession));
+  generalSocket.to(room).emit(eventName, eventData);
+  console.log(`[shouldEndRecording] Emitting ${eventName} to room ${room}`);
 };
 
 

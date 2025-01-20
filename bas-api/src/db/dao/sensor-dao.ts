@@ -73,3 +73,11 @@ export const updateDevice = async (id: number, status: number, value?: number) =
     }
   );
 };
+
+export const getSensorByBerthId = async (berthId: number) => {
+  return Sensor.findAll({
+    where: {
+      berthId,
+    },
+  });
+}

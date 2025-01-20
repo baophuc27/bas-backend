@@ -34,7 +34,11 @@ const removeAllAlarm = async (orgId: number) => {
 const saveAlarmFromQueue = async (data: any) => {
   if (data?.type === 'stop') {
     await alarmDao.endAllAlarm(data.recordId);
-  } else {
+  }
+  else if (data?.type === "alarm-save"){
+    await alarmDao.endAllAlarm(data.recordId);
+  }
+  else {
     await alarmDao.createAlarmFromDataPoint(data.dataPoint, data.sensorIds);
   }
 };

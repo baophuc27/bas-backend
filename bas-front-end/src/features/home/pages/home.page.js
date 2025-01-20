@@ -48,6 +48,8 @@ export const HomePage = (props) => {
   const { errorDialogs, sessionCompleteDialogs } = useSelector(
     (state) => state?.dialog,
   );
+  const [isErrorDialogShowing, setIsErrorDialogShowing] = useState(false);
+  const [isCompleteDialogShowing, setIsCompleteDialogShowing] = useState(false);
 
   const fetchHabourData = async () => {
     try {
@@ -126,7 +128,8 @@ export const HomePage = (props) => {
   };
 
   const showsErrorDialog = async (data) => {
-    // ${i18n?.language?.includes("en") ? data?.berth?.nameEn : data?.berth?.name}
+    if (isErrorDialogShowing) return;
+
     let errorContent = `[${data?.berth?.name}] ${t(
       mapSensorStatusText(data?.errorCode?.toLowerCase()),
     )}`;
@@ -148,16 +151,20 @@ export const HomePage = (props) => {
         }),
       );
 
+      setIsErrorDialogShowing(true);
       await swal({
         title: t("home:dialogs.device-error.title"),
         text: errorContent,
         icon: "error",
         buttons: t("home:dialogs.device-error.ok"),
       });
+      setIsErrorDialogShowing(false);
     }
   };
 
   const showsCompleteSessionDialog = async (completeDialogs, data) => {
+    if (isCompleteDialogShowing) return;
+
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
     if (
@@ -173,6 +180,7 @@ export const HomePage = (props) => {
         }),
       );
 
+      setIsCompleteDialogShowing(true);
       const value = await swal({
         title: t("home:dialogs.session-completed.title"),
         text: t("home:dialogs.session-completed.message", {
@@ -192,6 +200,7 @@ export const HomePage = (props) => {
         },
         showCloseButton: true,
       });
+      setIsCompleteDialogShowing(false);
 
       switch (value) {
         case "available":
@@ -207,6 +216,16 @@ export const HomePage = (props) => {
       }
     }
   };
+
+  useEffect(() => {
+    return () => {
+      setIsErrorDialogShowing(false);
+      setIsCompleteDialogShowing(false);
+      if (swal.getState().isOpen) {
+        swal.close();
+      }
+    };
+  }, []);
 
   const cleanupSocket = (socket) => {
     if (socket) {
@@ -224,9 +243,7 @@ export const HomePage = (props) => {
     fetchHabourData();
 
     return () => {
-      if (socket) {
-        cleanupSocket(socket);
-      }
+      cleanupSocket(socket);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -305,7 +322,6 @@ export const HomePage = (props) => {
 
     return () => {
       clearInterval(interval);
-      cleanupSocket(socket);
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

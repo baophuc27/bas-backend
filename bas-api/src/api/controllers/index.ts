@@ -7,6 +7,7 @@ import vesselController from './vessel-controller';
 import alarmSettingController from './alarm-setting-controller';
 import alarmController from './alarm-controller';
 import syncController from './sync-controller';
+import deviceController from './device-controller';
 
 export {
   userController,
@@ -17,5 +18,6 @@ export {
   vesselController,
   alarmSettingController,
   alarmController,
-  syncController
+  syncController,
+  deviceController,
 };

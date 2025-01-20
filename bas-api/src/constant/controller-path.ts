@@ -29,4 +29,7 @@ export const controllerPath = {
   //user
 
   ME: '/me',
+
+  //Device
+  DEVICE_PATH: '/device',
 };

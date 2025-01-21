@@ -53,11 +53,10 @@ export const initQueue = async () => {
 
 export const pushToQueue = async (queueName: string, data: any) => {
   try {
-    // logInfo(`Adding job to queue: ${queueName}`);
     await alarmQueue.add(queueName, data);
-    // logSuccess(`Job added to queue: ${queueName}`);
+    // console.log(`Added job to queue: ${queueName} with data: ${JSON.stringify(data)}`);
   } catch (error) {
-    logError(`Failed to add job to queue: ${error}`);
+    // logError(`Failed to add job to queue: ${error}`);
   }
 };
 

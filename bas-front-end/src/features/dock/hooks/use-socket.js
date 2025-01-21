@@ -19,6 +19,8 @@ export const useSocket = (berthId) => {
 
   const baseConfigRef = useRef(null);
 
+  const joinPayload = (id) => JSON.stringify({ berthId: id });
+
   const recreatePortsSocket = () => {
     if (socketsRef.current.ports) {
       cleanupSocket(socketsRef.current.ports);
@@ -27,7 +29,7 @@ export const useSocket = (berthId) => {
       socketsRef.current.ports = createSocket(
         `${process.env.REACT_APP_API_BASE_URL}/port-events`,
         "ports",
-        baseConfigRef.current
+        baseConfigRef.current,
       );
     }
   };
@@ -63,13 +65,13 @@ export const useSocket = (berthId) => {
           if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
           }
-          
+
           timeoutRef.current = setTimeout(handleBasTimeout, 5000);
-          
+
           setLastDataTimestamp(Date.now());
           const parsedData = JSON.parse(data);
           setSocketData((prev) => ({ ...prev, ...parsedData }));
-          
+
           if (!hasReceivedFirstBasMessage.current) {
             hasReceivedFirstBasMessage.current = true;
             recreatePortsSocket();
@@ -117,14 +119,25 @@ export const useSocket = (berthId) => {
     socketsRef.current.ports = null;
   };
 
-  const joinDockSockets = (id) => {
-    const { bas, device, ports } = socketsRef.current;
-    const payload = JSON.stringify({ berthId: id });
+const joinDockSockets = (id, socketType) => {
+  const { bas, device, ports } = socketsRef.current;
+  const payload = joinPayload(id);
 
-    if (bas?.connected) bas.emit("join", payload);
-    if (device?.connected) device.emit("join", payload);
-    if (ports?.connected) ports.emit("join", payload);
-  };
+  switch (socketType) {
+    case "bas":
+      if (bas?.connected) bas.emit("join", payload);
+      break;
+    case "device":
+      if (device?.connected) device.emit("join", payload);
+      break;
+    case "ports":
+      if (ports?.connected) ports.emit("join", payload);
+      break;
+    default:
+      console.warn(`Unknown socket type: ${socketType}`);
+  }
+};
+
 
   const leaveDockSockets = (id) => {
     const { bas, device, ports } = socketsRef.current;
@@ -148,6 +161,38 @@ export const useSocket = (berthId) => {
     if (device?.connected) {
       device.emit("resume", JSON.stringify({ berthId }));
       console.log("Resumed device data streaming");
+    }
+  };
+
+  const pauseBasData = () => {
+    const { bas } = socketsRef.current;
+    if (bas?.connected) {
+      bas.emit("pause", JSON.stringify({ berthId }));
+      console.log("Paused bas data streaming");
+    }
+  };
+
+  const resumeBasData = () => {
+    const { bas } = socketsRef.current;
+    if (bas?.connected) {
+      bas.emit("resume", JSON.stringify({ berthId }));
+      console.log("Resumed bas data streaming");
+    }
+  };
+
+  const pausePortsData = () => {
+    const { ports } = socketsRef.current;
+    if (ports?.connected) {
+      ports.emit("pause", JSON.stringify({ berthId }));
+      console.log("Paused ports data streaming");
+    }
+  };
+
+  const resumePortsData = () => {
+    const { ports } = socketsRef.current;
+    if (ports?.connected) {
+      ports.emit("resume", JSON.stringify({ berthId }));
+      console.log("Resumed ports data streaming");
     }
   };
 
@@ -217,5 +262,9 @@ export const useSocket = (berthId) => {
     disconnectSockets,
     pauseDeviceData,
     resumeDeviceData,
+    pauseBasData,
+    resumeBasData,
+    pausePortsData,
+    resumePortsData,
   };
 };

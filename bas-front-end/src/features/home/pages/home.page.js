@@ -112,7 +112,6 @@ export const HomePage = (props) => {
   const onResetSession = async (id) => {
     try {
       const response = await BerthService.reset(id);
-
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
 
@@ -238,7 +237,7 @@ export const HomePage = (props) => {
   };
 
   useEffect(() => {
-    initSocket();
+    // initSocket();
     fetchBerths();
     fetchHabourData();
 
@@ -249,23 +248,23 @@ export const HomePage = (props) => {
   }, []);
 
   useEffect(() => {
-    if (socket) {
-      socket?.on("connect", () => {
-        socket.on(DialogType.DEVICE_ERROR, (data) => {
-          const parsedData = JSON.parse(data);
-          showsErrorDialog(parsedData);
-        });
+    // if (socket) {
+    //   socket?.on("connect", () => {
+    //     socket.on(DialogType.DEVICE_ERROR, (data) => {
+    //       const parsedData = JSON.parse(data);
+    //       showsErrorDialog(parsedData);
+    //     });
 
-        socket.on(DialogType.COMPLETED_SESSION, (data) => {
-          const parsedData = JSON.parse(data);
-          const berthId = `berth_${parsedData?.berth?.id}_${parsedData?.sessionId}`;
+    //     socket.on(DialogType.COMPLETED_SESSION, (data) => {
+    //       const parsedData = JSON.parse(data);
+    //       const berthId = `berth_${parsedData?.berth?.id}_${parsedData?.sessionId}`;
 
-          if (!(berthId in sessionCompleteDialogs)) {
-            showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
-          }
-        });
-      });
-    }
+    //       if (!(berthId in sessionCompleteDialogs)) {
+    //         showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
+    //       }
+    //     });
+    //   });
+    // }
 
     const checkBerthsStatus = async () => {
       try {

@@ -342,7 +342,6 @@ export const DockPageContent = ({
         icon: "error",
         buttons: t("home:dialogs.device-error.ok"),
       });
-      portsSocket?.off("DEVICE_ERROR");
     }
   };
 

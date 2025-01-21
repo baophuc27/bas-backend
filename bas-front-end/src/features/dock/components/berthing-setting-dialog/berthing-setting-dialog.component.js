@@ -34,6 +34,8 @@ const BerthingSettingDialog = ({
   setData,
   socketData,
   refetchAlarmData,
+  pauseDeviceData,
+  resumeDeviceData,
 }) => {
   const params = useParams();
   const id = params?.id;
@@ -49,6 +51,16 @@ const BerthingSettingDialog = ({
   });
   const dispatch = useDispatch();
 
+  // Add useEffect to control device data streaming
+  useEffect(() => {
+    if (open) {
+      resumeDeviceData();
+    }
+    return () => {
+      pauseDeviceData();
+    };
+  }, [open, resumeDeviceData, pauseDeviceData]);
+
   const _handleClose = (params) => {
     setValues((prev) => ({
       ...prev,
@@ -61,6 +73,7 @@ const BerthingSettingDialog = ({
       // TODO: vessel information
     }));
     handleClose(params);
+    pauseDeviceData();
   };
 
   const handleUpdate = async (values) => {
@@ -112,6 +125,7 @@ const BerthingSettingDialog = ({
       if (BERTH_STATUS[values.currentStatus] === BERTH_STATUS.AVAILABLE) {
         refetchAlarmData();
       }
+      pauseDeviceData();
       _handleClose({
         forcesBack: values?.upcomingStatus === BERTH_STATUS.AVAILABLE,
       });
@@ -154,7 +168,7 @@ const BerthingSettingDialog = ({
           return;
         }
         notify("success", t("berthing:confirm.reset_success"));
-
+        pauseDeviceData();
         _handleClose({
           forcesBack:
             BERTH_STATUS[values?.upcomingStatus] === BERTH_STATUS.AVAILABLE,
@@ -177,6 +191,7 @@ const BerthingSettingDialog = ({
         notify("error", t("berthing:confirm.error"));
         return false;
       }
+      pauseDeviceData();
       return true;
     } catch (error) {
       setLoading(false);

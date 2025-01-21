@@ -14,12 +14,11 @@ const create = async (
 const findOneByTokenAndIp = async (token: string, ipAddress?: string) => {
   return RefreshToken.findOne({
     where: {
-      [Op.and]: {
-        token,
-        expires: {
-          [Op.gt]: new Date(),
-        },
-      },
+      [Op.and]: [
+        { token },
+        { expires: { [Op.gt]: new Date() } },
+        { revoked: null },
+      ],
     },
     include: [
       {

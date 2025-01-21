@@ -35,6 +35,7 @@ import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { SystemRole } from '@bas/database/master-data/system-role';
 import { setIntervalAsync } from 'set-interval-async';
 import { initQueue } from './queue-service';
+import { SocketManager } from './socket-manager';
 
 const TIME_OUT = 30 * 1000;
 const groupId = `GROUP-${APP_NAME}-${Date.now()}`;
@@ -280,6 +281,10 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
  * Init realtime data for visualizing data
  * @param io
  */
+const realtimeSocketManager = new SocketManager();
+const deviceSocketManager = new SocketManager();
+const generalSocketManager = new SocketManager();
+
 const initRealtimeData = async (io: Server) => {
   console.log('[initRealtimeData] Initializing realtime data socket');
   try {
@@ -304,8 +309,30 @@ const initRealtimeData = async (io: Server) => {
 
           const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'bas');
           socket.join(roomKey);
-          rooms.add(roomKey);
+          realtimeSocketManager.addSocket(roomKey, socket);
           console.log(`Socket ${socket.id} joined room ${roomKey}`);
+        } catch (error) {
+          logError(error);
+        }
+      });
+
+      socket.on('pause', async (data: any) => {
+        try {
+          const { berthId } = JSON.parse(data);
+          if (!berthId || !socket.auth?.orgId) return;
+          const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'bas');
+          realtimeSocketManager.pauseSocket(roomKey, socket);
+        } catch (error) {
+          logError(error);
+        }
+      });
+
+      socket.on('resume', async (data: any) => {
+        try {
+          const { berthId } = JSON.parse(data);
+          if (!berthId || !socket.auth?.orgId) return;
+          const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'bas');
+          realtimeSocketManager.resumeSocket(roomKey, socket);
         } catch (error) {
           logError(error);
         }
@@ -314,18 +341,10 @@ const initRealtimeData = async (io: Server) => {
       socket.on('leave', async (data: any) => {
         try {
           const { berthId } = JSON.parse(data);
-          if (!berthId || !socket.auth?.orgId) {
-            return;
-          }
-
+          if (!berthId || !socket.auth?.orgId) return;
           const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'bas');
           socket.leave(roomKey);
-
-          const clients = await realtimeSocket.in(roomKey).fetchSockets();
-          if (clients.length === 0) {
-            rooms.delete(roomKey);
-            console.log(`Room ${roomKey} deleted as it has no clients`);
-          }
+          realtimeSocketManager.removeSocket(roomKey, socket);
         } catch (error) {
           logError(error);
         }
@@ -530,6 +549,28 @@ const initRealtimeDevice = async (io: Server) => {
         const stringBerthId = getRoomKey(berthId, socket.auth.orgId.toString(), 'config');
         socket.join(stringBerthId);
         rooms.add(stringBerthId);
+      } catch (error) {
+        logError(error);
+      }
+    });
+
+    socket.on('pause', async (data: any) => {
+      try {
+        const { berthId } = JSON.parse(data);
+        if (!berthId || !socket.auth?.orgId) return;
+        const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'config');
+        deviceSocketManager.pauseSocket(roomKey, socket);
+      } catch (error) {
+        logError(error);
+      }
+    });
+
+    socket.on('resume', async (data: any) => {
+      try {
+        const { berthId } = JSON.parse(data);
+        if (!berthId || !socket.auth?.orgId) return;
+        const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'config');
+        deviceSocketManager.resumeSocket(roomKey, socket);
       } catch (error) {
         logError(error);
       }
@@ -839,7 +880,7 @@ const deviceIsError = (portEventSocketDeviceError: PortEventSocketDeviceError) =
     portEventSocketDeviceError.orgId.toString(),
     'general'
   );
-  generalSocket.to(room).emit(eventName, eventData);
+  generalSocketManager.sendToActiveClients(room, eventName, eventData);
   console.log(`[deviceIsError] Emitting ${eventName} to room ${room}`);
   if (realtimeSocket) {
     // const realtimeRoom = getRoomKey(
@@ -880,6 +921,28 @@ const initRealtimeGeneral = async (io: Server) => {
         socket.join(room);
         rooms.add(room);
         console.log(`Socket ${socket.id} joined general events room ${room}`);
+      } catch (error) {
+        logError(error);
+      }
+    });
+
+    socket.on('pause', async (data: any) => {
+      try {
+        const { berthId } = JSON.parse(data);
+        if (!berthId || !socket.auth?.orgId) return;
+        const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'general');
+        generalSocketManager.pauseSocket(roomKey, socket);
+      } catch (error) {
+        logError(error);
+      }
+    });
+
+    socket.on('resume', async (data: any) => {
+      try {
+        const { berthId } = JSON.parse(data);
+        if (!berthId || !socket.auth?.orgId) return;
+        const roomKey = getRoomKey(berthId, socket.auth.orgId.toString(), 'general');
+        generalSocketManager.resumeSocket(roomKey, socket);
       } catch (error) {
         logError(error);
       }

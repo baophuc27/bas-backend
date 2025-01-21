@@ -38,7 +38,9 @@ class RefreshToken
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date;
 
-  public isActive: boolean = this.revoked == null;
+  public get isActive(): boolean {
+    return !this.revoked && this.expires.getTime() > Date.now();
+  }
 
 }
 

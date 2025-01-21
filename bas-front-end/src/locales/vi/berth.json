@@ -39,6 +39,7 @@
     "list": "Quản Lý Bến"
   },
   "create_time": "Ngày tạo",
+  "update_time": "Ngày cập nhật",
   "messages": {
     "delete_success": "Xóa bến thành công!",
     "delete_failed": "Xóa bến thất bại!",

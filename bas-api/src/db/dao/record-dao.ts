@@ -13,6 +13,9 @@ const findAll = async (recordFilter: RecordFilter) => {
       endTime: {
         [Op.not]: null,
       },
+      mooringStatus: {
+        [Op.ne]: 'MOORING'
+      }
     },
     include: [
       {

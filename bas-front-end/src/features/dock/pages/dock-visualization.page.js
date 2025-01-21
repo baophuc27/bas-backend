@@ -53,6 +53,10 @@ export const DockVisualizationPage = () => {
     leaveDockSockets,
     pauseDeviceData,
     resumeDeviceData,
+    pauseBasData,
+    resumeBasData,
+    pausePortsData,
+    resumePortsData,
     lastDataTimestamp,
   } = useSocket(id);
 
@@ -96,7 +100,7 @@ export const DockVisualizationPage = () => {
     try {
       const response = await BerthService.getLatestRecords(
         berthId,
-        moment().subtract(2, "hours").format("YYYY-MM-DD HH:mm:ss"),
+        moment().subtract(0.5, "hours").format("YYYY-MM-DD HH:mm:ss"),
         moment().format("YYYY-MM-DD HH:mm:ss"),
       );
       if (response?.data?.success) {
@@ -145,13 +149,22 @@ export const DockVisualizationPage = () => {
   useEffect(() => {
     if (id) {
       fetchBerthDetail(id);
-      joinDockSockets(id);
-      resumeDeviceData();
+      setTimeout(() => {
+        joinDockSockets(id, "bas");
+        joinDockSockets(id, "ports");
+      }, 100);
+      // Remove these lines since we'll control them in the dialog
+      // resumeDeviceData();
+      resumeBasData();
+      resumePortsData();
     }
 
     return () => {
-      leaveDockSockets(id);
-      pauseDeviceData();
+      // leaveDockSockets(id);
+      // Remove this line since we'll control it in the dialog
+      // pauseDeviceData();
+      pauseBasData();
+      pausePortsData();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -210,7 +223,7 @@ export const DockVisualizationPage = () => {
                 setShowsBerthingSettings(false);
                 setShowsAlarmSetting(false);
                 setShowsDetailSettings(false);
-                
+
                 if (newData?.status?.id === BERTH_STATUS.AVAILABLE) {
                   navigate("/");
                 } else if (
@@ -230,7 +243,7 @@ export const DockVisualizationPage = () => {
         // console.error("Failed to check berth status:", error);
       }
       isChecking = false;
-    }, 5000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [berth?.status?.id, id, navigate, t, isDialogShowing]);
@@ -273,6 +286,8 @@ export const DockVisualizationPage = () => {
         setData={setUpdatedBerth}
         socketData={socketData}
         refetchAlarmData={onRefetchAlarmData}
+        pauseDeviceData={pauseDeviceData}
+        resumeDeviceData={resumeDeviceData}
       />
 
       {/* Alarm Settings Dialog */}

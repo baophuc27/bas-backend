@@ -40,6 +40,9 @@ export const getAllBerths = async (filter: BerthFilter) => {
         attributes: ['id', 'code', 'name', 'nameEn'],
       },
     ],
+    attributes: {
+      include: ['createdAt', 'updatedAt']
+    },
     where: {
       orgId: filter.orgId,
       ...(filter?.status && { status: filter.status }),

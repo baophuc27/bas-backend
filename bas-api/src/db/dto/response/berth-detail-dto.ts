@@ -17,6 +17,8 @@ export interface BerthDetailDto {
   nameEn: string;
   description: string;
   status: number;
+  createdAt: Date;
+  updatedAt: Date;
   currentVessel?: VesselDetailDto;
   device?: BerthDeviceDto[];
   record?: BerthRecordDto;

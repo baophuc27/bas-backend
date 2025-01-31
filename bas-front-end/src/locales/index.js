@@ -28,6 +28,9 @@ import berthingVI from "./vi/berthing.json";
 import berthEN from "./en/berth.json";
 import berthVI from "./vi/berth.json";
 
+import dataAppEN from "./en/data-app.json";
+import dataAppVI from "./vi/data-app.json";
+
 import alarmEN from "./en/alarm.json";
 import alarmVI from "./vi/alarm.json";
 
@@ -58,6 +61,7 @@ export const resources = {
     "record-management": recordManagementEn,
     berthing: berthingEN,
     berth: berthEN,
+    "data-app" : dataAppEN,
     alarm: alarmEN,
     "port-info": portInfoEN,
     "port-dashboard": portDashboardEN,
@@ -76,6 +80,7 @@ export const resources = {
     "record-management": recordManagementVi,
     berthing: berthingVI,
     berth: berthVI,
+    "data-app" : dataAppVI,
     alarm: alarmVI,
     "port-info": portInfoVI,
     "port-dashboard": portDashboardVI,

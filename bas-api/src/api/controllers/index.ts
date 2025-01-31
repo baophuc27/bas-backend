@@ -8,6 +8,7 @@ import alarmSettingController from './alarm-setting-controller';
 import alarmController from './alarm-controller';
 import syncController from './sync-controller';
 import deviceController from './device-controller';
+import dataAppController from './data-app-controller';
 
 export {
   userController,
@@ -20,4 +21,5 @@ export {
   alarmController,
   syncController,
   deviceController,
+  dataAppController
 };

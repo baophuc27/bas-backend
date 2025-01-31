@@ -45,7 +45,8 @@
       "log-out": "Log Out",
       "berth_management": "Berth Management",
       "port-info": "Port Information",
-      "alarm-history": "Alarm History"
+      "alarm-history": "Alarm History",
+      "data-app-management" : "Data App Management"
     }
   },
   "language": {

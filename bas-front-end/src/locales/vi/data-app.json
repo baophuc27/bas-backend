@@ -1,0 +1,15 @@
+{
+    "page-title" : {
+        "list" : "Data App Management"
+    },
+    "general_information": {
+        "general_information": "General Information",
+        "data_app_name": "Display Name",
+        "data_app_status": "Status",
+        "zone": "Vùng",
+        "limit_zone": "Giới Hạn Vùng",
+        "ZONE": "VÙNG",
+        "berth_status": "Trạng thái bến"
+    },
+    "title" : "Data App Management"
+}

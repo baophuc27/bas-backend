@@ -1,0 +1,15 @@
+{
+    "page-title" : {
+        "list" : "Data App Management"
+    },
+    "general_information": {
+        "general_information": "General Information",
+        "data_app_name": "Display Name",
+        "data_app_status": "Status",
+        "code": "Code",
+        "created_time": "Created Time",
+        "last_data_active": "Last Data Active",
+        "last_heartbeat": "Last Heartbeat",
+        "berth" : "Berth Occupying"
+    }
+}

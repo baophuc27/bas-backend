@@ -3,6 +3,7 @@ export * from "./belt";
 export * from "./berth-management";
 export * from "./close";
 export * from "./copy";
+export * from "./data-app";
 export * from "./gps-buoy";
 export * from "./history";
 export * from "./log-out";
@@ -16,3 +17,4 @@ export * from "./user";
 export * from "./user-group";
 export * from "./user-notification";
 export * from "./zoom";
+

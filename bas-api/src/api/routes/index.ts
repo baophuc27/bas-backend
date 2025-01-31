@@ -9,6 +9,7 @@ import vesselRoute from './vessel-route';
 import alarmSettingRoute from './alarm-setting-route';
 import alarmRoute from './alarm-route';
 import syncRoute from './sync-route';
+import dataAppRoute from './data-app-route';
 import { healthCheck } from '@bas/service/kafka-service';
 const router = Router();
 
@@ -25,5 +26,6 @@ router.use('/vessels', vesselRoute);
 router.use('/alarm-setting', alarmSettingRoute);
 router.use('/alarm', alarmRoute);
 router.use('/sync', syncRoute);
+router.use('/data-app',dataAppRoute)
 
 export default router;

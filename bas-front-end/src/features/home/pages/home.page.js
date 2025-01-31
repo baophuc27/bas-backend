@@ -170,8 +170,8 @@ export const HomePage = (props) => {
       !(berthId in completeDialogs) &&
       hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT)
     ) {
-      const canProceed = await checkBerthStatus(data?.berth?.id);
-      if (!canProceed) return;
+      // const canProceed = await checkBerthStatus(data?.berth?.id);
+      // if (!canProceed) return;
 
       dispatch(
         setCurrentSessionCompleteDialog({

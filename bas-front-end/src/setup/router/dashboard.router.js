@@ -33,6 +33,11 @@ const BerthManagementAddPage = lazy(
 const DataAppManagementListPage = lazy(
   () => import("features/data-app-management/pages/list.page"),
 )
+
+const DataAppDetailPage = lazy(
+  () => import("features/data-app-management/pages/detail.page"),
+)
+
 const AlarmHistoryListPage = lazy(
   () => import("features/alarm-history/pages/list.page"),
 );
@@ -88,6 +93,14 @@ export const dashboardRouter = [
       {
         path: "",
         element: <DataAppManagementListPage />
+      },
+      {
+        path: "edit/:id",
+        element: <DataAppDetailPage/>,
+      },
+      {
+        path: "add",
+        element: <DataAppDetailPage/>
       }
     ]
   },

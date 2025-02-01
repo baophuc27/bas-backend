@@ -1,6 +1,7 @@
 {
     "page-title" : {
-        "list" : "Data App Management"
+        "list" : "Data App Management",
+        "detail" : "Data App Detail"
     },
     "general_information": {
         "general_information": "General Information",
@@ -11,5 +12,6 @@
         "ZONE": "VÙNG",
         "berth_status": "Trạng thái bến"
     },
-    "title" : "Data App Management"
+    "title" : "Data App Management",
+    "update_success" : "Update successfully"
 }

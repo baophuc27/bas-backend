@@ -10,18 +10,9 @@ const createDataAppValidator = validate([
     .withMessage('Code is required')
     .matches(/^[A-Z]\d{3}[A-Z][0-9A-Z]$/)
     .withMessage('Invalid code format'),
-  
-  body('orgId')
-    .notEmpty()
-    .withMessage('Org ID is required')
-    .isInt()
-    .withMessage('Org ID must be an integer'),
-
 
   body('status')
-    .optional()
-    .isIn(['ACTIVE', 'INACTIVE'])
-    .withMessage('Invalid status'),
+    .optional(),
   
   body('displayName')
     .optional()
@@ -31,16 +22,12 @@ const createDataAppValidator = validate([
     .withMessage('Display name must be between 1 and 100 characters'),
   
   body('berthId')
-    .optional() 
-    .isInt()
-    .withMessage('Berth ID must be an integer')
+    .optional()
 ]);
 
 const updateDataAppValidator = validate([
   body('status')
-    .optional()
-    .isIn(['ACTIVE', 'INACTIVE'])
-    .withMessage('Invalid status'),
+    .optional(),
   
   body('displayName')
     .optional()
@@ -51,8 +38,6 @@ const updateDataAppValidator = validate([
   
   body('berthId')
     .optional()
-    .isInt()
-    .withMessage('Berth ID must be an integer')
 ]);
 
 const queryValidator = validate([

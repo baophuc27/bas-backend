@@ -58,12 +58,29 @@ export const getAllDataApps = async (filter: DataAppFilter) => {
   });
 };
 
+
 export const updateDataApp = async (
   code: string,
   orgId: number,
   data: Partial<DataApp>,
   t?: Transaction
 ) => {
+  // First, clear berthId from other DataApps if berthId is being updated
+  if (data.berthId !== undefined) {
+    await DataApp.update(
+      { berthId: null },
+      {
+        where: {
+          orgId,
+          berthId: data.berthId,
+          code: { [Op.ne]: code } // Exclude current DataApp
+        },
+        ...(t && { transaction: t })
+      }
+    );
+  }
+
+  // Then update the target DataApp
   return DataApp.update(
     {
       ...data,
@@ -82,6 +99,7 @@ export const updateDataApp = async (
 };
 
 export const deleteDataApp = async (code: string, orgId: number) => {
+  
   return DataApp.destroy({
     where: {
       code,
@@ -96,6 +114,19 @@ export const createDataApp = async (
   data?: Partial<Omit<DataApp, 'code' | 'orgId'>>,
   t?: Transaction
 ) => {
+  if (data !== undefined && data.berthId !== undefined) {
+    await DataApp.update(
+      { berthId: null },
+      {
+        where: {
+          orgId,
+          berthId: data.berthId,
+          code: { [Op.ne]: code } // Exclude current DataApp
+        },
+        ...(t && { transaction: t })
+      }
+    );
+  }
   return DataApp.create(
     {
       code,
@@ -104,6 +135,7 @@ export const createDataApp = async (
       lastHeartbeat: data?.lastHeartbeat ? new Date(data.lastHeartbeat) : undefined,
       lastDataActive: data?.lastDataActive ? new Date(data.lastDataActive) : undefined,
       status: data?.status || 'INACTIVE',
+      createdAt: new Date(),
     },
     {
       ...(t && { transaction: t }),
@@ -137,7 +169,6 @@ export const updateDataAppStatus = async (code: string, orgId: number, status: s
   return DataApp.update(
     {
       status,
-      lastDataActive: new Date(),
     },
     {
       where: {

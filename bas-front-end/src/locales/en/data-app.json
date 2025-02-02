@@ -21,7 +21,25 @@
     "create_failed" : "Create Data App Failed",
     "generate_code_failed" : "Generate code failed",
     "generate_new_code" : "Generate New Code",
-
-    "create_new" : "Create New Data App"
+    "dialog" : {
+        "delete_title" : "Delete data app",
+        "delete_description" : "Are you sure you want to delete?"
+    },
+    "messages": {
+        "delete_success": "Delete data app successfully!",
+        "delete_failed": "Failed to delete data app!",
+        "error": "Error",
+        "fetch_error" : "Fetch data failed"
+      },
+    "create_new" : "Create New Data App",
+    "data_app_information" : {
+        "selected_data_app" : "Selected Data App",
+        "status_inactive" : "INACTIVE",
+        "select_data_app" : "Select Data App"
+    },
+    "berthing" : {
+        "update_success" : "Update Data App Success",
+        "update_failed" : "Update Data App Failed"
+    }
     
 }

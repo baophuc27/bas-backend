@@ -56,8 +56,8 @@ export const useDataAppList = () => {
   // CRUD operations
   const onDelete = (item) => {
     swal({
-      title: t("dataApp:dialog.delete_title"),
-      text: t("dataApp:dialog.delete_description", {
+      title: t("data-app:dialog.delete_title"),
+      text: t("data-app:dialog.delete_description", {
         code: item?.code,
       }),
       icon: "warning",
@@ -71,7 +71,7 @@ export const useDataAppList = () => {
 
   const onEdit = (item) => {
     if (!item?.code) {
-      return notify("error", t("dataApp:messages.error"));
+      return notify("error", t("data-app:messages.error"));
     }
     navigate(`edit/${item?.code}`);
   };
@@ -80,11 +80,11 @@ export const useDataAppList = () => {
     try {
       const response = await DataAppService.updateStatus(item.code, { status: newStatus });
       if (response?.data?.success) {
-        notify("success", t("dataApp:messages.status_update_success"));
+        notify("success", t("data-app:messages.status_update_success"));
         fetchData();
       }
     } catch (error) {
-      notify("error", error?.response?.data?.message || t("dataApp:messages.status_update_error"));
+      notify("error", error?.response?.data?.message || t("data-app:messages.status_update_error"));
     }
   };
 
@@ -116,7 +116,7 @@ export const useDataAppList = () => {
         });
       }
     } catch (error) {
-      notify("error", error?.response?.data?.message || t("dataApp:messages.fetch_error"));
+      notify("error", error?.response?.data?.message || t("data-app:messages.fetch_error"));
     } finally {
       setLoading(false);
     }
@@ -124,13 +124,11 @@ export const useDataAppList = () => {
 
   const deleteData = async (code) => {
     try {
-      // Since there's no delete endpoint in the API, we could either:
-      // 1. Update the status to inactive/deleted
-      // 2. Or implement a proper delete method if needed
-      const resp = await DataAppService.updateStatus(code, { status: 'INACTIVE' });
+
+      const resp = await DataAppService.delete(code);
 
       if (resp?.data?.success) {
-        notify("success", t("dataApp:messages.delete_success"));
+        notify("success", t("data-app:messages.delete_success"));
 
         if (page > 0 && data?.data?.length === 1) {
           let newPage = page - 1;
@@ -140,7 +138,7 @@ export const useDataAppList = () => {
         fetchData();
       }
     } catch (error) {
-      notify("error", error?.response?.data?.message || t("dataApp:messages.delete_error"));
+      notify("error", error?.response?.data?.message || t("data-app:messages.delete_error"));
     }
   };
 

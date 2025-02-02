@@ -131,7 +131,7 @@ const DataAppManagementListPage = (props) => {
             }}
             disabledControls={{
               delete: (row) =>
-                !hasPermission(FEATURES.DATA_APP_MANAGEMENT, ACTIONS.DELETE) ||
+                !hasPermission(FEATURES.BERTH_MANAGEMENT, ACTIONS.DELETE) ||
                 row?.status === DATA_APP_STATUS.ACTIVE,
             }}
           />

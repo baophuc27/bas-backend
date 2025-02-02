@@ -60,4 +60,10 @@ router.put(
   dataAppController.updateStatus
 );
 
+router.delete(
+  '/:code',
+  usePermissions([SystemPermission.BERTH_MANAGEMENT_EDIT]), 
+  dataAppController.deleteOne
+);
+
 export default router;

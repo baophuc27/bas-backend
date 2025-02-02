@@ -1,17 +1,44 @@
 {
-    "page-title" : {
-        "list" : "Data App Management",
-        "detail" : "Data App Detail"
+    "page-title": {
+        "list": "Quản lý Ứng dụng Dữ liệu",
+        "detail": "Chi tiết Ứng dụng Dữ liệu"
     },
     "general_information": {
-        "general_information": "General Information",
-        "data_app_name": "Display Name",
-        "data_app_status": "Status",
-        "zone": "Vùng",
-        "limit_zone": "Giới Hạn Vùng",
-        "ZONE": "VÙNG",
-        "berth_status": "Trạng thái bến"
+        "general_information": "Thông tin chung",
+        "data_app_name": "Tên hiển thị",
+        "data_app_status": "Trạng thái",
+        "code": "Mã",
+        "created_time": "Thời gian tạo",
+        "last_data_active": "Lần hoạt động cuối",
+        "last_heartbeat": "Lần kiểm tra kết nối cuối",
+        "berth": "Cảng đang sử dụng",
+        "enter_name": "Nhập tên hiển thị"
     },
-    "title" : "Data App Management",
-    "update_success" : "Update successfully"
+    "empty": "Trống",
+    "update_success": "Cập nhật Ứng dụng Dữ liệu thành công",
+    "update_failed": "Cập nhật Ứng dụng Dữ liệu thất bại",
+    "create_success": "Tạo mới Ứng dụng Dữ liệu thành công",
+    "create_failed": "Tạo mới Ứng dụng Dữ liệu thất bại",
+    "generate_code_failed": "Tạo mã thất bại",
+    "generate_new_code": "Tạo mã mới",
+    "dialog": {
+        "delete_title": "Xóa ứng dụng dữ liệu",
+        "delete_description": "Bạn có chắc chắn muốn xóa?"
+    },
+    "messages": {
+        "delete_success": "Xóa ứng dụng dữ liệu thành công!",
+        "delete_failed": "Xóa ứng dụng dữ liệu thất bại!",
+        "error": "Lỗi",
+        "fetch_error": "Tải dữ liệu thất bại"
+    },
+    "create_new": "Tạo mới Ứng dụng Dữ liệu",
+    "data_app_information": {
+        "selected_data_app": "Ứng dụng Dữ liệu đã chọn",
+        "status_inactive": "KHÔNG HOẠT ĐỘNG",
+        "select_data_app": "Chọn Ứng dụng Dữ liệu"
+    },
+    "berthing": {
+        "update_success": "Cập nhật Ứng dụng Dữ liệu thành công",
+        "update_failed": "Cập nhật Ứng dụng Dữ liệu thất bại"
+    }
 }

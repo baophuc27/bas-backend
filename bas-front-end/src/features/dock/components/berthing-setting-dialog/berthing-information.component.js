@@ -13,6 +13,9 @@ const BerthingInformation = ({
   touched,
   setFieldTouched,
   isRecord,
+  dataAppList = [],
+  selectedDataApp, 
+  onDataAppChange, 
 }) => {
   return (
     <div className={styles.section}>

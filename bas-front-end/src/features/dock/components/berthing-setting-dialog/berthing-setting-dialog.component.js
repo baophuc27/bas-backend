@@ -11,21 +11,21 @@ import {
   BERTH_STATUS,
   BERTH_STATUS_CODE,
 } from "common/constants/berth.constant";
-import { BerthService } from "common/services";
+import { BerthService, DataAppService } from "common/services";
 import { notify } from "common/utils";
 import { useFormik } from "formik";
 import { t } from "i18next";
 import { memo, useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { setBerthFormValues } from "redux/slices/berth.slice";
 import swal from "sweetalert";
 import * as Yup from "yup";
 import BerthingInformation from "./berthing-information.component";
 import styles from "./berthing-setting-dialog.style.module.css";
 import BerthingStatus from "./berthing-status.component";
+import DataAppInformation from "./data-app-information.component";
 import VesselInformation from "./vessel-information.component";
-import { useDispatch } from "react-redux";
-import { setBerthFormValues } from "redux/slices/berth.slice";
 
 const BerthingSettingDialog = ({
   open,
@@ -35,7 +35,7 @@ const BerthingSettingDialog = ({
   socketData,
   refetchAlarmData,
   pauseDeviceData,
-  resumeDeviceData,
+  resumeDeviceData
 }) => {
   const params = useParams();
   const id = params?.id;
@@ -50,8 +50,13 @@ const BerthingSettingDialog = ({
     rightSensorStatusText: "",
   });
   const dispatch = useDispatch();
+  const [dataAppList, setDataAppList] = useState([]);
+  const [selectedDataApp, setSelectedDataApp] = useState(null);
+  const [loadingDataApps, setLoadingDataApps] = useState(false);
 
-  // Add useEffect to control device data streaming
+
+
+  // // Add useEffect to control device data streaming
   useEffect(() => {
     if (open) {
       resumeDeviceData();
@@ -60,6 +65,25 @@ const BerthingSettingDialog = ({
       pauseDeviceData();
     };
   }, [open, resumeDeviceData, pauseDeviceData]);
+
+  // This useEffect for fetching DataApp
+// Update useEffect to use getAll instead of getActive
+useEffect(() => {
+  const fetchDataApps = async () => {
+    try {
+      const response = await DataAppService.getAll();
+      if (response?.data?.success) {
+        setDataAppList(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching data apps:', error);
+      // notify("error", t("berthing:data_app.fetch_error"));
+    } 
+  };
+
+  fetchDataApps();
+  // Remove dataAppList from dependencies, add only dependencies that should trigger a refetch
+}, [open]); // Only re-run when dialog opens
 
   const _handleClose = (params) => {
     setValues((prev) => ({
@@ -154,6 +178,51 @@ const BerthingSettingDialog = ({
       setLoading(false);
       notify("error", t("berthing:confirm.error"));
       return false;
+    }
+  };
+
+  const handleDataAppChange = async (event) => {
+    const selectedCode = event.target.value;
+    
+    setLoading(true);
+    try {
+      // If a data app was previously assigned to this berth, clear its assignment
+      const previousAssignment = dataAppList.find(app => app.berthId === id);
+      if (previousAssignment) {
+        await DataAppService.update(previousAssignment.code, {
+          displayName: previousAssignment.displayName,
+          berthId: null,
+          status: previousAssignment.status
+        });
+      }
+  
+      // If selecting a new data app, update its assignment
+      if (selectedCode) {
+        const selectedApp = dataAppList.find(app => app.code === selectedCode);
+        const result = await DataAppService.update(selectedCode, {
+          displayName: selectedApp.displayName,
+          berthId: id,
+          status: selectedApp.status
+        });
+  
+        if (!result?.data?.success) {
+          notify("error", t("data-app:berthing..update_failed"));
+          return;
+        }
+      }
+  
+      // Refresh data app list
+      const response = await DataAppService.getAll();
+      if (response?.data?.success) {
+        setDataAppList(response.data.data);
+      }
+      
+      notify("success", t("data-app:berthing.update_success"));
+    } catch (error) {
+      console.error('Error updating data app:', error);
+      // notify("error", t("berthing:data_app.update_failed"));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -549,6 +618,17 @@ const BerthingSettingDialog = ({
             touched={touched}
             isRecord={isRecord}
           />
+
+          <p className={styles.sectionTitle}>
+            {t("berthing:berth_information:data_app_information")}
+          </p>
+          <DataAppInformation 
+    dataAppList={dataAppList}
+    handleChange={handleDataAppChange}
+    loading={loading}
+    isRecord={isRecord}
+    currentBerthId={id} // Pass current berth ID
+  />
 
           <p className={styles.sectionTitle}>
             {t("berthing:berth_information.berth_information")}

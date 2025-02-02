@@ -73,4 +73,15 @@ export const DataAppService = {
       ...body,
     });
   },
+
+
+  /**
+ * Delete a data app
+ * @param {string} code - Data app code to delete
+ * @returns {Promise} API response
+ */
+  delete(code) {
+    return authAxiosClient.delete(`${ROOT_PATH}/${code}`);
+  },
 };
+

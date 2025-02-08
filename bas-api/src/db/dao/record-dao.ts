@@ -63,7 +63,7 @@ const findAll = async (recordFilter: RecordFilter) => {
 
 const remove = async (id: number, orgId: number) => {
   await recordHistoryDao.removeAllByRecord(id, orgId);
-  return await Record.destroy({ where: { id, orgId }, force: true });
+  return await Record.destroy({ where: { id, orgId } });
 };
 
 const getCurrentRecord = async (berthId: number, orgId: number, t?: Transaction) => {

@@ -45,7 +45,8 @@
       "log-out": "Đăng Xuất",
       "berth_management": "Quản lý Bến",
       "port-info": "Thông Tin Cảng",
-      "alarm-history": "Lịch Sử Cảnh Báo"
+      "alarm-history": "Lịch Sử Cảnh Báo",
+      "data-app-management" : "Quản lý Ứng dụng Dữ liệu"
     }
   },
   "language": {

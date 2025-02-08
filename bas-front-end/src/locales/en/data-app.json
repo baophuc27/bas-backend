@@ -35,6 +35,9 @@
     "data_app_information" : {
         "selected_data_app" : "Selected Data App",
         "status_inactive" : "INACTIVE",
+        "status_disconnected" : "DISCONNECTED",
+        "status_have_heartbeat" : "HAVE HEARTBEAT",
+        "status_normal" : "NORMAL",
         "select_data_app" : "Select Data App"
     },
     "berthing" : {

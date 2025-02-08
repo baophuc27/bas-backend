@@ -35,6 +35,9 @@
     "data_app_information": {
         "selected_data_app": "Ứng dụng Dữ liệu đã chọn",
         "status_inactive": "KHÔNG HOẠT ĐỘNG",
+        "status_disconnected" : "MẤT KẾT NỐI",
+        "status_have_heartbeat" : "CÓ KIỂM TRA KẾT NỐI",
+        "status_normal" : "BÌNH THƯỜNG",
         "select_data_app": "Chọn Ứng dụng Dữ liệu"
     },
     "berthing": {

@@ -274,7 +274,7 @@ export const configurationBerth = async (
     await kafkaService.produceKafkaData(
       BAS_RECORD_DATA,
       JSON.stringify({
-        orgId: orgId,
+        org_id: orgId,
         berth_id: berthId,
         session_id: res.id,
         mode,
@@ -397,10 +397,11 @@ export const resetBerth = async (params: resetBerthParam) => {
     await kafkaService.produceKafkaData(
       BAS_RECORD_DATA,
       JSON.stringify({
+        org_id : orgId,
         berth_id: berthId,
         session_id: existRecord.id,
         mode: 'stop',
-      } as StartRecordPayload)
+      })
     );
     await recordService.endRecord(existRecord.id, existRecord.orgId);
     const key = `${berthId}-${orgId}`;

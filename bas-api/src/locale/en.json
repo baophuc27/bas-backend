@@ -27,7 +27,8 @@
       "speed": "Speed (cm/s)",
       "angle": "Angle (°)",
       "BERTHING": "BERTHING",
-      "DEPARTING": "DEPARTING"
+      "DEPARTING": "DEPARTING",
+      "MOORING": "MOORING"
     },
     "column": {
       "distance": "Distance",

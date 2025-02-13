@@ -22,21 +22,20 @@ export const useSocket = (berthId) => {
   const joinPayload = (id) => JSON.stringify({ berthId: id });
 
   const recreatePortsSocket = () => {
-    if (socketsRef.current.ports) {
-      cleanupSocket(socketsRef.current.ports);
-    }
-    if (baseConfigRef.current && mountedRef.current) {
-      socketsRef.current.ports = createSocket(
-        `${process.env.REACT_APP_API_BASE_URL}/port-events`,
-        "ports",
-        baseConfigRef.current,
-      );
-    }
+    // if (socketsRef.current.ports) {
+    //   cleanupSocket(socketsRef.current.ports);
+    // }
+    // if (baseConfigRef.current && mountedRef.current) {
+    //   socketsRef.current.ports = createSocket(
+    //     `${process.env.REACT_APP_API_BASE_URL}/port-events`,
+    //     "ports",
+    //     baseConfigRef.current,
+    //   );
+    // }
   };
 
   const handleBasTimeout = () => {
     if (mountedRef.current) {
-      console.log("BAS socket timeout - recreating ports socket");
       recreatePortsSocket();
     }
   };
@@ -74,7 +73,7 @@ export const useSocket = (berthId) => {
 
           if (!hasReceivedFirstBasMessage.current) {
             hasReceivedFirstBasMessage.current = true;
-            recreatePortsSocket();
+            // recreatePortsSocket();
           }
         }
       });
@@ -93,6 +92,14 @@ export const useSocket = (berthId) => {
 
       socket.on("error", (error) => {
         console.error("Ports socket error:", error);
+      });
+
+      socket.on("DEVICE_ERROR", (message) => {
+        console.log("DEVICE_ERROR from port-events:", message);
+      });
+
+      socket.on("COMPLETED_SESSION", (message) => {
+        console.log("COMPLETED_SESSION from port-events:", message);
       });
     }
 
@@ -119,25 +126,24 @@ export const useSocket = (berthId) => {
     socketsRef.current.ports = null;
   };
 
-const joinDockSockets = (id, socketType) => {
-  const { bas, device, ports } = socketsRef.current;
-  const payload = joinPayload(id);
+  const joinDockSockets = (id, socketType) => {
+    const { bas, device, ports } = socketsRef.current;
+    const payload = joinPayload(id);
 
-  switch (socketType) {
-    case "bas":
-      if (bas?.connected) bas.emit("join", payload);
-      break;
-    case "device":
-      if (device?.connected) device.emit("join", payload);
-      break;
-    case "ports":
-      if (ports?.connected) ports.emit("join", payload);
-      break;
-    default:
-      console.warn(`Unknown socket type: ${socketType}`);
-  }
-};
-
+    switch (socketType) {
+      case "bas":
+        if (bas?.connected) bas.emit("join", payload);
+        break;
+      case "device":
+        if (device?.connected) device.emit("join", payload);
+        break;
+      case "ports":
+        if (ports?.connected) ports.emit("join", payload);
+        break;
+      default:
+        console.warn(`Unknown socket type: ${socketType}`);
+    }
+  };
 
   const leaveDockSockets = (id) => {
     const { bas, device, ports } = socketsRef.current;

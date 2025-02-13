@@ -37,6 +37,7 @@ export const DockVisualizationPage = () => {
   const [updatedBerth, setUpdatedBerth] = useState({});
   const [pastData, setPastData] = useState([]);
   const [hasPastData, setHasPastData] = useState(false);
+  const [lastPortMessage, setLastPortMessage] = useState(null); // Add this line
 
   const [showsDetailSettings, setShowsDetailSettings] = useState(false);
   const [showsBerthingSettings, setShowsBerthingSettings] = useState(false);
@@ -259,6 +260,38 @@ export const DockVisualizationPage = () => {
       }
     };
   }, []);
+
+  // Add this effect to monitor port socket messages
+  useEffect(() => {
+    if (portsSocket) {
+      portsSocket.on("message", (data) => {
+        console.log("Port socket message received:", data);
+        setLastPortMessage(new Date().toISOString());
+      });
+
+      return () => {
+        // portsSocket.off("message");
+      };
+    }
+  }, [portsSocket]);
+
+  // Add this effect to check for stale port data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (lastPortMessage) {
+        const timeSinceLastMessage =
+          Date.now() - new Date(lastPortMessage).getTime();
+        if (timeSinceLastMessage > 30000) {
+          // 30 seconds
+          console.warn("No port socket messages received for 30 seconds");
+          // Optionally show a warning to the user
+          toast.warning(t("dock:warnings.no-port-data"));
+        }
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [lastPortMessage, t]);
 
   /**
    * Render the main Dock visualization page

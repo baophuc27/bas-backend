@@ -762,9 +762,8 @@ const shouldEndRecording = (portEventSocketEndSession: PortEventSocketEndSession
     'general'
   );
   generalSocket.to(room).emit(eventName, eventData);
-  console.log(`[shouldEndRecording] Emitting ${eventName} to room ${room}`);
+  console.log(`[shouldEndRecording] Successfully emitted ${eventName} event to room ${room} with data:`, eventData);
 };
-
 
 /**
  * Handle error from sensor
@@ -880,8 +879,9 @@ const deviceIsError = (portEventSocketDeviceError: PortEventSocketDeviceError) =
     portEventSocketDeviceError.orgId.toString(),
     'general'
   );
-  generalSocketManager.sendToActiveClients(room, eventName, eventData);
-  console.log(`[deviceIsError] Emitting ${eventName} to room ${room}`);
+  // generalSocketManager.sendToActiveClients(room, eventName, eventData);
+  generalSocket.to(room).emit(eventName, eventData);
+  console.log(`[deviceIsError] Successfully emitted ${eventName} event to room ${room} with data:`, eventData);
   if (realtimeSocket) {
     // const realtimeRoom = getRoomKey(
     //   portEventSocketDeviceError.berth.id.toString(),

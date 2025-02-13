@@ -34,8 +34,6 @@ const BerthingSettingDialog = ({
   setData,
   socketData,
   refetchAlarmData,
-  pauseDeviceData,
-  resumeDeviceData
 }) => {
   const params = useParams();
   const id = params?.id;
@@ -54,36 +52,24 @@ const BerthingSettingDialog = ({
   const [selectedDataApp, setSelectedDataApp] = useState(null);
   const [loadingDataApps, setLoadingDataApps] = useState(false);
 
-
-
-  // // Add useEffect to control device data streaming
-  useEffect(() => {
-    if (open) {
-      resumeDeviceData();
-    }
-    return () => {
-      pauseDeviceData();
-    };
-  }, [open, resumeDeviceData, pauseDeviceData]);
-
   // This useEffect for fetching DataApp
-// Update useEffect to use getAll instead of getActive
-useEffect(() => {
-  const fetchDataApps = async () => {
-    try {
-      const response = await DataAppService.getAll();
-      if (response?.data?.success) {
-        setDataAppList(response.data.data);
+  // Update useEffect to use getAll instead of getActive
+  useEffect(() => {
+    const fetchDataApps = async () => {
+      try {
+        const response = await DataAppService.getAll();
+        if (response?.data?.success) {
+          setDataAppList(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching data apps:", error);
+        // notify("error", t("berthing:data_app.fetch_error"));
       }
-    } catch (error) {
-      console.error('Error fetching data apps:', error);
-      // notify("error", t("berthing:data_app.fetch_error"));
-    } 
-  };
+    };
 
-  fetchDataApps();
-  // Remove dataAppList from dependencies, add only dependencies that should trigger a refetch
-}, [open]); // Only re-run when dialog opens
+    fetchDataApps();
+    // Remove dataAppList from dependencies, add only dependencies that should trigger a refetch
+  }, [open]); // Only re-run when dialog opens
 
   const _handleClose = (params) => {
     setValues((prev) => ({
@@ -97,7 +83,6 @@ useEffect(() => {
       // TODO: vessel information
     }));
     handleClose(params);
-    pauseDeviceData();
   };
 
   const handleUpdate = async (values) => {
@@ -149,7 +134,6 @@ useEffect(() => {
       if (BERTH_STATUS[values.currentStatus] === BERTH_STATUS.AVAILABLE) {
         refetchAlarmData();
       }
-      pauseDeviceData();
       _handleClose({
         forcesBack: values?.upcomingStatus === BERTH_STATUS.AVAILABLE,
       });
@@ -183,43 +167,45 @@ useEffect(() => {
 
   const handleDataAppChange = async (event) => {
     const selectedCode = event.target.value;
-    
+
     setLoading(true);
     try {
       // If a data app was previously assigned to this berth, clear its assignment
-      const previousAssignment = dataAppList.find(app => app.berthId === id);
+      const previousAssignment = dataAppList.find((app) => app.berthId === id);
       if (previousAssignment) {
         await DataAppService.update(previousAssignment.code, {
           displayName: previousAssignment.displayName,
           berthId: null,
-          status: previousAssignment.status
+          status: previousAssignment.status,
         });
       }
-  
+
       // If selecting a new data app, update its assignment
       if (selectedCode) {
-        const selectedApp = dataAppList.find(app => app.code === selectedCode);
+        const selectedApp = dataAppList.find(
+          (app) => app.code === selectedCode,
+        );
         const result = await DataAppService.update(selectedCode, {
           displayName: selectedApp.displayName,
           berthId: id,
-          status: selectedApp.status
+          status: selectedApp.status,
         });
-  
+
         if (!result?.data?.success) {
           notify("error", t("data-app:berthing..update_failed"));
           return;
         }
       }
-  
+
       // Refresh data app list
       const response = await DataAppService.getAll();
       if (response?.data?.success) {
         setDataAppList(response.data.data);
       }
-      
+
       notify("success", t("data-app:berthing.update_success"));
     } catch (error) {
-      console.error('Error updating data app:', error);
+      console.error("Error updating data app:", error);
       // notify("error", t("berthing:data_app.update_failed"));
     } finally {
       setLoading(false);
@@ -237,7 +223,6 @@ useEffect(() => {
           return;
         }
         notify("success", t("berthing:confirm.reset_success"));
-        pauseDeviceData();
         _handleClose({
           forcesBack:
             BERTH_STATUS[values?.upcomingStatus] === BERTH_STATUS.AVAILABLE,
@@ -260,7 +245,6 @@ useEffect(() => {
         notify("error", t("berthing:confirm.error"));
         return false;
       }
-      pauseDeviceData();
       return true;
     } catch (error) {
       setLoading(false);
@@ -340,7 +324,7 @@ useEffect(() => {
     }
 
     setTouched({});
-    
+
     const currentStatus = BERTH_STATUS[values.currentStatus];
     const upcomingStatus = BERTH_STATUS[values.upcomingStatus];
 
@@ -362,23 +346,28 @@ useEffect(() => {
 
     // Handle special cases that need finish session
     if (
-      (currentStatus === BERTH_STATUS.BERTHING && upcomingStatus === BERTH_STATUS.MOORING) ||
-      (currentStatus === BERTH_STATUS.MOORING && upcomingStatus === BERTH_STATUS.DEPARTING)
+      (currentStatus === BERTH_STATUS.BERTHING &&
+        upcomingStatus === BERTH_STATUS.MOORING) ||
+      (currentStatus === BERTH_STATUS.MOORING &&
+        upcomingStatus === BERTH_STATUS.DEPARTING)
     ) {
       try {
         const finishSuccess = await handleFinishSession();
         if (!finishSuccess) return;
-        
+
         const updateSuccess = await handleUpdate({
           ...values,
-          currentStatus: upcomingStatus === BERTH_STATUS.MOORING ? "MOORING" : "DEPARTING",
+          currentStatus:
+            upcomingStatus === BERTH_STATUS.MOORING ? "MOORING" : "DEPARTING",
           upcomingStatus: "",
         });
 
         if (updateSuccess) {
-          notify("success", upcomingStatus === BERTH_STATUS.MOORING 
-            ? t("berthing:confirm.vessel_is_mooring.")
-            : t("berthing:confirm.vessel_is_departing.")
+          notify(
+            "success",
+            upcomingStatus === BERTH_STATUS.MOORING
+              ? t("berthing:confirm.vessel_is_mooring.")
+              : t("berthing:confirm.vessel_is_departing."),
           );
         }
       } catch (error) {
@@ -622,13 +611,13 @@ useEffect(() => {
           <p className={styles.sectionTitle}>
             {t("berthing:berth_information:data_app_information")}
           </p>
-          <DataAppInformation 
-    dataAppList={dataAppList}
-    handleChange={handleDataAppChange}
-    loading={loading}
-    isRecord={isRecord}
-    currentBerthId={id} // Pass current berth ID
-  />
+          <DataAppInformation
+            dataAppList={dataAppList}
+            handleChange={handleDataAppChange}
+            loading={loading}
+            isRecord={isRecord}
+            currentBerthId={id} // Pass current berth ID
+          />
 
           <p className={styles.sectionTitle}>
             {t("berthing:berth_information.berth_information")}

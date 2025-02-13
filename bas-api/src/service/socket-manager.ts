@@ -40,8 +40,9 @@ export class SocketManager {
   }
 
   sendToActiveClients(room: string, event: string, data: any) {
-    const activeClients = this.getActiveClients(room);
-    activeClients.forEach(socket => {
+    const clients = this.getActiveClients(room);
+    console.log(`[sendToActiveClients] room: ${room}, total active sockets: ${clients.length}`);
+    clients.forEach(socket => {
       socket.emit(event, data);
     });
   }

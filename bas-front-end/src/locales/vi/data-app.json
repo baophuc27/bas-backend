@@ -3,6 +3,10 @@
         "list": "Quản lý Ứng dụng Dữ liệu",
         "detail": "Chi tiết Ứng dụng Dữ liệu"
     },
+    "type":{
+        "fixed" : "Cố định",
+        "dynamic": "Di động"
+    },
     "general_information": {
         "general_information": "Thông tin chung",
         "data_app_name": "Tên hiển thị",
@@ -11,8 +15,9 @@
         "created_time": "Thời gian tạo",
         "last_data_active": "Lần hoạt động cuối",
         "last_heartbeat": "Lần kiểm tra kết nối cuối",
-        "berth": "Cảng đang sử dụng",
-        "enter_name": "Nhập tên hiển thị"
+        "berth": "Bến đang sử dụng",
+        "enter_name": "Nhập tên hiển thị",
+        "type": "Loại Data App"
     },
     "empty": "Trống",
     "update_success": "Cập nhật Ứng dụng Dữ liệu thành công",
@@ -20,6 +25,7 @@
     "create_success": "Tạo mới Ứng dụng Dữ liệu thành công",
     "create_failed": "Tạo mới Ứng dụng Dữ liệu thất bại",
     "generate_code_failed": "Tạo mã thất bại",
+    "update_failed_by_occupied_berth": "Bến đã được gán cố định cho ứng dụng dữ liệu khác.",
     "generate_new_code": "Tạo mã mới",
     "dialog": {
         "delete_title": "Xóa ứng dụng dữ liệu",
@@ -43,5 +49,8 @@
     "berthing": {
         "update_success": "Cập nhật Ứng dụng Dữ liệu thành công",
         "update_failed": "Cập nhật Ứng dụng Dữ liệu thất bại"
+    },
+    "note": {
+        "type_required" : "Vui lòng chọn bến cho ứng dụng dữ liệu cố định"
     }
 }

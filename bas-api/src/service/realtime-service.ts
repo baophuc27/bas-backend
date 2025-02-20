@@ -43,6 +43,8 @@ let deviceRealtime = new Map<string, DeviceRealValue>();
 let realtimeSocket: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> =
   null as any;
 const rooms = new Set<String>();
+let generalLatestErrorMessages = new Map<string, { eventName: string; data: string; timestamp: number }>();
+let generalLatestEndMessages   = new Map<string, { eventName: string; data: string; timestamp: number }>();
 let generalSocket: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> =
   null as any;
 let berthIsRunning = new Map<
@@ -60,6 +62,11 @@ const generateKey = (berthId: number, orgId: number): string => {
   return `${berthId}-${orgId}`;
 };
 const UUID_SYSTEM = '8dad3a21-802a-4e3d-baa3-8dd28b303a93';
+const lastDataTimestamps = new Map<string, number>();
+
+function markDataTimestamp(berthId: number, orgId: number) {
+  lastDataTimestamps.set(generateKey(berthId, orgId), Date.now());
+}
 /**
  * Add new berth to realtime data
  * @param berthId
@@ -229,6 +236,8 @@ const handleRealtimeData = (realtimeSocket?: Namespace<NamespaceRealtimeSocket>)
       if (realtimeSocket != null && data != null) {
         console.log(JSON.stringify(data));
         realtimeSocket.to(room.toString()).emit('data', JSON.stringify(data));
+
+        markDataTimestamp(objectData.berthId, objectData.orgId);
 
         if (data?.error_code) {
           await handleError(
@@ -675,6 +684,8 @@ const initRealtimeDevice = async (io: Server) => {
         +raw.orgId
       );
 
+      markDataTimestamp(raw.berthId, raw.orgId);
+
       deviceSocket
         .to(getRoomKey(raw.berthId.toString(), raw.orgId.toString(), 'config'))
         .emit('device', JSON.stringify(deviceRealtime.get(key)));
@@ -685,6 +696,7 @@ const initRealtimeDevice = async (io: Server) => {
 
   const INTERVAL_TIME = 1000;
   const TIMEOUT_DEVICE = 1000 * 30;
+  // const TIMEOUT_DEVICE = 1000 * 3;
   setInterval(async () => {
     // console.log('Device realtime: ', deviceRealtime);
 
@@ -762,6 +774,8 @@ const shouldEndRecording = (portEventSocketEndSession: PortEventSocketEndSession
     'general'
   );
   generalSocket.to(room).emit(eventName, eventData);
+  // Save the latest message for 30 seconds into end messages map
+  generalLatestEndMessages.set(room, { eventName, data: eventData, timestamp: Date.now() });
   console.log(`[shouldEndRecording] Successfully emitted ${eventName} event to room ${room} with data:`, eventData);
 };
 
@@ -870,26 +884,25 @@ const handleError = async (
  * Emit device error to socket room
  * @param portEventSocketDeviceError
  */
-const deviceIsError = (portEventSocketDeviceError: PortEventSocketDeviceError) => {
-  const eventName = `DEVICE_ERROR`;
-  const eventData = JSON.stringify(portEventSocketDeviceError);
-
-  const room = getRoomKey(
-    portEventSocketDeviceError.berth.id.toString(),
-    portEventSocketDeviceError.orgId.toString(),
-    'general'
-  );
-  // generalSocketManager.sendToActiveClients(room, eventName, eventData);
-  generalSocket.to(room).emit(eventName, eventData);
-  console.log(`[deviceIsError] Successfully emitted ${eventName} event to room ${room} with data:`, eventData);
-  if (realtimeSocket) {
-    // const realtimeRoom = getRoomKey(
-    //   portEventSocketDeviceError.berth.id.toString(),
-    //   portEventSocketDeviceError.orgId.toString(),
-    //   'bas'
-    // );
-    // realtimeSocket.to(realtimeRoom).emit(eventName, eventData);
+const deviceIsError = async (portEventSocketDeviceError: PortEventSocketDeviceError) => {
+	const eventName = `DEVICE_ERROR`;
+	const eventData = JSON.stringify(portEventSocketDeviceError);
+	const room = getRoomKey(
+		portEventSocketDeviceError.berth.id.toString(),
+		portEventSocketDeviceError.orgId.toString(),
+		'general'
+	);
+  
+  const berthInfo = await berthDao.getBerthInfo(portEventSocketDeviceError.berth.id, portEventSocketDeviceError.orgId);
+  if (berthInfo && berthInfo.status === 0) {
+    generalLatestErrorMessages.delete(room);
+    console.log(`[deviceIsError] Berth available. Latest error message removed for room ${room}`);
+    return;
   }
+
+	generalSocket.to(room).emit(eventName, eventData);
+	generalLatestErrorMessages.set(room, { eventName, data: eventData, timestamp: Date.now() });
+	console.log(`[deviceIsError] Successfully emitted ${eventName} event to room ${room} with data:`, eventData);
 };
 
 /**
@@ -921,6 +934,32 @@ const initRealtimeGeneral = async (io: Server) => {
         socket.join(room);
         rooms.add(room);
         console.log(`Socket ${socket.id} joined general events room ${room}`);
+        const joinTime = Date.now();
+        setTimeout(() => {
+          (async () => {
+            if (!socket.auth?.orgId) {
+              return;
+            }
+            const berthInfo = await berthDao.getBerthInfo(parseInt(berthId, 10), socket.auth.orgId);
+            if (berthInfo && berthInfo.status === 0) {
+              generalLatestErrorMessages.delete(room);
+              generalLatestEndMessages.delete(room);
+              console.log(`[initRealtimeGeneral] Berth ${berthId} is available. Skipping latest message for room ${room}`);
+              return;
+            }
+            const key = generateKey(parseInt(berthId, 10), socket.auth?.orgId || 0);
+            // Check and emit latest error message
+            const latestErrorMsg = generalLatestErrorMessages.get(room);
+            if (latestErrorMsg && latestErrorMsg.timestamp <= joinTime && (lastDataTimestamps.get(key) || 0) <= joinTime) {
+              socket.emit(latestErrorMsg.eventName, latestErrorMsg.data);
+            }
+            // Check and emit latest end session message
+            const latestEndMsg = generalLatestEndMessages.get(room);
+            if (latestEndMsg && latestEndMsg.timestamp <= joinTime && (lastDataTimestamps.get(key) || 0) <= joinTime) {
+              socket.emit(latestEndMsg.eventName, latestEndMsg.data);
+            }
+          })();
+        }, 10000);
       } catch (error) {
         logError(error);
       }
@@ -984,6 +1023,7 @@ const initRealtimeGeneral = async (io: Server) => {
 const watchingBerth = async () => {
   const INTERVAL_TIME = 1000;
   const TIMEOUT = 1000 * 30;
+  // const TIMEOUT = 1000 * 3;
   const TIMEOUT_RECORD = 1000 * 60 * 60 * 6;
   const LOST_TARGET_THRESHOLD = 10000; // 10 seconds
 

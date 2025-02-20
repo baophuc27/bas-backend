@@ -44,8 +44,18 @@ export const getAllDataApps = async (filter: DataAppFilter) => {
       ...(filter?.status && { status: filter.status }),
       ...(filter?.search && {
         [Op.or]: [
-          { code: { [Op.like]: `%${filter.search}%` } },
-          { displayName: { [Op.like]: `%${filter.search}%` } },
+          { 
+            code: Sequelize.where(
+              Sequelize.fn('LOWER', Sequelize.col('DataApp.code')),
+              { [Op.like]: `%${filter.search.toLowerCase()}%` }
+            )
+          },
+          {
+            displayName: Sequelize.where(
+              Sequelize.fn('LOWER', Sequelize.col('DataApp.displayName')),
+              { [Op.like]: `%${filter.search.toLowerCase()}%` }
+            )
+          },
         ],
       }),
     },
@@ -57,7 +67,6 @@ export const getAllDataApps = async (filter: DataAppFilter) => {
     order: [[filter?.order || 'code', filter?.mode?.toUpperCase() || 'DESC']],
   });
 };
-
 
 export const updateDataApp = async (
   code: string,
@@ -96,6 +105,34 @@ export const updateDataApp = async (
       returning: true,
     }
   );
+};
+
+export const validateFixedDataApp = async (
+  berthId: number,
+  code: string,
+  orgId: number
+): Promise<boolean> => {
+  try {
+    // Find any data app that:
+    // 1. Is assigned to the given berthId
+    // 2. Has a different code than the one provided
+    // 3. Has type 'FIXED'
+    // 4. Belongs to the same organization
+    const existingFixedApp = await DataApp.findOne({
+      where: {
+        berthId,
+        code: { [Op.ne]: code }, // Exclude current data app
+        type: 'FIXED',
+        orgId
+      }
+    });
+
+    // Return true if we found a fixed data app already assigned to this berth
+    return existingFixedApp !== null;
+  } catch (error) {
+    console.error('Error in validateFixedDataApp: ', error);
+    throw error;
+  }
 };
 
 export const deleteDataApp = async (code: string, orgId: number) => {

@@ -12,6 +12,7 @@ interface DataAppAttributes {
   lastDataActive?: Date | null;
   createdAt?: Date | null;
   berth?: Berth;
+  type? : string | null;
 }
 
 export interface DataAppInput extends Optional<DataAppAttributes, 'code'> {}
@@ -27,6 +28,7 @@ class DataApp extends Model<DataAppAttributes, DataAppInput> implements DataAppA
   public lastDataActive?: Date | null;
   public createdAt?: Date | null;
   public berth?: Berth;
+  public type? : string | null;
 }
 
 DataApp.init(
@@ -63,7 +65,11 @@ DataApp.init(
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true,
-    }
+    },
+    type: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
   },
 
   {

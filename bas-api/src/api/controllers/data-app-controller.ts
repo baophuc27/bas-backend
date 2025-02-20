@@ -9,7 +9,8 @@ import {
   getAllDataApps,
   updateDataApp,
   deleteDataApp,
-  updateDataAppStatus
+  updateDataAppStatus,
+  validateFixedDataApp
 } from '@bas/database/dao/data-app-dao';
 
 const getAvailableCode = async (req: Request, res: Response, next: NextFunction) => {
@@ -59,7 +60,16 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { orgId } = req.identification;
     const { code, ...data } = req.body;
-
+    if (req.body.berthId != undefined){
+      const notValidBerthId = await validateFixedDataApp(req.body.berthId,code,orgId);
+      if (notValidBerthId){
+        return res.status(200).json({
+          success: false,
+          code: 101,
+          message: "This berth is occupied by a fixed data app."
+        });
+      }
+    }
     const newDataApp = await createDataApp(code, +orgId, data);
     return res.success({ data: newDataApp }, 'Data app created successfully');
   } catch (error: any) {
@@ -85,6 +95,17 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { orgId } = req.identification;
     const { code } = req.params;
+    
+    if (req.body.berthId != undefined){
+      const notValidBerthId = await validateFixedDataApp(req.body.berthId,code,orgId);
+      if (notValidBerthId){
+        return res.status(200).json({
+          success: false,
+          code: 101,
+          message: "This berth is occupied by a fixed data app."
+        });
+      }
+    }
     const data = await updateDataApp(code, +orgId, req.body);
     return res.success({ data }, 'Data app updated successfully');
   } catch (error: any) {

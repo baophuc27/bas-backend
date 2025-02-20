@@ -1,10 +1,10 @@
 import { Button, CircularProgress } from "@material-ui/core";
 import {
-    DesktopOnly,
-    DesktopView,
-    MenuAppBar,
-    MobileView,
-    PagePermissionCheck,
+  DesktopOnly,
+  DesktopView,
+  MenuAppBar,
+  MobileView,
+  PagePermissionCheck,
 } from "common/components";
 import { FEATURES } from "common/constants/feature.constant";
 import { usePageConfig } from "common/hooks";
@@ -38,10 +38,14 @@ const DataAppDetailPage = () => {
         displayName: values.displayName,
         berthId: values.berthId === "" ? null : values.berthId,
         status: values.status,
+        type: values.type
       });
       setLoading(false);
-
       if (!result?.data?.success) {
+        if (result.data.code === 101){
+          notify("error", t("data-app:update_failed_by_occupied_berth"));
+          return;
+        }
         notify("error", t("data-app:update_failed"));
         return;
       }
@@ -65,12 +69,17 @@ const DataAppDetailPage = () => {
         code: values.code,
         displayName: values.displayName,
         berthId: values.berthId === "" ? null : values.berthId,
-        status: 'INACTIVE'
+        status: 'INACTIVE',
+        type: values.type
       });
       setLoading(false);
       
       if (!result?.data?.success) {
-        notify("error", t("data-app:create_failed"));
+        if (result.data.code === 101){
+          notify("error", t("data-app:update_failed_by_occupied_berth"));
+          return;
+        }
+        notify("error", t("data-app:update_failed"));
         return;
       }
       notify("success", t("data-app:create_success"));
@@ -117,12 +126,19 @@ const DataAppDetailPage = () => {
       status: "INACTIVE",
       lastHeartbeat: null,
       lastDataActive: null,
+      type: "DYNAMIC"
     },
     onSubmit: code ? handleUpdate : handleCreate,
     enableReinitialize: true,
     validationSchema: Yup.object().shape({
       code: Yup.string().required(t("note.required-message")),
-      displayName: Yup.string().required(t("note.required-message"))
+      displayName: Yup.string().required(t("note.required-message")),
+
+      berthId: Yup.mixed().when('type', {
+          is: (val) => val === 'FIXED', 
+          then: () => Yup.string().required(t("data-app:note.type_required")),
+          otherwise: () => Yup.string().notRequired()
+      })
     }),
   });
 
@@ -144,6 +160,7 @@ const DataAppDetailPage = () => {
           status: data.status,
           lastHeartbeat: data.lastHeartbeat,
           lastDataActive: data.lastDataActive,
+          type: data.type
         });
         setDataAppInfo(data);
       } catch (error) {
@@ -265,6 +282,29 @@ const DataAppDetailPage = () => {
                   </div>
                 </div>
               </div>
+
+              <div className={styles.formRow}>
+                  <div className={styles.formColumn}>
+                    <div className={styles.formGroup}>
+                      <label className={`${styles.label} ${styles.requiredLabel}`}>
+                        {t("data-app:general_information.type")}
+                      </label>
+                      <select
+                        name="type"
+                        value={values.type}
+                        onChange={handleChange}
+                        onBlur={() => setFieldTouched('type', true)}
+                        className={`${styles.select} ${touched.type && errors.type ? styles.error : ''}`}
+                      >
+                        <option value="FIXED">{t("data-app:type.fixed")}</option>
+                        <option value="DYNAMIC">{t("data-app:type.dynamic")}</option>
+                      </select>
+                      {touched.type && errors.type && (
+                        <div className={styles.errorMessage}>{errors.type}</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
               <div className={styles.formRow}>
                 <div className={styles.formColumn}>

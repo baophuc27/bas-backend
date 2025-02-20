@@ -1,12 +1,12 @@
 import { Box, Button } from "@material-ui/core";
 import {
-    DesktopOnly,
-    DesktopView,
-    MenuAppBar,
-    MobileView,
-    PagePermissionCheck,
-    SharedInputField,
-    SharedTable,
+  DesktopOnly,
+  DesktopView,
+  MenuAppBar,
+  MobileView,
+  PagePermissionCheck,
+  SharedInputField,
+  SharedTable,
 } from "common/components";
 import { DATA_APP_STATUS } from "common/constants/data-app.constant";
 import { FEATURES } from "common/constants/feature.constant";
@@ -24,7 +24,7 @@ const DataAppManagementListPage = (props) => {
   const navigate = useNavigate();
   const { setPageTitle, setBreadcrumbsList } = usePageConfig();
   const dataApps = useSelector((state) => state?.enumeration?.dataApps);
-  console.log(dataApps)
+  console.log(dataApps);
   const pageHook = useDataAppList(i18n.language);
   const { hasPermission } = usePermission();
   const {
@@ -53,7 +53,6 @@ const DataAppManagementListPage = (props) => {
     });
     setBreadcrumbsList({
       id: "data-app:page-title.list",
-      
     });
   }, []);
 

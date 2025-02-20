@@ -23,7 +23,7 @@
     "distance_between_right_sensor_and_fender": "Cảm biến phải với fender - fender tới tàu (m)",
     "distance_between_left_sensor_and_fender": "Cảm biến trái với fender - fender tới tàu (m)",
     "status": "Trạng thái",
-    "data_app_information" : "Thông tin ứng dụng dữ liệu"
+    "data_app_information" : "Cài đặt dữ liệu"
   },
 
   "sensor_status": {

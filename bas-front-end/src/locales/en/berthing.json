@@ -19,7 +19,7 @@
     "distance_between_right_sensor_and_fender": "Right sensor to fender - fender to vessel (m)",
     "distance_between_left_sensor_and_fender": "Left sensor to fender - fender to vessel (m)",
     "status": "Status",
-    "data_app_information" : "Data App Information"
+    "data_app_information" : "Data Setting"
   },
 
   "vessel_information": {

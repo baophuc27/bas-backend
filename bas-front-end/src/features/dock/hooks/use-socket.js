@@ -21,22 +21,8 @@ export const useSocket = (berthId) => {
 
   const joinPayload = (id) => JSON.stringify({ berthId: id });
 
-  const recreatePortsSocket = () => {
-    // if (socketsRef.current.ports) {
-    //   cleanupSocket(socketsRef.current.ports);
-    // }
-    // if (baseConfigRef.current && mountedRef.current) {
-    //   socketsRef.current.ports = createSocket(
-    //     `${process.env.REACT_APP_API_BASE_URL}/port-events`,
-    //     "ports",
-    //     baseConfigRef.current,
-    //   );
-    // }
-  };
-
   const handleBasTimeout = () => {
     if (mountedRef.current) {
-      recreatePortsSocket();
     }
   };
 
@@ -73,7 +59,6 @@ export const useSocket = (berthId) => {
 
           if (!hasReceivedFirstBasMessage.current) {
             hasReceivedFirstBasMessage.current = true;
-            // recreatePortsSocket();
           }
         }
       });

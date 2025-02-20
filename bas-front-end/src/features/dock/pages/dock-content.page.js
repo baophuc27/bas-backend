@@ -2,6 +2,8 @@ import { Box, Button, Divider, IconButton } from "@material-ui/core";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import StopIcon from "@material-ui/icons/Stop";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
+import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { AuthCheck, ProfileInformation } from "common/components";
 import {
   BERTH_STATUS,
@@ -24,6 +26,8 @@ import { Navigate, useNavigate } from "react-router-dom";
 import {
   setCurrentErrorDialog,
   setCurrentSessionCompleteDialog,
+  resetErrorDialog,
+  resetSessionCompleteDialog,
 } from "redux/slices/dialog.slice";
 import swal from "sweetalert";
 import {
@@ -55,6 +59,7 @@ export const DockPageContent = ({
   socket,
   berth: berthData,
   setShowsBerthingSettings,
+  showsBerthingSettings,
   setShowsDetailSettings,
   setShowsAlarmSetting,
   optimized = false,
@@ -89,6 +94,7 @@ export const DockPageContent = ({
   const [stopPopupShown, setStopPopupShown] = useState(false);
   const [showsFinishSession, setShowFinishSession] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { hasPermission } = usePermission();
   const [myNewData, setMyNewData] = useState({});
   const { realtimeData, hasRealtimeData } = useAlarmHistoryData({
@@ -633,6 +639,12 @@ export const DockPageContent = ({
     };
   }, [portsSocket, id]);
 
+  useEffect(() => {
+    dispatch(resetErrorDialog());
+    dispatch(resetSessionCompleteDialog());
+  }, []);
+
+
   if (
     berthData?.status?.id === BERTH_STATUS.AVAILABLE &&
     !hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT)
@@ -647,12 +659,22 @@ export const DockPageContent = ({
       <Box
         className={styles.container}
         style={{
-          gridTemplateColumns: isFullScreen ? "1fr" : `1fr ${SIDEBAR_WIDTH}px`,
+          gridTemplateColumns: isFullScreen
+            ? "1fr"
+            : isSidebarOpen
+              ? `1fr ${SIDEBAR_WIDTH}px`
+              : "1fr 0px",
         }}
       >
         <Box className={styles.main} ref={mainRef}>
           <VisualizationV2
-            width={isFullScreen ? screenWidth : screenWidth - SIDEBAR_WIDTH}
+            width={
+              isFullScreen
+                ? screenWidth
+                : isSidebarOpen
+                  ? screenWidth - SIDEBAR_WIDTH
+                  : screenWidth - 0
+            }
             height={screenHeight}
             sensorAData={sensorAData}
             sensorBData={sensorBData}
@@ -676,6 +698,7 @@ export const DockPageContent = ({
             }
             sensorErrors={sensorErrors}
             isShipVisible={isShipVisible}
+            sidebarCollapsed={!isSidebarOpen}
           />
 
           <Compass direction={berthData.directionCompass} />
@@ -727,71 +750,81 @@ export const DockPageContent = ({
         </Box>
 
         {!isFullScreen && (
-          <Box className={styles.sideBar}>
-            <Box>
-              <ProfileInformation />
+          <Box className={styles.sideBar} style={{ position: "relative" }}>
+            <IconButton
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              style={{ position: "absolute", left: -40, top: screenHeight / 2 }}
+            >
+              {isSidebarOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            </IconButton>
+            {isSidebarOpen && (
+              <>
+                <Box>
+                  <ProfileInformation />
 
-              <Divider />
-            </Box>
-
-            <SidebarMainContainer screenHeight={screenHeight}>
-              <Box p={2}>
-                <Widget />
-              </Box>
-
-              <Box>
-                <BerthWidget berthData={berthData} />
-              </Box>
-
-              {berthData?.status?.id === 2 && (
-                <>
                   <Divider />
-
-                  {true ? (
-                    <AlarmHistoryOptimizedTable
-                      onClickSettings={() => setShowsAlarmSetting(true)}
-                      pastData={pastData}
-                      hasPastData={hasPastData}
-                      realtimeData={realtimeData}
-                      hasRealtimeData={hasRealtimeData}
-                      sensorAToFender={berthData?.distanceToLeft || 0}
-                      sensorBToFender={berthData?.distanceToRight || 0}
-                    />
-                  ) : (
-                    <AlarmHistoryTable
-                      berthId={berthData?.id}
-                      berthStatus={berthData?.status?.id}
-                      hasData={gettingRTData}
-                      latestData={latestData}
-                      onClickSettings={() => setShowsAlarmSetting(true)}
-                      sensorAId={berthData?.leftDevice?.id}
-                      sensorBId={berthData?.rightDevice?.id}
-                      sensorAToFender={berthData?.distanceToLeft || 0}
-                      sensorBToFender={berthData?.distanceToRight || 0}
-                    />
-                  )}
-                </>
-              )}
-            </SidebarMainContainer>
-
-            {berthData?.status?.id !== BERTH_STATUS.AVAILABLE &&
-              berthData?.status?.id !== BERTH_STATUS.MOORING &&
-              hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT) && (
-                <Box mt="auto">
-                  <Divider />
-
-                  <Box p={2}>
-                    <Button
-                      onClick={triggerStopRecording}
-                      className="custom-danger-button"
-                      style={{ width: "100%" }}
-                    >
-                      <StopIcon size="small" style={{ color: "white" }} />
-                      <span>{t("dock:stop-recording")}</span>
-                    </Button>
-                  </Box>
                 </Box>
-              )}
+
+                <SidebarMainContainer screenHeight={screenHeight}>
+                  <Box p={2}>
+                    <Widget />
+                  </Box>
+
+                  <Box>
+                    <BerthWidget berthData={berthData} />
+                  </Box>
+
+                  {berthData?.status?.id === 2 && (
+                    <>
+                      <Divider />
+
+                      {true ? (
+                        <AlarmHistoryOptimizedTable
+                          onClickSettings={() => setShowsAlarmSetting(true)}
+                          pastData={pastData}
+                          hasPastData={hasPastData}
+                          realtimeData={realtimeData}
+                          hasRealtimeData={hasRealtimeData}
+                          sensorAToFender={berthData?.distanceToLeft || 0}
+                          sensorBToFender={berthData?.distanceToRight || 0}
+                        />
+                      ) : (
+                        <AlarmHistoryTable
+                          berthId={berthData?.id}
+                          berthStatus={berthData?.status?.id}
+                          hasData={gettingRTData}
+                          latestData={latestData}
+                          onClickSettings={() => setShowsAlarmSetting(true)}
+                          sensorAId={berthData?.leftDevice?.id}
+                          sensorBId={berthData?.rightDevice?.id}
+                          sensorAToFender={berthData?.distanceToLeft || 0}
+                          sensorBToFender={berthData?.distanceToRight || 0}
+                        />
+                      )}
+                    </>
+                  )}
+                </SidebarMainContainer>
+
+                {berthData?.status?.id !== BERTH_STATUS.AVAILABLE &&
+                  berthData?.status?.id !== BERTH_STATUS.MOORING &&
+                  hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT) && (
+                    <Box mt="auto">
+                      <Divider />
+
+                      <Box p={2}>
+                        <Button
+                          onClick={triggerStopRecording}
+                          className="custom-danger-button"
+                          style={{ width: "100%" }}
+                        >
+                          <StopIcon size="small" style={{ color: "white" }} />
+                          <span>{t("dock:stop-recording")}</span>
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
+              </>
+            )}
           </Box>
         )}
 
@@ -800,7 +833,7 @@ export const DockPageContent = ({
           zoom={zoom}
           onZoom={setZoom}
           left={
-            isFullScreen
+            isFullScreen || !isSidebarOpen
               ? screenWidth - BUTTONS_RIGHT_MARGIN
               : screenWidth - BUTTONS_RIGHT_MARGIN - SIDEBAR_WIDTH
           }

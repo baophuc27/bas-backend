@@ -3,6 +3,10 @@
         "list" : "Data App Management",
         "detail" : "Data App Detail"
     },
+    "type":{
+        "fixed" : "Fixed",
+        "dynamic": "Dynamic"
+    },
     "general_information": {
         "general_information": "General Information",
         "data_app_name": "Display Name",
@@ -12,7 +16,8 @@
         "last_data_active": "Last Data Active",
         "last_heartbeat": "Last Heartbeat",
         "berth" : "Berth Occupying",
-        "enter_name" : "Enter Display Name"
+        "enter_name" : "Enter Display Name",
+        "type" : "Data App Type"
     },
     "empty" : "Empty",
     "update_success" : "Update Data App Success",
@@ -20,6 +25,7 @@
     "create_success" : "Create New Data App Success",
     "create_failed" : "Create Data App Failed",
     "generate_code_failed" : "Generate code failed",
+    "update_failed_by_occupied_berth": "This berth is occupied by a fixed data app.",
     "generate_new_code" : "Generate New Code",
     "dialog" : {
         "delete_title" : "Delete data app",
@@ -43,6 +49,9 @@
     "berthing" : {
         "update_success" : "Update Data App Success",
         "update_failed" : "Update Data App Failed"
+    },
+    "note": {
+        "type_required" : "Please select a berth for fixed data app"
     }
     
 }

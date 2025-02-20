@@ -514,12 +514,15 @@ const BerthingSettingDialog = ({
   }, [data]);
 
   useEffect(() => {
-    // grey = data real time - user input
-    // có socket trả về -> data socket - user input, case user input rỗng = -4
-    // k có socket trả về -> always '-'
     if (socketData) {
       let currentDistanceLeft = "-";
-      if (socketData?.left_sensor?.value) {
+      let leftSensorStatus = 2;
+      let leftSensorStatusText = "disconnected";
+
+      if (
+        socketData?.left_sensor?.value !== undefined &&
+        socketData?.left_sensor?.value !== null
+      ) {
         if (values.leftSensorDistance) {
           currentDistanceLeft = (
             socketData?.left_sensor?.value - values.leftSensorDistance
@@ -527,9 +530,20 @@ const BerthingSettingDialog = ({
         } else {
           currentDistanceLeft = (socketData?.left_sensor?.value).toFixed(3);
         }
+        leftSensorStatus = socketData?.left_sensor?.error
+          ? 2
+          : socketData?.left_sensor?.status;
+        leftSensorStatusText = socketData?.left_sensor?.error ?? "normal";
       }
+
       let currentDistanceRight = "-";
-      if (socketData?.right_sensor?.value) {
+      let rightSensorStatus = 2;
+      let rightSensorStatusText = "disconnected";
+
+      if (
+        socketData?.right_sensor?.value !== undefined &&
+        socketData?.right_sensor?.value !== null
+      ) {
         if (values.rightSensorDistance) {
           currentDistanceRight = (
             socketData?.right_sensor?.value - values.rightSensorDistance
@@ -537,20 +551,19 @@ const BerthingSettingDialog = ({
         } else {
           currentDistanceRight = (socketData?.right_sensor?.value).toFixed(3);
         }
+        rightSensorStatus = socketData?.right_sensor?.error
+          ? 2
+          : socketData?.right_sensor?.status;
+        rightSensorStatusText = socketData?.right_sensor?.error ?? "normal";
       }
+
       setSensorSocketData({
         currentDistanceLeft,
         currentDistanceRight,
-        leftSensorStatus:
-          socketData?.left_sensor?.error || !socketData?.left_sensor?.value
-            ? 2 // error code
-            : socketData?.left_sensor?.status,
-        leftSensorStatusText: socketData?.left_sensor?.error ?? "normal",
-        rightSensorStatus:
-          socketData?.right_sensor?.error || !socketData?.right_sensor?.value
-            ? 2 // error code
-            : socketData?.right_sensor?.status,
-        rightSensorStatusText: socketData?.right_sensor?.error ?? "normal",
+        leftSensorStatus,
+        leftSensorStatusText,
+        rightSensorStatus,
+        rightSensorStatusText,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

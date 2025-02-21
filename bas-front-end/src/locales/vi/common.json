@@ -46,7 +46,7 @@
       "berth_management": "Quản lý Bến",
       "port-info": "Thông Tin Cảng",
       "alarm-history": "Lịch Sử Cảnh Báo",
-      "data-app-management" : "Quản lý Ứng dụng Dữ liệu"
+      "data-app-management": "Quản lý Ứng dụng Dữ liệu"
     }
   },
   "language": {
@@ -122,7 +122,7 @@
   "role": {
     "admin": "Quản Lý",
     "config": "Cấu Hình",
-    "viewer": "Nguời Xem"
+    "viewer": "Người Xem"
   },
   "player": {
     "loading": "Đang tải dữ liệu"

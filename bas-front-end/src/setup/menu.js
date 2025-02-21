@@ -7,7 +7,7 @@ import {
   Port,
   RecordManagement,
   User,
-  UserGroup
+  UserGroup,
 } from "common/components/icons";
 import { FEATURES } from "common/constants/feature.constant";
 
@@ -70,7 +70,8 @@ const menuItems = [
     labelId: "common:menu.items.data-app-management",
     icon: DataApp,
     to: "/dashboard/data-app-management",
-    common: true
+    feature: FEATURES.BERTH_MANAGEMENT,
+    // common: true,
   },
   {
     labelId: "common:menu.items.log-out",

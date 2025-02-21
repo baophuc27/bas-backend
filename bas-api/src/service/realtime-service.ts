@@ -934,6 +934,14 @@ const initRealtimeGeneral = async (io: Server) => {
         socket.join(room);
         rooms.add(room);
         console.log(`Socket ${socket.id} joined general events room ${room}`);
+        
+        // if device data exists from initDeviceData and initRealtimeDevice, clear latest messages
+        if (deviceRealtime.has(generateKey(parseInt(berthId, 10), socket.auth.orgId))) {
+          generalLatestErrorMessages.delete(room);
+          generalLatestEndMessages.delete(room);
+          console.log(`[initRealtimeGeneral] Device data found for room ${room}. Cleared latest messages.`);
+        }
+        // if berth is available, clear latest message
         const joinTime = Date.now();
         setTimeout(() => {
           (async () => {

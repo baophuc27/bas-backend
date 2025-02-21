@@ -2,7 +2,7 @@ import { AuthCheck, DesktopView, MobileView } from "common/components";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
 import { AppLayout, LeftMenu, PageBreadcrumbs, PageHeader } from "../index";
 import classes from "./dashboard-layout.style.module.css";
@@ -10,12 +10,17 @@ import classes from "./dashboard-layout.style.module.css";
 export const DashboardLayout = (props) => {
   const { t, i18n } = useTranslation();
   const { titleId, titleParams } = useSelector((state) => state?.pageConfig);
+  const location = useLocation();
 
   useEffect(() => {
-    document.title = `${t("common:app.name")} | ${t(titleId, titleParams)}`;
+    if (location.pathname === "/") {
+      document.title = t("common:app.name");
+    } else {
+      document.title = `${t("common:app.name")} | ${t(titleId, titleParams)}`;
+    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i18n?.language, titleId, titleParams]);
+  }, [i18n?.language, titleId, titleParams, location.pathname]);
 
   return (
     <AuthCheck>

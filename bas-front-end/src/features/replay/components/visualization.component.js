@@ -4,8 +4,8 @@ import { AlarmStatusColor, NORMAL_STATUS_ID } from "../constants/alarm-status";
 import { t } from "i18next";
 import { Ship } from "./ship.component";
 
-const HABOUR_WIDTH = 240;
-const HABOUR_HEIGHT = 30;
+const HABOUR_WIDTH = 78;
+const HABOUR_HEIGHT = 12;
 const SENSOR_WIDTH = 24;
 const SENSOR_HEIGHT = 24;
 
@@ -45,12 +45,12 @@ export const Visualization = ({
   limitZone1 = null,
   limitZone2 = null,
   limitZone3 = null,
-  distanceToFender,
+  distanceToFender = 20,
   distanceToLeft,
   sensorsDistance,
   sensorAData,
   sensorBData,
-  shipLength = 176,
+  shipLength = 100,
   gettingRTData = false,
   isMooring = false,
   sensorAHasErrors = false,
@@ -67,7 +67,7 @@ export const Visualization = ({
 
   const habourX = (width - habourWidth) / 2;
   const habourY = height - 170; // hud height
-
+  const sensorY = habourY + getDrawingDistance(distanceToFender) - 20;
   const shipWidth = (getDrawingDistance(shipLength) * 93) / 643;
 
   const hasDeviceErrors = sensorAHasErrors || sensorBHasErrors;
@@ -210,15 +210,13 @@ export const Visualization = ({
             height={SENSOR_HEIGHT}
             cornerRadius={6}
             x={habourX + getDrawingDistance(distanceToLeft)}
-            y={habourY + getDrawingDistance(distanceToFender)}
+            y={sensorY}
             fill="#000"
           />
 
           <Circle
             x={habourX + getDrawingDistance(distanceToLeft) + SENSOR_WIDTH / 2}
-            y={
-              habourY + getDrawingDistance(distanceToFender) + SENSOR_WIDTH / 2
-            }
+            y={sensorY + 10}
             // fill="white"
             radius={SENSOR_WIDTH / 5}
             fill={
@@ -288,7 +286,7 @@ export const Visualization = ({
               getDrawingDistance(distanceToLeft) +
               getDrawingDistance(sensorsDistance)
             }
-            y={habourY + getDrawingDistance(distanceToFender)}
+            y={sensorY}
             fill="#000"
           />
 
@@ -299,9 +297,7 @@ export const Visualization = ({
               getDrawingDistance(sensorsDistance) +
               SENSOR_WIDTH / 2
             }
-            y={
-              habourY + getDrawingDistance(distanceToFender) + SENSOR_WIDTH / 2
-            }
+            y={sensorY + 10}
             // fill="white"
             radius={SENSOR_WIDTH / 5}
             fill={

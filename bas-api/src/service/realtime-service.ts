@@ -935,12 +935,18 @@ const initRealtimeGeneral = async (io: Server) => {
         rooms.add(room);
         console.log(`Socket ${socket.id} joined general events room ${room}`);
         
-        // if device data exists from initDeviceData and initRealtimeDevice, clear latest messages
-        if (deviceRealtime.has(generateKey(parseInt(berthId, 10), socket.auth.orgId))) {
+        const key = generateKey(parseInt(berthId, 10), socket.auth.orgId);
+        const now = Date.now();
+        const lastDataTimestamp = lastDataTimestamps.get(key);
+        const FIVE_SECONDS = 5000;
+
+        // Check if device has recent data (within last 5 seconds)
+        if (lastDataTimestamp && (now - lastDataTimestamp) <= FIVE_SECONDS) {
           generalLatestErrorMessages.delete(room);
           generalLatestEndMessages.delete(room);
-          console.log(`[initRealtimeGeneral] Device data found for room ${room}. Cleared latest messages.`);
+          console.log(`[initRealtimeGeneral] Recent device data found for room ${room}. Cleared latest messages.`);
         }
+
         // if berth is available, clear latest message
         const joinTime = Date.now();
         setTimeout(() => {
@@ -1088,9 +1094,11 @@ const watchingBerth = async () => {
           });
         }
       }
-
+      
       // Check if record duration exceeds 6 hours
-      if (value.beginTs + TIMEOUT_RECORD < now) {
+      const berth = await berthDao.getBerthInfo(berthId, orgId);
+      if (berth?.status!=1){
+              if (value.beginTs + TIMEOUT_RECORD < now) {
         const berth = await berthDao.getBerthInfo(berthId, orgId);
         console.log('Berth: ', berth);
         if (!berth || !berth.leftDevice || !berth.rightDevice) {
@@ -1111,6 +1119,7 @@ const watchingBerth = async () => {
           isFinish: true,
         });
         console.log('End record: ', isSync);
+      }
       }
 
       // Data check if no data received in 30 seconds

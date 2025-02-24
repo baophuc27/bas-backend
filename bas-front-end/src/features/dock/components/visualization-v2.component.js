@@ -87,7 +87,7 @@ export const VisualizationV2 = ({
   const [showsRightTooltip, setShowsRightTooltip] = useState(false);
 
   const getDrawingDistance = (actualDistance) => {
-    return ((actualDistance * width) / HABOUR_WIDTH) * zoom * 0.8;
+    return ((actualDistance * width) / HABOUR_WIDTH) * zoom;
   };
 
   const drawingWidth = width;
@@ -111,11 +111,13 @@ export const VisualizationV2 = ({
   const rightSensorX = leftSensorX + getDrawingDistance(sensorsDistance);
 
   // Calculate sensor Y positions using distanceToFender
-  const sensorY = harbourUpPosition - getDrawingDistance(distanceToFender);
+  const sensorY =
+    harbourUpPosition + getDrawingDistance(distanceToFender) * 0.3;
+  // harbourUpPosition + getDrawingDistance(distanceToFender) * 0.5;
 
   // Calculate scaled sensor dimensions
-  const sensorWidth = getDrawingDistance(SENSOR_BASE_WIDTH);
-  const sensorHeight = getDrawingDistance(SENSOR_BASE_HEIGHT);
+  const sensorWidth = getDrawingDistance(SENSOR_BASE_WIDTH)*0.6;
+  const sensorHeight = getDrawingDistance(SENSOR_BASE_HEIGHT)*0.6;
 
   const leftTooltipWidth =
     LEFT_TOOLTIP_PADDING +
@@ -144,12 +146,12 @@ export const VisualizationV2 = ({
   });
 
   function Harbour({ x, y, width, height }) {
-    const sideRectWidth = height;
-    const sideRectHeight = height * 0.6;
-    const middleRectWidth = height * 0.3;
-    const middleRectHeight = height * 0.4;
-    const centerRectWidth = height * 1.5;
-    const centerRectHeight = height * 1.5;
+    const sideRectWidth = height * 0.7;
+    const sideRectHeight = height * 0.4;
+    const middleRectWidth = height * 0.2;
+    const middleRectHeight = height * 0.25;
+    const centerRectWidth = height * 1;
+    const centerRectHeight = height * 1;
 
     const totalRectanglesWidth =
       2 * sideRectWidth + 2 * middleRectWidth + centerRectWidth;

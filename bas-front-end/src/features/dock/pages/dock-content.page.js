@@ -639,10 +639,10 @@ export const DockPageContent = ({
     };
   }, [portsSocket, id]);
 
-  useEffect(() => {
-    dispatch(resetErrorDialog());
-    dispatch(resetSessionCompleteDialog());
-  }, []);
+  // useEffect(() => {
+  //   dispatch(resetErrorDialog());
+  //   dispatch(resetSessionCompleteDialog());
+  // }, []);
 
 
   if (

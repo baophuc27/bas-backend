@@ -351,7 +351,7 @@ export const DockPageContent = ({
           buttons: t("home:dialogs.device-error.ok"),
         });
       } finally {
-          // Clear only this specific error from the state
+        // Clear only this specific error from the state
         dispatch(
           setCurrentErrorDialog({
             berthId: null,
@@ -376,21 +376,27 @@ export const DockPageContent = ({
         }),
       );
 
+      const buttons = {
+        cancel: t("dock:dialogs.stop-recording.cancel"),
+        available: {
+          text: t("dock:dialogs.stop-recording.available"),
+          value: "available",
+        },
+      };
+
+      // Only show mooring option if not in DEPARTING status
+      if (berthData?.status?.id !== BERTH_STATUS.DEPARTING) {
+        buttons.mooring = {
+          text: t("dock:dialogs.stop-recording.mooring"),
+          value: "mooring",
+        };
+      }
+
       const value = await swal({
         title: t("home:dialogs.session-completed.title"),
         text: t("dock:dialogs.session-completed.message"),
         icon: "info",
-        buttons: {
-          cancel: t("dock:dialogs.stop-recording.cancel"),
-          available: {
-            text: t("dock:dialogs.stop-recording.available"),
-            value: "available",
-          },
-          mooring: {
-            text: t("dock:dialogs.stop-recording.mooring"),
-            value: "mooring",
-          },
-        },
+        buttons: buttons,
         showCloseButton: true,
       });
       portsSocket?.off("COMPLETED_SESSION");
@@ -479,26 +485,26 @@ export const DockPageContent = ({
         setShowsBerthingSettings(true);
       }
 
-      if (berthData?.status?.id === BERTH_STATUS.MOORING) {
-        setSensorAData({
-          speed: 0,
-          distance: 5,
-          status_id: NORMAL_STATUS_ID,
-          original_distance: 5,
-        });
+      // if (berthData?.status?.id === BERTH_STATUS.MOORING) {
+      //   setSensorAData({
+      //     speed: 0,
+      //     distance: 5,
+      //     status_id: NORMAL_STATUS_ID,
+      //     original_distance: 5,
+      //   });
 
-        setSensorBData({
-          speed: 0,
-          distance: 5,
-          status_id: NORMAL_STATUS_ID,
-          original_distance: 5,
-        });
+      //   setSensorBData({
+      //     speed: 0,
+      //     distance: 5,
+      //     status_id: NORMAL_STATUS_ID,
+      //     original_distance: 5,
+      //   });
 
-        setAngleData({
-          value: 0,
-          status_id: NORMAL_STATUS_ID,
-        });
-      }
+      //   setAngleData({
+      //     value: 0,
+      //     status_id: NORMAL_STATUS_ID,
+      //   });
+      // }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -541,11 +547,11 @@ export const DockPageContent = ({
   }, [id, socket]);
 
   const isShipVisible = useMemo(() => {
-    const isMooring = berthData?.status?.id === BERTH_STATUS.MOORING;
+    // const isMooring = berthData?.status?.id === BERTH_STATUS.MOORING;
 
-    if (isMooring) {
-      return true;
-    }
+    // if (isMooring) {
+    //   return true;
+    // }
 
     const leftNoErrors = !("left_sensor" in sensorErrors);
     const leftWeakSignal = sensorErrors["left_sensor"] === "weak_signal";
@@ -721,7 +727,7 @@ export const DockPageContent = ({
             distanceToLeft={berthData?.distanceFender}
             // distanceToRight={berthData?.distanceToRight}
             zoom={zoom}
-            isMooring={berthData?.status?.id === BERTH_STATUS.MOORING}
+            // isMooring={berthData?.status?.id === BERTH_STATUS.MOORING}
             gettingRTData={gettingRTData}
             sensorAHasErrors={sensorErrors?.left_sensor}
             sensorBHasErrors={sensorErrors?.right_sensor}

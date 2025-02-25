@@ -334,7 +334,8 @@ export const DockPageContent = ({
     const errorCode = data?.errorCode;
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
-    if (!(berthId in errorDialogs) || errorDialogs?.[berthId] !== errorCode) {
+    // Only show if this specific error hasn't been shown yet
+    if (!(berthId in errorDialogs)) {
       dispatch(
         setCurrentErrorDialog({
           berthId,
@@ -342,12 +343,22 @@ export const DockPageContent = ({
         }),
       );
 
-      await swal({
-        title: t("home:dialogs.device-error.title"),
-        text: errorContent,
-        icon: "error",
-        buttons: t("home:dialogs.device-error.ok"),
-      });
+      try {
+        await swal({
+          title: t("home:dialogs.device-error.title"),
+          text: errorContent,
+          icon: "error",
+          buttons: t("home:dialogs.device-error.ok"),
+        });
+      } finally {
+          // Clear only this specific error from the state
+        dispatch(
+          setCurrentErrorDialog({
+            berthId: null,
+            errorCode: null,
+          }),
+        );
+      }
     }
   };
 
@@ -613,11 +624,29 @@ export const DockPageContent = ({
   useEffect(() => {
     if (!portsSocket) return;
 
+    let currentErrors = new Set();
+
     const handleCompletedSession = (data) => {
-      showsCompleteSessionDialog(sessionCompleteDialogs, JSON.parse(data));
+      try {
+        const parsedData = JSON.parse(data);
+        showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
+      } catch (error) {
+        console.error("Error handling completed session:", error);
+      }
     };
     const handleDeviceError = (data) => {
-      showsErrorDialog(JSON.parse(data));
+      try {
+        const parsedData = JSON.parse(data);
+        const errorKey = `${parsedData?.berth?.id}_${parsedData?.sessionId}_${parsedData?.errorCode}`;
+
+        // Only show error if we haven't shown it yet
+        if (!currentErrors.has(errorKey)) {
+          currentErrors.add(errorKey);
+          showsErrorDialog(parsedData);
+        }
+      } catch (error) {
+        console.error("Error handling device error:", error);
+      }
     };
 
     portsSocket.on("COMPLETED_SESSION", handleCompletedSession);
@@ -633,17 +662,20 @@ export const DockPageContent = ({
     }
 
     return () => {
+      currentErrors.clear();
       portsSocket.off("COMPLETED_SESSION", handleCompletedSession);
       portsSocket.off("DEVICE_ERROR", handleDeviceError);
       portsSocket.off("connect", handleConnect);
     };
   }, [portsSocket, id]);
 
-  // useEffect(() => {
-  //   dispatch(resetErrorDialog());
-  //   dispatch(resetSessionCompleteDialog());
-  // }, []);
-
+  useEffect(() => {
+    return () => {
+      // Clear dialogs when component unmounts
+      dispatch(resetErrorDialog());
+      dispatch(resetSessionCompleteDialog());
+    };
+  }, [dispatch]);
 
   if (
     berthData?.status?.id === BERTH_STATUS.AVAILABLE &&

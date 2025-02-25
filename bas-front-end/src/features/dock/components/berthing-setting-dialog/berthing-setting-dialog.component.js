@@ -514,64 +514,64 @@ const BerthingSettingDialog = ({
   }, [data]);
 
   useEffect(() => {
-    // if (socketData) {
-    let currentDistanceLeft = "-";
-    let leftSensorStatus = 2; // default to disconnected
-    let leftSensorStatusText = "disconnected";
+    if (socketData) {
+      let currentDistanceLeft = "-";
+      let leftSensorStatus = 2; // default to disconnected
+      let leftSensorStatusText = "disconnected";
 
-    if (socketData?.left_sensor?.status !== undefined) {
-      if (socketData?.left_sensor?.value !== null) {
-        if (values.leftSensorDistance) {
-          currentDistanceLeft = (
-            socketData?.left_sensor?.value - values.leftSensorDistance
-          ).toFixed(3);
+      if (socketData?.left_sensor?.status !== undefined) {
+        if (socketData?.left_sensor?.value !== null) {
+          if (values.leftSensorDistance) {
+            currentDistanceLeft = (
+              socketData?.left_sensor?.value - values.leftSensorDistance
+            ).toFixed(3);
+          } else {
+            currentDistanceLeft = (socketData?.left_sensor?.value).toFixed(3);
+          }
+          leftSensorStatus = socketData?.left_sensor?.error
+            ? 2
+            : socketData?.left_sensor?.status;
+          leftSensorStatusText = socketData?.left_sensor?.error ?? "normal";
         } else {
-          currentDistanceLeft = (socketData?.left_sensor?.value).toFixed(3);
+          currentDistanceLeft = "-";
+          leftSensorStatus = 2;
+          leftSensorStatusText = "lost_target";
         }
-        leftSensorStatus = socketData?.left_sensor?.error
-          ? 2
-          : socketData?.left_sensor?.status;
-        leftSensorStatusText = socketData?.left_sensor?.error ?? "normal";
-      } else {
-        currentDistanceLeft = "-";
-        leftSensorStatus = 2;
-        leftSensorStatusText = "lost_target";
       }
-    }
 
-    let currentDistanceRight = "-";
-    let rightSensorStatus = 2; // default to disconnected
-    let rightSensorStatusText = "disconnected";
+      let currentDistanceRight = "-";
+      let rightSensorStatus = 2; // default to disconnected
+      let rightSensorStatusText = "disconnected";
 
-    if (socketData?.right_sensor?.status !== undefined) {
-      if (socketData?.right_sensor?.value !== null) {
-        if (values.rightSensorDistance) {
-          currentDistanceRight = (
-            socketData?.right_sensor?.value - values.rightSensorDistance
-          ).toFixed(3);
+      if (socketData?.right_sensor?.status !== undefined) {
+        if (socketData?.right_sensor?.value !== null) {
+          if (values.rightSensorDistance) {
+            currentDistanceRight = (
+              socketData?.right_sensor?.value - values.rightSensorDistance
+            ).toFixed(3);
+          } else {
+            currentDistanceRight = (socketData?.right_sensor?.value).toFixed(3);
+          }
+          rightSensorStatus = socketData?.right_sensor?.error
+            ? 2
+            : socketData?.right_sensor?.status;
+          rightSensorStatusText = socketData?.right_sensor?.error ?? "normal";
         } else {
-          currentDistanceRight = (socketData?.right_sensor?.value).toFixed(3);
+          currentDistanceRight = "-";
+          rightSensorStatus = 2;
+          rightSensorStatusText = "lost_target";
         }
-        rightSensorStatus = socketData?.right_sensor?.error
-          ? 2
-          : socketData?.right_sensor?.status;
-        rightSensorStatusText = socketData?.right_sensor?.error ?? "normal";
-      } else {
-        currentDistanceRight = "-";
-        rightSensorStatus = 2;
-        rightSensorStatusText = "lost_target";
       }
-    }
 
-    setSensorSocketData({
-      currentDistanceLeft,
-      currentDistanceRight,
-      leftSensorStatus,
-      leftSensorStatusText,
-      rightSensorStatus,
-      rightSensorStatusText,
-    });
-    // }
+      setSensorSocketData({
+        currentDistanceLeft,
+        currentDistanceRight,
+        leftSensorStatus,
+        leftSensorStatusText,
+        rightSensorStatus,
+        rightSensorStatusText,
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socketData]);
 

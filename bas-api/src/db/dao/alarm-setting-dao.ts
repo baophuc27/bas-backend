@@ -39,8 +39,6 @@ const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto, t?: Transac
     {
       where: {
         id: alarmSettingDto.id,
-        berthId: alarmSettingDto.berthId,
-        orgId: alarmSettingDto.orgId,
       },
       ...(t && { transaction: t }),
       returning: true,

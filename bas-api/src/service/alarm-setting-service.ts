@@ -113,28 +113,25 @@ export const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto[], or
 
       if (alarmSettingUpdate[i + 1].value >= alarmSettingUpdate[i].value) {
         throw new BadRequestException(
-          `Value of id = ${alarmSettingUpdate[i + 1].id} must less than ${
-            alarmSettingUpdate[i].value
+          `Value of id = ${alarmSettingUpdate[i + 1].id} must less than ${alarmSettingUpdate[i].value
           }`
         );
       }
 
       if (alarmSettingUpdate[i + 1].value && i > 0 && !alarmSettingUpdate[i].value) {
         throw new BadRequestException(
-          `Value of id = ${alarmSettingUpdate[i].id} must greater than ${
-            alarmSettingUpdate[i + 1].value
+          `Value of id = ${alarmSettingUpdate[i].id} must greater than ${alarmSettingUpdate[i + 1].value
           } and less than ${alarmSettingUpdate[i - 1].value}`
         );
       }
 
+      // Remove validation that prevents negative values for distance
       if (
-        alarmSettingUpdate[alarmSettingUpdate.length - 1].value == undefined ||
-        alarmSettingUpdate[alarmSettingUpdate.length - 1].value < 0
+        alarmSettingUpdate[alarmSettingUpdate.length - 1].value == undefined
       ) {
         throw new BadRequestException(
-          `Value of id = ${
-            alarmSettingUpdate[alarmSettingUpdate.length - 1].id
-          } must greater than 0`
+          `Value of id = ${alarmSettingUpdate[alarmSettingUpdate.length - 1].id
+          } must be defined`
         );
       }
     }
@@ -155,16 +152,14 @@ export const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto[], or
 
       if (alarmSettingUpdate[i + 1].value <= alarmSettingUpdate[i].value) {
         throw new BadRequestException(
-          `Value of id = ${alarmSettingUpdate[i + 1].id} must greater than ${
-            alarmSettingUpdate[i].value
+          `Value of id = ${alarmSettingUpdate[i + 1].id} must greater than ${alarmSettingUpdate[i].value
           }`
         );
       }
 
       if (alarmSettingUpdate[i + 1] && i > 0 && !alarmSettingUpdate[i].value) {
         throw new BadRequestException(
-          `Value of id = ${alarmSettingUpdate[i].id} must less than ${
-            alarmSettingUpdate[i + 1].value
+          `Value of id = ${alarmSettingUpdate[i].id} must less than ${alarmSettingUpdate[i + 1].value
           } and greater than ${alarmSettingUpdate[i - 1].value}`
         );
       }
@@ -210,7 +205,6 @@ export const resetDataAlarmSetting = async (berthId: number, orgId: number) => {
         {
           ...rs[index],
           id: alarmSetting.id,
-          orgId: alarmSetting.orgId,
         } as AlarmSettingUpdateDto,
         t
       );

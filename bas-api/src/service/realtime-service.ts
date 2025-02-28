@@ -44,7 +44,7 @@ let realtimeSocket: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsM
   null as any;
 const rooms = new Set<String>();
 let generalLatestErrorMessages = new Map<string, { eventName: string; data: string; timestamp: number }>();
-let generalLatestEndMessages   = new Map<string, { eventName: string; data: string; timestamp: number }>();
+let generalLatestEndMessages = new Map<string, { eventName: string; data: string; timestamp: number }>();
 let generalSocket: Namespace<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any> =
   null as any;
 let berthIsRunning = new Map<
@@ -394,10 +394,10 @@ function cleanData(data: SocketRealtimeData, berth: Berth | null) {
     device.forEach((sensor) => {
       result[sensor.id] = value[sensor.name]?.value
         ? {
-            value: value[sensor.name]?.value,
-            alarm: value[sensor.name]?.alarm,
-            zone: value[sensor.name]?.zone,
-          }
+          value: value[sensor.name]?.value,
+          alarm: value[sensor.name]?.alarm,
+          zone: value[sensor.name]?.zone,
+        }
         : null;
     });
     return result;
@@ -409,10 +409,10 @@ function cleanData(data: SocketRealtimeData, berth: Berth | null) {
     speed: mapData(data.speed, [berth?.leftDevice, berth?.rightDevice]),
     angle: data.angle?.value
       ? {
-          value: data.angle?.value,
-          alarm: data.angle?.alarm,
-          zone: data.angle?.zone,
-        }
+        value: data.angle?.value,
+        alarm: data.angle?.alarm,
+        zone: data.angle?.zone,
+      }
       : null,
   };
 }
@@ -449,36 +449,36 @@ const processData = async (objectData: SocketRealtimeData): Promise<any> => {
     const right = ['both', 'right'].includes(device.side) ? device.status : DeviceStatus.CONNECT;
 
     if (record.mooringStatus !== 'MOORING') {
-    await recordHistoryService.createRecordHistory(
-      {
-        leftDistance: objectData.distance[berth?.leftDevice?.name]?.value,
-        rightDistance: objectData.distance[berth?.rightDevice?.name]?.value,
-        leftSpeed: objectData.speed[berth?.leftDevice?.name]?.value,
-        rightSpeed: objectData.speed[berth?.rightDevice?.name]?.value,
-        angle: objectData?.angle?.value,
-        leftStatus: left,
-        rightStatus: right,
-        LDistanceAlarm: objectData.distance[berth?.leftDevice?.name]?.alarm,
-        RDistanceAlarm: objectData.distance[berth?.rightDevice?.name]?.alarm,
-        LSpeedAlarm: objectData.speed[berth?.leftDevice?.name]?.alarm,
-        RSpeedAlarm: objectData.speed[berth?.rightDevice?.name]?.alarm,
-        angleAlarm: objectData.angle?.alarm,
-        LSpeedZone: objectData.speed[berth?.leftDevice?.name]?.zone,
-        RSpeedZone: objectData.speed[berth?.rightDevice?.name]?.zone,
-        LDistanceZone: objectData.distance[berth?.leftDevice?.name]?.zone,
-        RDistanceZone: objectData.distance[berth?.rightDevice?.name]?.zone,
-        angleZone: objectData.angle?.zone,
-        time: moment(objectData.eventTime).utc().toDate(),
-        recordId: record.id,
-        berthId: record.berthId,
-        orgId: record.orgId,
-      } as RecordHistoryInput,
-      {
-        left: berth.leftDevice?.id,
-        right: berth.rightDevice?.id,
-      },
-      record?.mooringStatus ?? 'DEPARTING'
-    );
+      await recordHistoryService.createRecordHistory(
+        {
+          leftDistance: objectData.distance[berth?.leftDevice?.name]?.value,
+          rightDistance: objectData.distance[berth?.rightDevice?.name]?.value,
+          leftSpeed: objectData.speed[berth?.leftDevice?.name]?.value,
+          rightSpeed: objectData.speed[berth?.rightDevice?.name]?.value,
+          angle: objectData?.angle?.value,
+          leftStatus: left,
+          rightStatus: right,
+          LDistanceAlarm: objectData.distance[berth?.leftDevice?.name]?.alarm,
+          RDistanceAlarm: objectData.distance[berth?.rightDevice?.name]?.alarm,
+          LSpeedAlarm: objectData.speed[berth?.leftDevice?.name]?.alarm,
+          RSpeedAlarm: objectData.speed[berth?.rightDevice?.name]?.alarm,
+          angleAlarm: objectData.angle?.alarm,
+          LSpeedZone: objectData.speed[berth?.leftDevice?.name]?.zone,
+          RSpeedZone: objectData.speed[berth?.rightDevice?.name]?.zone,
+          LDistanceZone: objectData.distance[berth?.leftDevice?.name]?.zone,
+          RDistanceZone: objectData.distance[berth?.rightDevice?.name]?.zone,
+          angleZone: objectData.angle?.zone,
+          time: moment(objectData.eventTime).utc().toDate(),
+          recordId: record.id,
+          berthId: record.berthId,
+          orgId: record.orgId,
+        } as RecordHistoryInput,
+        {
+          left: berth.leftDevice?.id,
+          right: berth.rightDevice?.id,
+        },
+        record?.mooringStatus ?? 'DEPARTING'
+      );
     }
 
 
@@ -885,14 +885,14 @@ const handleError = async (
  * @param portEventSocketDeviceError
  */
 const deviceIsError = async (portEventSocketDeviceError: PortEventSocketDeviceError) => {
-	const eventName = `DEVICE_ERROR`;
-	const eventData = JSON.stringify(portEventSocketDeviceError);
-	const room = getRoomKey(
-		portEventSocketDeviceError.berth.id.toString(),
-		portEventSocketDeviceError.orgId.toString(),
-		'general'
-	);
-  
+  const eventName = `DEVICE_ERROR`;
+  const eventData = JSON.stringify(portEventSocketDeviceError);
+  const room = getRoomKey(
+    portEventSocketDeviceError.berth.id.toString(),
+    portEventSocketDeviceError.orgId.toString(),
+    'general'
+  );
+
   const berthInfo = await berthDao.getBerthInfo(portEventSocketDeviceError.berth.id, portEventSocketDeviceError.orgId);
   if (berthInfo && berthInfo.status === 0) {
     generalLatestErrorMessages.delete(room);
@@ -900,9 +900,9 @@ const deviceIsError = async (portEventSocketDeviceError: PortEventSocketDeviceEr
     return;
   }
 
-	generalSocket.to(room).emit(eventName, eventData);
-	generalLatestErrorMessages.set(room, { eventName, data: eventData, timestamp: Date.now() });
-	console.log(`[deviceIsError] Successfully emitted ${eventName} event to room ${room} with data:`, eventData);
+  generalSocket.to(room).emit(eventName, eventData);
+  generalLatestErrorMessages.set(room, { eventName, data: eventData, timestamp: Date.now() });
+  console.log(`[deviceIsError] Successfully emitted ${eventName} event to room ${room} with data:`, eventData);
 };
 
 /**
@@ -913,10 +913,10 @@ const initRealtimeGeneral = async (io: Server) => {
   console.log('[initRealtimeGeneral] Initializing general realtime socket');
   generalSocket = io.of('/port-events');
   generalSocket.use(authorizationSocket);
-  
+
   generalSocket.on('connection', async (socket: AuthSocket) => {
     await handleJoinSocket(socket);
-    
+
     setTimeout(function () {
       if (!socket.auth) {
         console.log(`Disconnect socket {id: ${socket?.id} of port-events}`);
@@ -934,7 +934,7 @@ const initRealtimeGeneral = async (io: Server) => {
         socket.join(room);
         rooms.add(room);
         console.log(`Socket ${socket.id} joined general events room ${room}`);
-        
+
         const key = generateKey(parseInt(berthId, 10), socket.auth.orgId);
         const now = Date.now();
         const lastDataTimestamp = lastDataTimestamps.get(key);
@@ -1009,7 +1009,7 @@ const initRealtimeGeneral = async (io: Server) => {
         }
         const room = getRoomKey(berthId, socket.auth.orgId.toString(), 'general');
         socket.leave(room);
-        
+
         const clients = await generalSocket.in(room).fetchSockets();
         if (clients.length === 0) {
           rooms.delete(room);
@@ -1094,32 +1094,32 @@ const watchingBerth = async () => {
           });
         }
       }
-      
+
       // Check if record duration exceeds 6 hours
       const berth = await berthDao.getBerthInfo(berthId, orgId);
-      if (berth?.status!=1){
-              if (value.beginTs + TIMEOUT_RECORD < now) {
-        const berth = await berthDao.getBerthInfo(berthId, orgId);
-        console.log('Berth: ', berth);
-        if (!berth || !berth.leftDevice || !berth.rightDevice) {
-          continue;
+      if (berth?.status !== 1) {
+        if (value.beginTs + TIMEOUT_RECORD < now) {
+          const berth = await berthDao.getBerthInfo(berthId, orgId);
+          console.log('Berth: ', berth);
+          if (!berth || !berth.leftDevice || !berth.rightDevice) {
+            continue;
+          }
+          // End record
+          console.log('End record: ', berthId);
+          const user = await userService.findUserByRole(SystemRole.ADMIN);
+          if (!user) {
+            continue;
+          }
+          const { isSync } = await berthService.resetBerth({
+            berthId: berthId,
+            orgId: orgId,
+            status: BerthStatus.MOORING,
+            modifier: user.id,
+            isError: false,
+            isFinish: true,
+          });
+          console.log('End record: ', isSync);
         }
-        // End record
-        console.log('End record: ', berthId);
-        const user = await userService.findUserByRole(SystemRole.ADMIN);
-        if (!user) {
-          continue;
-        }
-        const { isSync } = await berthService.resetBerth({
-          berthId: berthId,
-          orgId: orgId,
-          status: BerthStatus.MOORING,
-          modifier: user.id,
-          isError: false,
-          isFinish: true,
-        });
-        console.log('End record: ', isSync);
-      }
       }
 
       // Data check if no data received in 30 seconds

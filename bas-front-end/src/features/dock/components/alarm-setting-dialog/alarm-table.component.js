@@ -65,7 +65,7 @@ const AlarmTable = ({
         },
       },
       editMode.key,
-      editMode.side
+      editMode.side,
     );
   };
 
@@ -76,8 +76,8 @@ const AlarmTable = ({
       editMode.key === "distance"
         ? distanceRows[editMode.side]
         : editMode.key === "speed"
-        ? speedRows[editMode.side]
-        : angleRows[editMode.side];
+          ? speedRows[editMode.side]
+          : angleRows[editMode.side];
     const body = Object.keys(submitData).map((key) => {
       const record = {
         id: submitData[key].alarmSettingId,
@@ -207,13 +207,17 @@ const AlarmTable = ({
         .nullable()
         .test("validate", function (value) {
           const { warning } = this.parent;
-          if (editMode.key !== "speed" && value < 0) {
+          if (
+            editMode.key !== "speed" &&
+            editMode.key !== "distance" &&
+            value < 0
+          ) {
             return this.createError({
               message: t("common:note.invalid-number"),
             });
           }
           if (editMode.key === "distance") {
-            if (value < 0 || (!value && value !== 0)) {
+            if (!value && value !== 0) {
               return this.createError({
                 message: t("common:note.invalid-number"),
               });
@@ -255,8 +259,8 @@ const AlarmTable = ({
       key === "distance"
         ? distanceRows
         : key === "speed"
-        ? speedRows
-        : angleRows;
+          ? speedRows
+          : angleRows;
     let operator = editingData[side].operator?.rightValue ?? "";
     let warning = editingData[side].warning?.rightValue ?? "";
     let emergency = editingData[side].emergency?.rightValue ?? "";
@@ -353,7 +357,7 @@ const AlarmTable = ({
     rightValue,
     isEdit,
     title,
-    level
+    level,
   ) => {
     if (!leftValue && !rightValue) return "N/A";
     if (isEdit && title === "distance") {
@@ -417,7 +421,7 @@ const AlarmTable = ({
       return (
         <p className={styles.conditionText}>
           {`${leftValue === "" ? "+∞" : leftValue} ${leftCondition} ${t(
-            "alarm:warning_value"
+            "alarm:warning_value",
           )} ${rightCondition} ${rightValue === "" ? "-∞" : rightValue}`}
         </p>
       );
@@ -425,7 +429,7 @@ const AlarmTable = ({
     return (
       <p className={styles.conditionText}>
         {`${leftValue === "" ? "-∞" : leftValue} ${leftCondition} ${t(
-          "alarm:warning_value"
+          "alarm:warning_value",
         )} ${rightCondition} ${rightValue === "" ? "+∞" : rightValue}`}
       </p>
     );
@@ -445,7 +449,7 @@ const AlarmTable = ({
             _data?.rightValue,
             isEdit,
             title,
-            level
+            level,
           )}
         </TableCell>
         <TableCell
@@ -505,7 +509,7 @@ const AlarmTable = ({
               row?.undefined,
               "undefined",
               "operator",
-              title
+              title,
             )}
           </TableRow>
           <TableRow className={styles.noBorderRow}>
@@ -513,7 +517,7 @@ const AlarmTable = ({
               row?.undefined,
               "undefined",
               "warning",
-              title
+              title,
             )}
           </TableRow>
           <TableRow className={styles.noPaddingRow}>
@@ -521,7 +525,7 @@ const AlarmTable = ({
               row?.undefined,
               "undefined",
               "emergency",
-              title
+              title,
             )}
           </TableRow>
         </>
@@ -556,7 +560,7 @@ const AlarmTable = ({
             row?.left_sensor,
             "left_sensor",
             "operator",
-            title
+            title,
           )}
         </TableRow>
         <TableRow className={styles.noBorderRow}>
@@ -564,7 +568,7 @@ const AlarmTable = ({
             row?.left_sensor,
             "left_sensor",
             "warning",
-            title
+            title,
           )}
         </TableRow>
         <TableRow className={styles.noPaddingRow}>
@@ -572,7 +576,7 @@ const AlarmTable = ({
             row?.left_sensor,
             "left_sensor",
             "emergency",
-            title
+            title,
           )}
         </TableRow>
         <TableRow>
@@ -585,7 +589,7 @@ const AlarmTable = ({
             row?.right_sensor,
             "right_sensor",
             "operator",
-            title
+            title,
           )}
         </TableRow>
         <TableRow className={styles.noBorderRow}>
@@ -593,7 +597,7 @@ const AlarmTable = ({
             row?.right_sensor,
             "right_sensor",
             "warning",
-            title
+            title,
           )}
         </TableRow>
         <TableRow className={styles.noPaddingRow}>
@@ -601,7 +605,7 @@ const AlarmTable = ({
             row?.right_sensor,
             "right_sensor",
             "emergency",
-            title
+            title,
           )}
         </TableRow>
       </>
@@ -675,10 +679,10 @@ const AlarmTable = ({
         <div className={styles.actionTitle}>{t("alarm:action")}</div>
         {distanceRows &&
           ["left_sensor", "right_sensor"].map((key) =>
-            renderEditSection("distance", key)
+            renderEditSection("distance", key),
           )}
         {["left_sensor", "right_sensor"].map((key) =>
-          renderEditSection("speed", key)
+          renderEditSection("speed", key),
         )}
         {["undefined"].map((key) => renderEditSection("angle", key))}
       </div>

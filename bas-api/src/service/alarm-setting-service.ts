@@ -127,7 +127,8 @@ export const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto[], or
 
       // Remove validation that prevents negative values for distance
       if (
-        alarmSettingUpdate[alarmSettingUpdate.length - 1].value == undefined
+        alarmSettingUpdate[alarmSettingUpdate.length - 1].value == undefined ||
+        alarmSettingUpdate[alarmSettingUpdate.length - 1].value < -10
       ) {
         throw new BadRequestException(
           `Value of id = ${alarmSettingUpdate[alarmSettingUpdate.length - 1].id

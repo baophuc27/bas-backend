@@ -23,17 +23,25 @@ const findSetting = async (conditions: object) => {
 };
 
 const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto, t?: Transaction) => {
-  let operator = undefined;
-  if (alarmSettingDto.alarmType === 'distance') {
-    operator = Number.isFinite(alarmSettingDto.value) ? '>=' : '>';
-  } else {
-    operator = Number.isFinite(alarmSettingDto.value) ? '<=' : '<';
+  let operator = alarmSettingDto.operator;
+
+  // Parse value to number if it's a string
+  const numericValue = typeof alarmSettingDto.value === 'string' ?
+    parseFloat(alarmSettingDto.value) : alarmSettingDto.value;
+
+  // Assign default operator if not provided
+  if (!operator) {
+    if (alarmSettingDto.alarmType === 'distance') {
+      operator = '>=';
+    } else {
+      operator = '<=';
+    }
   }
 
   return await AlarmSetting.update(
     {
-      value: Number.isFinite(alarmSettingDto.value) ? alarmSettingDto.value : null,
-      message: alarmSettingDto.message ? alarmSettingDto.message : null,
+      value: numericValue,
+      message: alarmSettingDto.message ?? null,
       operator: operator,
     },
     {

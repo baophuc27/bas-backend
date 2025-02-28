@@ -95,6 +95,7 @@ const AlarmTable = ({
     try {
       const result = await AlarmService.updateSetting(body);
       setLoading(false);
+      console.log("body", body);
       if (result?.data?.success) {
         notify("success", t("alarm:update_success"));
         updateAlarmState(submitData, values);
@@ -126,19 +127,9 @@ const AlarmTable = ({
         .required(t("common:note.required-message"))
         .test("validate", function (value) {
           const { warning } = this.parent;
-          if (editMode.key !== "speed" && value < 0) {
-            return this.createError({
-              message: t("alarm:value_greater", { number: 0 }),
-            });
-          }
           if (editMode.key === "distance") {
             const leftValue =
               distanceRows?.[editMode.side]?.operator?.leftValue;
-            if (value < 0) {
-              return this.createError({
-                message: t("alarm:value_greater", { number: 0 }),
-              });
-            }
             if (value <= warning) {
               return this.createError({
                 message: t("alarm:value_greater", { number: warning }),
@@ -172,11 +163,6 @@ const AlarmTable = ({
         .required(t("common:note.required-message"))
         .test("validate", function (value) {
           const { operator, emergency } = this.parent;
-          if (editMode.key !== "speed" && value < 0) {
-            return this.createError({
-              message: t("alarm:value_greater", { number: 0 }),
-            });
-          }
           if (editMode.key === "distance") {
             if (value >= operator) {
               return this.createError({
@@ -207,15 +193,6 @@ const AlarmTable = ({
         .nullable()
         .test("validate", function (value) {
           const { warning } = this.parent;
-          if (
-            editMode.key !== "speed" &&
-            editMode.key !== "distance" &&
-            value < 0
-          ) {
-            return this.createError({
-              message: t("common:note.invalid-number"),
-            });
-          }
           if (editMode.key === "distance") {
             if (!value && value !== 0) {
               return this.createError({

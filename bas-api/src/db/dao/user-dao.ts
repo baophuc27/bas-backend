@@ -82,6 +82,41 @@ export const getOrgByUserId = async (id: number) => {
   }
 };
 
+const getOneUserByUsername = async (username: string) => {
+  try {
+    return await User.findOne({
+      where: {
+        username,
+        deletedAt: {
+          [Op.eq]: null,
+        },
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+const setActiveStatus = async (username: string, isActive: boolean) => {
+  try {
+    return await User.update(
+      {
+        isActive,
+      },
+      {
+        where: {
+          username,
+        },
+      }
+    );
+  }
+  catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
 const update = async (payload: UserInput, transaction?: any) => {
   try {
     return await User.update(payload, {
@@ -198,4 +233,4 @@ const createUsers = async (payload: UserInput, transaction?: any) => {
     throw error;
   }
 };
-export { update, getOneUserById, getAllWithParams, findUserByRole, createUsers };
+export { update, getOneUserById, getAllWithParams, findUserByRole, createUsers, getOneUserByUsername, setActiveStatus };

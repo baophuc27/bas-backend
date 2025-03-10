@@ -55,6 +55,14 @@ const getUserById = async (id: string) => {
   return await userDao.getOneUserById(id);
 };
 
+const getUserByUsername = async (username: string) => {
+  return await userDao.getOneUserByUsername(username);
+};
+
+const setUserActiveStatus = async (username: string, status: boolean) => {
+  return await userDao.setActiveStatus(username, status);
+}
+
 const deleteAccountById = async (id: string) => {
   const user: User | null = await userDao.getOneUserById(id);
   if (user) {
@@ -91,7 +99,7 @@ const generateRefreshToken = async (user: User, ipAddress: string, transaction?:
 
 const getRefreshToken = async (token: string, ip: string) => {
   const refreshToken = await refreshTokenDao.findOneByTokenAndIp(token, ip);
-  console.log({ refreshToken , token, ip});
+  console.log({ refreshToken, token, ip });
   if (!refreshToken || !refreshToken.isActive)
     throw new InternalException('Invalid token');
   return refreshToken;
@@ -157,6 +165,8 @@ export {
   updateUserInformation,
   generateAccessTokenForSocket,
   findUserByRole,
+  setUserActiveStatus,
+  getUserByUsername,
 };
 function getPem() {
   throw new Error('Function not implemented.');

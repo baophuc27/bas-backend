@@ -29,7 +29,8 @@ export const login = async (username: string, password: string, ipAddress: strin
       avatar: data.user.avatar,
       orgId: data.user.organization.id,
       orgName: data.user.organization.name,
-      orgLogo: data.user.organization.url_logo
+      orgLogo: data.user.organization.url_logo,
+      isActive: true,
     }));
     // console.log(user);
     if (user === null) {

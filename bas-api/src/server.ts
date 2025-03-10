@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import * as http from 'http';
 import { Server } from 'socket.io';
 import app from './app';
-import { realtimeService } from '@bas/service';
+import { realtimeService, activeService } from '@bas/service';
 import { handleQueue } from '@bas/service/queue-service';
 // import './swagger-config';
 
@@ -42,6 +42,10 @@ sequelizeConnection
     });
 
     logInfo('Queue handlers registered successfully.');
+
+    // Start the active status scheduler
+    activeService.startActiveStatusScheduler();
+    logInfo('Active status scheduler started');
   })
   .then(() => realtimeService.init(io))
   .catch((error) => {

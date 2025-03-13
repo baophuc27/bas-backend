@@ -203,12 +203,15 @@ const getAggregatesByRecordId = async (recordId: number, orgId: number) => {
   const record = await Record.findOne({
     where: { id: recordId, orgId },
   });
-  let aggregates;
+
+  let chartData;
   if (record) {
-    aggregates = await recordHistoryDao.getAggregateByRecord(recordId, orgId);
+    chartData = await recordHistoryDao.getAllRecordHistoryByRecordId(recordId, orgId);
   }
+
   return {
-    aggregates: aggregates || [],
+    record,
+    chartData: chartData || [],
   };
 };
 

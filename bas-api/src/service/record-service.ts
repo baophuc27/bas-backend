@@ -62,10 +62,69 @@ export const syncDataApp = async (data: RecordData[]) => {
 export const getAggregatesByRecordId = async (recordId: number, orgId: number) => {
   const result = await recordDao.getAggregatesByRecordId(recordId, orgId);
 
-  const aggregates = objectMapper.merge(
-    result.aggregates[0]?.dataValues || {},
-    recordAggregateMapper
-  );
+  let maxAngle = 0;
+  let minAngle = Infinity;
+  let sumAngle = 0;
+
+  let maxLeftSpeed = 0;
+  let minLeftSpeed = Infinity;
+  let sumLeftSpeed = 0;
+
+  let maxRightSpeed = 0;
+  let minRightSpeed = Infinity;
+  let sumRightSpeed = 0;
+
+  let count = 0;
+
+  if (result.chartData && result.chartData.length > 0) {
+    result.chartData.forEach(record => {
+      const filteredRecord = applySensorStatusRules(record);
+
+      const angle = parseFloat((filteredRecord as any).angle);
+      if (!isNaN(angle)) {
+        maxAngle = Math.max(maxAngle, angle);
+        minAngle = Math.min(minAngle, angle);
+        sumAngle += angle;
+      }
+
+      const leftSpeed = parseFloat((filteredRecord as any).leftSpeed);
+      if (!isNaN(leftSpeed)) {
+        maxLeftSpeed = Math.max(maxLeftSpeed, leftSpeed);
+        minLeftSpeed = Math.min(minLeftSpeed, leftSpeed);
+        sumLeftSpeed += leftSpeed;
+      }
+
+      const rightSpeed = parseFloat((filteredRecord as any).rightSpeed);
+      if (!isNaN(rightSpeed)) {
+        maxRightSpeed = Math.max(maxRightSpeed, rightSpeed);
+        minRightSpeed = Math.min(minRightSpeed, rightSpeed);
+        sumRightSpeed += rightSpeed;
+      }
+
+      count++;
+    });
+  }
+
+  const avgAngle = count > 0 ? parseFloat((sumAngle / count).toFixed(2)) : 0;
+  const avgLeftSpeed = count > 0 ? parseFloat((sumLeftSpeed / count).toFixed(2)) : 0;
+  const avgRightSpeed = count > 0 ? parseFloat((sumRightSpeed / count).toFixed(2)) : 0;
+
+  if (minAngle === Infinity) minAngle = 0;
+  if (minLeftSpeed === Infinity) minLeftSpeed = 0;
+  if (minRightSpeed === Infinity) minRightSpeed = 0;
+
+  const aggregates = {
+    maxAngle: parseFloat(maxAngle.toFixed(2)),
+    minAngle: parseFloat(minAngle.toFixed(2)),
+    avgAngle,
+    maxLeftSpeed: parseFloat(maxLeftSpeed.toFixed(2)),
+    minLeftSpeed: parseFloat(minLeftSpeed.toFixed(2)),
+    avgLeftSpeed,
+    maxRightSpeed: parseFloat(maxRightSpeed.toFixed(2)),
+    minRightSpeed: parseFloat(minRightSpeed.toFixed(2)),
+    avgRightSpeed
+  };
+
   return {
     data: {
       aggregates,
@@ -128,18 +187,75 @@ export const getRecordHistoryByRecordIdWithoutPagination = async (
     return objectMapper.merge(filteredHistory, recordHistoryMapper);
   });
 
-  const resultAggregates = await recordDao.getAggregatesByRecordId(recordId, orgId);
-
-  const aggregates = objectMapper.merge(
-    resultAggregates.aggregates[0]?.dataValues || {},
-    recordAggregateMapper
-  );
-
+  // Get chart data
   const resultChart = await recordDao.getChartByRecordId(recordId, orgId);
-
   const chart = resultChart?.chart?.map((recordHistory) => {
-    return objectMapper.merge(recordHistory, recordHistoryChartMapper);
+    const filteredHistory = applySensorStatusRules(recordHistory);
+    return objectMapper.merge(filteredHistory, recordHistoryChartMapper);
   });
+
+  let maxAngle = 0;
+  let minAngle = Infinity;
+  let sumAngle = 0;
+
+  let maxLeftSpeed = 0;
+  let minLeftSpeed = Infinity;
+  let sumLeftSpeed = 0;
+
+  let maxRightSpeed = 0;
+  let minRightSpeed = Infinity;
+  let sumRightSpeed = 0;
+
+  let count = 0;
+
+  if (resultChart?.chart && resultChart.chart.length > 0) {
+    resultChart.chart.forEach(record => {
+      const filteredRecord = applySensorStatusRules(record);
+
+      const angle = parseFloat((filteredRecord as any).angle);
+      if (!isNaN(angle)) {
+        maxAngle = Math.max(maxAngle, angle);
+        minAngle = Math.min(minAngle, angle);
+        sumAngle += angle;
+      }
+
+      const leftSpeed = parseFloat((filteredRecord as any).leftSpeed);
+      if (!isNaN(leftSpeed)) {
+        maxLeftSpeed = Math.max(maxLeftSpeed, leftSpeed);
+        minLeftSpeed = Math.min(minLeftSpeed, leftSpeed);
+        sumLeftSpeed += leftSpeed;
+      }
+
+      const rightSpeed = parseFloat((filteredRecord as any).rightSpeed);
+      if (!isNaN(rightSpeed)) {
+        maxRightSpeed = Math.max(maxRightSpeed, rightSpeed);
+        minRightSpeed = Math.min(minRightSpeed, rightSpeed);
+        sumRightSpeed += rightSpeed;
+      }
+
+      count++;
+    });
+  }
+
+  const avgAngle = count > 0 ? parseFloat((sumAngle / count).toFixed(2)) : 0;
+  const avgLeftSpeed = count > 0 ? parseFloat((sumLeftSpeed / count).toFixed(2)) : 0;
+  const avgRightSpeed = count > 0 ? parseFloat((sumRightSpeed / count).toFixed(2)) : 0;
+
+  if (minAngle === Infinity) minAngle = 0;
+  if (minLeftSpeed === Infinity) minLeftSpeed = 0;
+  if (minRightSpeed === Infinity) minRightSpeed = 0;
+
+  const aggregates = {
+    maxAngle: parseFloat(maxAngle.toFixed(2)),
+    minAngle: parseFloat(minAngle.toFixed(2)),
+    avgAngle,
+    maxLeftSpeed: parseFloat(maxLeftSpeed.toFixed(2)),
+    minLeftSpeed: parseFloat(minLeftSpeed.toFixed(2)),
+    avgLeftSpeed,
+    maxRightSpeed: parseFloat(maxRightSpeed.toFixed(2)),
+    minRightSpeed: parseFloat(minRightSpeed.toFixed(2)),
+    avgRightSpeed
+  };
 
   return {
     ...record,

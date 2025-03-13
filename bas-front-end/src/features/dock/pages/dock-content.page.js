@@ -793,7 +793,7 @@ export const DockPageContent = ({
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               style={{ position: "absolute", left: -40, top: screenHeight / 2 }}
             >
-              {isSidebarOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+              {isSidebarOpen ? <ChevronRightIcon /> : <ChevronLeftIcon />}
             </IconButton>
             {isSidebarOpen && (
               <>

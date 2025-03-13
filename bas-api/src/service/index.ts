@@ -18,6 +18,7 @@ import * as dataAppService from './data-app-service';
 import * as axiosClient from './axios-client';
 import * as deviceService from './device-service';
 import * as activeService from './isActive-service';
+import * as filterDataService from './filter-data-service';
 
 export {
   userService,
@@ -40,4 +41,5 @@ export {
   axiosClient,
   deviceService,
   activeService,
+  filterDataService,
 };

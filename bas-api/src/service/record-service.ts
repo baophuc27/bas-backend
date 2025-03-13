@@ -16,6 +16,7 @@ import {
 } from '@bas/database/mapper/record-history-mapper';
 import { BadRequestException } from '@bas/api/errors';
 import { internalErrorCode, RecordSyncStatus } from '@bas/constant';
+import { filterRecordHistories, applySensorStatusRules } from './filter-data-service';
 
 export const findAll = async (recordFilter: RecordFilter) => {
   if (!recordFilter.orgId) {
@@ -33,8 +34,8 @@ export const findAll = async (recordFilter: RecordFilter) => {
   };
 };
 
-export const syncDataApp = async (data : RecordData[]) =>{
-  if (data.length == 0){
+export const syncDataApp = async (data: RecordData[]) => {
+  if (data.length == 0) {
     return {
       count: 0,
       "msg": "No data to sync"
@@ -43,10 +44,10 @@ export const syncDataApp = async (data : RecordData[]) =>{
   const recordId = data[0].recordId;
   const orgId = data[0].orgId;
   const recordExist = await recordDao.getRecordById(recordId, orgId);
-  if (!recordExist){
+  if (!recordExist) {
     throw new BadRequestException('Record not found', internalErrorCode.INVALID_INPUT);
   }
-  if (! recordExist.endTime){
+  if (!recordExist.endTime) {
     throw new BadRequestException('Record is not ended', internalErrorCode.INVALID_INPUT);
   }
   const syncStatus = recordExist.syncStatus = RecordSyncStatus.SUCCESS;
@@ -76,7 +77,9 @@ export const getChartByRecordId = async (recordId: number, orgId: number) => {
   const result = await recordDao.getChartByRecordId(recordId, orgId);
 
   const chart = result?.chart?.map((recordHistory) => {
-    return objectMapper.merge(recordHistory, recordHistoryChartMapper);
+    // Apply sensor status rules using the new service
+    const filteredHistory = applySensorStatusRules(recordHistory);
+    return objectMapper.merge(filteredHistory, recordHistoryChartMapper);
   });
   return {
     data: {
@@ -98,7 +101,9 @@ export const getRecordHistoryByRecordId = async (
 
   const record = objectMapper.merge(result.record || {}, recordDetailMapper);
   const recordHistories = result.recordHistories.map((recordHistory) => {
-    return objectMapper.merge(recordHistory, recordHistoryMapper);
+    // Apply sensor status rules using the new service
+    const filteredHistory = applySensorStatusRules(recordHistory);
+    return objectMapper.merge(filteredHistory, recordHistoryMapper);
   });
 
   return {
@@ -118,7 +123,9 @@ export const getRecordHistoryByRecordIdWithoutPagination = async (
 
   const record = objectMapper.merge(result.record || {}, recordDetailMapper);
   const recordHistories = result.recordHistories.map((recordHistory) => {
-    return objectMapper.merge(recordHistory, recordHistoryMapper);
+    // Apply sensor status rules using the new service
+    const filteredHistory = applySensorStatusRules(recordHistory);
+    return objectMapper.merge(filteredHistory, recordHistoryMapper);
   });
 
   const resultAggregates = await recordDao.getAggregatesByRecordId(recordId, orgId);
@@ -192,9 +199,12 @@ export const findLatestRecord = async (
     return recordHistory.length > 0 ? await convertToAlarmData(recordHistory, records) : [];
   } else {
     return recordHistory.map((frame) => {
-      const record = records.find((record) => record.id === frame.recordId);
+      // Apply sensor status rules using the new service
+      const filteredFrame = applySensorStatusRules(frame);
+
+      const record = records.find((record) => record.id === filteredFrame.recordId);
       return objectMapper.merge(
-        frame,
+        filteredFrame,
         recordHistoryMapperReverse(
           record?.berth?.leftDevice?.id || 1,
           record?.berth?.rightDevice?.id || 2
@@ -313,25 +323,28 @@ const convertToAlarmData = async (frames: RecordHistory[], records?: Record[]) =
 };
 
 const extractAlarmData = (alarmData: RecordHistory, type: string, side?: number): AlarmDataUnit => {
+  // Apply sensor status rules using the new service
+  const filteredAlarmData = applySensorStatusRules(alarmData);
+
   switch (type) {
     case 'speed':
       if (side === SIDE.LEFT) {
         return {
-          startTime: alarmData.time,
-          value: alarmData.leftSpeed,
-          alarm: alarmData.LSpeedAlarm,
-          zone: alarmData.LSpeedZone,
-          recordId: alarmData.recordId,
+          startTime: filteredAlarmData.time,
+          value: filteredAlarmData.leftSpeed,
+          alarm: filteredAlarmData.LSpeedAlarm,
+          zone: filteredAlarmData.LSpeedZone,
+          recordId: filteredAlarmData.recordId,
           type: 'speed',
           side: SIDE.LEFT,
         };
       } else {
         return {
-          startTime: alarmData.time,
-          value: alarmData.rightSpeed,
-          alarm: alarmData.RSpeedAlarm,
-          zone: alarmData.RSpeedZone,
-          recordId: alarmData.recordId,
+          startTime: filteredAlarmData.time,
+          value: filteredAlarmData.rightSpeed,
+          alarm: filteredAlarmData.RSpeedAlarm,
+          zone: filteredAlarmData.RSpeedZone,
+          recordId: filteredAlarmData.recordId,
           type: 'speed',
           side: SIDE.RIGHT,
         };
@@ -339,32 +352,32 @@ const extractAlarmData = (alarmData: RecordHistory, type: string, side?: number)
     case 'distance':
       if (side === SIDE.LEFT) {
         return {
-          startTime: alarmData.time,
-          value: alarmData.leftDistance,
-          alarm: alarmData.LDistanceAlarm,
-          zone: alarmData.LDistanceZone,
-          recordId: alarmData.recordId,
+          startTime: filteredAlarmData.time,
+          value: filteredAlarmData.leftDistance,
+          alarm: filteredAlarmData.LDistanceAlarm,
+          zone: filteredAlarmData.LDistanceZone,
+          recordId: filteredAlarmData.recordId,
           type: 'distance',
           side: SIDE.LEFT,
         };
       } else {
         return {
-          startTime: alarmData.time,
-          value: alarmData.rightDistance,
-          alarm: alarmData.RDistanceAlarm,
-          zone: alarmData.RDistanceZone,
-          recordId: alarmData.recordId,
+          startTime: filteredAlarmData.time,
+          value: filteredAlarmData.rightDistance,
+          alarm: filteredAlarmData.RDistanceAlarm,
+          zone: filteredAlarmData.RDistanceZone,
+          recordId: filteredAlarmData.recordId,
           type: 'distance',
           side: SIDE.RIGHT,
         };
       }
     default:
       return {
-        startTime: alarmData.time,
-        value: alarmData.angle,
-        alarm: alarmData.angleAlarm,
-        zone: alarmData.angleZone,
-        recordId: alarmData.recordId,
+        startTime: filteredAlarmData.time,
+        value: filteredAlarmData.angle,
+        alarm: filteredAlarmData.angleAlarm,
+        zone: filteredAlarmData.angleZone,
+        recordId: filteredAlarmData.recordId,
         type: 'angle',
       };
   }
@@ -389,7 +402,9 @@ export const sync = async (recordId: number, orgId: number) => {
     },
     frame:
       result.recordHistories.map((recordHistory) => {
-        return objectMapper.merge(recordHistory, recordHistoryMapper);
+        // Apply sensor status rules using the new service
+        const filteredHistory = applySensorStatusRules(recordHistory);
+        return objectMapper.merge(filteredHistory, recordHistoryMapper);
       }) || [],
     berthInformation: {
       ...result.record.berth?.dataValues,
@@ -398,7 +413,7 @@ export const sync = async (recordId: number, orgId: number) => {
       ...result.record.vessel?.dataValues,
     },
   };
-  console.log("Payload",payload);
+  console.log("Payload", payload);
   const sync = await cloudService.syncRecordToCloud(payload);
   const status = RecordSyncStatus.PENDING;
   await recordDao.updateStatus(recordId, orgId, status);

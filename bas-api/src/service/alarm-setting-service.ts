@@ -248,7 +248,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number, o
       statusId: 3,
       operator: '>=',
       message: null,
-      value: 0,
+      value: -5,
       defaultValue: Number.isFinite(limitZone1) ? limitZone1 : null,
     },
     {
@@ -284,7 +284,7 @@ const defaultAlarmSettings = (limitZone1: number | undefined, berthId: number, o
       statusId: 3,
       operator: Number.isFinite(limitZone1) ? '>=' : '>',
       message: null,
-      value: 0,
+      value: -5,
       defaultValue: Number.isFinite(limitZone1) ? limitZone1 : null,
     },
     {

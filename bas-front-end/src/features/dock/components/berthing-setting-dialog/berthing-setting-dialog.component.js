@@ -427,7 +427,7 @@ const BerthingSettingDialog = ({
       vesselLength: "",
       vesselBeam: "",
       vesselType: "",
-      vesselDirection: false,
+      vesselDirection: data?.vesselDirection || false,
       vesselBuilder: "",
       vesselBuilt: "",
       vesselOwner: "",
@@ -506,7 +506,7 @@ const BerthingSettingDialog = ({
         rightSensorDistance: data?.distanceToRight,
 
         vesselIMO: data?.currentVessel?.code,
-        vesselDirection: data?.vesselDirection,
+        vesselDirection: data?.vesselDirection || false,
       });
     }, 500);
 
@@ -516,7 +516,7 @@ const BerthingSettingDialog = ({
   useEffect(() => {
     if (socketData) {
       let currentDistanceLeft = "-";
-      let leftSensorStatus = 2; // default to disconnected
+      let leftSensorStatus = 2;
       let leftSensorStatusText = "disconnected";
 
       if (socketData?.left_sensor?.status !== undefined) {
@@ -540,7 +540,7 @@ const BerthingSettingDialog = ({
       }
 
       let currentDistanceRight = "-";
-      let rightSensorStatus = 2; // default to disconnected
+      let rightSensorStatus = 2;
       let rightSensorStatusText = "disconnected";
 
       if (socketData?.right_sensor?.status !== undefined) {

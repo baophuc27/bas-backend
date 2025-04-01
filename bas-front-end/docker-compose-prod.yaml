@@ -9,6 +9,14 @@ services:
     networks:
       - bas-prod
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2048M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 networks:
   bas-prod:
     driver: bridge

@@ -24,6 +24,7 @@ const AlarmHistoryListPage = (props) => {
   const { setPageTitle, setBreadcrumbsList } = usePageConfig();
   const pageHook = useList(i18n.language);
   const { hasPermission } = usePermission();
+  const roleId = useSelector((state) => state?.user?.roleId);
   const {
     data,
     page,
@@ -231,10 +232,11 @@ const AlarmHistoryListPage = (props) => {
                 !hasPermission(FEATURES.ALARM_MANAGEMENT, ACTIONS.DELETE),
             }}
           />
+          
           <div className={styles.buttonGroup}>
             <Button
               className="custom-button"
-              disabled={loading || !data?.data?.length}
+              disabled={loading || !data?.data?.length || roleId !== 8}
               onClick={onDeleteAll}
             >
               {t("common:button:delete_all")}

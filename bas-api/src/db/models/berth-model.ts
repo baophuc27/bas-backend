@@ -161,38 +161,6 @@ Berth.init(
     tableName: 'Berth',
     schema: 'bas',
     hooks: {
-      beforeCreate: (berth: Berth, options: any) => {
-        if (!berth.orgId) {
-          if (options.user?.orgId) {
-            berth.orgId = options.user.orgId;
-          } else if (options.context?.orgId) {
-            berth.orgId = options.context.orgId;
-          }
-        }
-      },
-      beforeBulkCreate: (berths: Berth[], options: any) => {
-        berths.forEach((berth) => {
-          if (!berth.orgId) {
-            if (options.user?.orgId) {
-              berth.orgId = options.user.orgId;
-            } else if (options.context?.orgId) {
-              berth.orgId = options.context.orgId;
-            }
-          }
-        });
-      },
-      beforeFind: (options: any) => {
-        if (!options.where) options.where = {};
-        if (options.context?.orgId) {
-          options.where['orgId'] = options.context.orgId;
-        }
-      },
-      beforeUpdate: (options: any) => {
-        if (!options.where) options.where = {};
-        if (options.context?.orgId) {
-          options.where['orgId'] = options.context.orgId;
-        }
-      },
     },
   }
 );

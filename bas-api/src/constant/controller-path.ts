@@ -21,7 +21,7 @@ export const controllerPath = {
   IDENTIFIER: '/identify',
   REFRESH: '/refresh',
   LOGOUT: '/logout',
-
+  ACTIVE: '/inactive-users',
   //record
   AGGREGATES: '/aggregates',
   CHART: '/chart',
@@ -29,4 +29,7 @@ export const controllerPath = {
   //user
 
   ME: '/me',
+
+  //Device
+  DEVICE_PATH: '/device',
 };

@@ -13,6 +13,10 @@
       "cancel": "Hủy Bỏ",
       "available": "Trống",
       "mooring": "Neo đậu"
+    },
+    "status-warning": {
+      "title": "Cảnh Báo Trạng Thái",
+      "message": "Trạng thái cảng đã thay đổi. Tiếp tục?"
     }
   },
   "messages": {

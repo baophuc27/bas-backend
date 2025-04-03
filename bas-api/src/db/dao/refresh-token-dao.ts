@@ -14,18 +14,17 @@ const create = async (
 const findOneByTokenAndIp = async (token: string, ipAddress?: string) => {
   return RefreshToken.findOne({
     where: {
-      [Op.and]: {
-        token,
-        expires: {
-          [Op.gt]: new Date(),
-        },
-      },
+      [Op.and]: [
+        { token },
+        { expires: { [Op.gt]: new Date() } },
+        { revoked: null },
+      ],
     },
     include: [
       {
         model: User,
         as: 'user',
-        attributes: ['id', 'roleId'],
+        attributes: ['id', 'orgId', 'roleId'],
       },
     ],
     logging: console.log,
@@ -56,3 +55,7 @@ const removeTokenByUserId = async (userId: string) => {
 };
 
 export { create, findOneByTokenAndIp, removeUnusedToken, removeTokenByUserId };
+
+export function findOneByToken(token: string) {
+  throw new Error('Function not implemented.');
+}

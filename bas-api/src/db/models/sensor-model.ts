@@ -6,8 +6,8 @@ interface SensorAttributes {
   name: string;
   status?: number;
   realValue?: number | null;
-  berthId: number; // Thêm bến
-  orgId: number; // Thêm tổ chức
+  berthId: number;
+  orgId: number;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
@@ -21,8 +21,8 @@ class Sensor extends Model<SensorAttributes, SensorInput> implements SensorAttri
   public name!: string;
   public status?: number;
   public realValue?: number | null;
-  public berthId!: number; // Bến
-  public orgId!: number; // Tổ chức
+  public berthId!: number;
+  public orgId!: number;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;

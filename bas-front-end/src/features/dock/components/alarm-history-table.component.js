@@ -318,6 +318,7 @@ export const AlarmHistoryTable = ({
         moment()?.subtract(2, "hours")?.format("YYYY-MM-DD HH:mm:ss:SSS"),
         moment()?.format("YYYY-MM-DD HH:mm:ss:SSS"),
       );
+      console.log("response", response);
 
       if (response?.data?.success) {
         // const dataPoints = response?.data?.record?.slice(0, 100);

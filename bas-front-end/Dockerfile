@@ -5,7 +5,7 @@ FROM --platform=linux/amd64 node:18-alpine
 WORKDIR /app
 
 # Copy package.json and package-lock.json
-# COPY package.json package-lock.json ./
+COPY package.json ./
 
 COPY yarn.lock ./
 
@@ -22,7 +22,7 @@ COPY . ./
 RUN yarn build
 
 # Expose the port
-EXPOSE 3010
+EXPOSE 3000
 
 # Serve the app
 CMD ["yarn", "serve"]

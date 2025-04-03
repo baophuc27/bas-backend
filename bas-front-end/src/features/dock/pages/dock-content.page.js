@@ -1,6 +1,9 @@
 import { Box, Button, Divider, IconButton } from "@material-ui/core";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
 import StopIcon from "@material-ui/icons/Stop";
+import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
+import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import ChevronRightIcon from "@material-ui/icons/ChevronRight";
 import { AuthCheck, ProfileInformation } from "common/components";
 import {
   BERTH_STATUS,
@@ -23,6 +26,8 @@ import { Navigate, useNavigate } from "react-router-dom";
 import {
   setCurrentErrorDialog,
   setCurrentSessionCompleteDialog,
+  resetErrorDialog,
+  resetSessionCompleteDialog,
 } from "redux/slices/dialog.slice";
 import swal from "sweetalert";
 import {
@@ -54,12 +59,14 @@ export const DockPageContent = ({
   socket,
   berth: berthData,
   setShowsBerthingSettings,
+  showsBerthingSettings,
   setShowsDetailSettings,
   setShowsAlarmSetting,
   optimized = false,
   pastData,
   hasPastData,
   portsSocket,
+  reload,
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -87,6 +94,7 @@ export const DockPageContent = ({
   const [stopPopupShown, setStopPopupShown] = useState(false);
   const [showsFinishSession, setShowFinishSession] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { hasPermission } = usePermission();
   const [myNewData, setMyNewData] = useState({});
   const { realtimeData, hasRealtimeData } = useAlarmHistoryData({
@@ -101,57 +109,61 @@ export const DockPageContent = ({
     (state) => state?.dialog,
   );
   const dispatch = useDispatch();
-
+  const berthFormValues = useSelector((state) => state.berth.berthFormValues);
   const onBack = () => navigate("/");
 
   const clearPortsSocket = () => {
     if (portsSocket) {
-      portsSocket.off("connect");
-      portsSocket.off(DialogType.DEVICE_ERROR);
-      portsSocket.off(DialogType.COMPLETED_SESSION);
+      portsSocket.off(`${DialogType.DEVICE_ERROR}`);
+      portsSocket.off(`${DialogType.COMPLETED_SESSION}`);
     }
   };
-
-  const onFinishSession = async (id) => {
+  const onFinishSession = async (berthId) => {
     try {
-      const response = await BerthService.finishSession(id);
+      const response = await BerthService.finishSession(berthId);
 
+      console.log("berth form values", berthFormValues);
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
 
-        if (response?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        const newValues = {
+          ...berthFormValues,
+          currentStatus: "MOORING",
+          upcomingStatus: "",
+        };
 
-        clearPortsSocket();
-
-        dispatch(
-          setCurrentSessionCompleteDialog({
-            berthId: id,
-          }),
-        );
+        await BerthService.updateConfig(berthId, {
+          status:
+            BERTH_STATUS[newValues.upcomingStatus || newValues.currentStatus],
+          distanceToLeft: newValues.leftSensorDistance,
+          distanceToRight: newValues.rightSensorDistance,
+          vessel: {
+            code: newValues.vesselIMO,
+            name: newValues.vesselName,
+            flag: newValues.vesselFlag,
+            length: newValues.vesselLength,
+            beam: newValues.vesselBeam,
+          },
+          vesselDirection: !!newValues.vesselDirection,
+        });
       }
     } catch (error) {
       notify("error", t("dock:messages.stop-error"));
     } finally {
-      navigate("/");
+      navigate(`/`);
     }
   };
-
-  const onResetSession = async (id) => {
+  const onResetSession = async (berthId) => {
     try {
-      const response = await BerthService.reset(id);
+      const response = await BerthService.reset(berthId);
 
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
-
-        if (response?.data?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        // if (response?.data?.data?.isSync === true) {
+        //   notify("success", t("dock:messages.sync-success"));
+        // } else {
+        //   notify("error", t("dock:messages.sync-error"));
+        // }
       }
 
       clearPortsSocket();
@@ -163,21 +175,27 @@ export const DockPageContent = ({
   };
 
   const triggerStopRecording = () => {
+    const buttons = {
+      cancel: t("dock:dialogs.stop-recording.cancel"),
+      available: {
+        text: t("dock:dialogs.stop-recording.available"),
+        value: "available",
+      },
+    };
+
+    // departing will not show mooring button
+    if (berthData?.status?.id !== BERTH_STATUS.DEPARTING) {
+      buttons.mooring = {
+        text: t("dock:dialogs.stop-recording.mooring"),
+        value: "mooring",
+      };
+    }
+
     swal({
       title: t("dock:dialogs.stop-recording.title"),
       text: t("dock:dialogs.stop-recording.message"),
       icon: "warning",
-      buttons: {
-        cancel: t("dock:dialogs.stop-recording.cancel"),
-        available: {
-          text: t("dock:dialogs.stop-recording.available"),
-          value: "available",
-        },
-        mooring: {
-          text: t("dock:dialogs.stop-recording.mooring"),
-          value: "mooring",
-        },
-      },
+      buttons: buttons,
       showCloseButton: true,
     }).then((value) => {
       switch (value) {
@@ -238,46 +256,74 @@ export const DockPageContent = ({
     }
   };
 
-  const openFullscreen = () => {
-    const element = document.documentElement;
+  const checkFullscreenPermission = () => {
+    return (
+      document.fullscreenEnabled ||
+      document.webkitFullscreenEnabled ||
+      document.mozFullScreenEnabled ||
+      document.msFullscreenEnabled
+    );
+  };
 
-    if (element.requestFullscreen) {
-      element.requestFullscreen();
-    } else if (element.mozRequestFullScreen) {
-      // Firefox
-      element.mozRequestFullScreen();
-    } else if (element.webkitRequestFullscreen) {
-      // Chrome, Safari, and Opera
-      element.webkitRequestFullscreen();
-    } else if (element.msRequestFullscreen) {
-      // IE/Edge
-      element.msRequestFullscreen();
+  const openFullscreen = async () => {
+    try {
+      if (!checkFullscreenPermission()) {
+        console.warn("Fullscreen not supported or permitted");
+        return false;
+      }
+
+      const element = document.documentElement;
+
+      if (element.requestFullscreen) {
+        await element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        await element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) {
+        await element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        await element.msRequestFullscreen();
+      }
+      return true;
+    } catch (error) {
+      console.error("Error entering fullscreen:", error);
+      return false;
     }
   };
 
-  const closeFullscreen = () => {
+  const closeFullscreen = async () => {
     try {
-      if (document.fullscreenElement) {
-        if (document?.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document?.mozCancelFullScreen) {
-          // Firefox
-          document.mozCancelFullScreen();
-        } else if (document?.webkitExitFullscreen) {
-          // Chrome, Safari, and Opera
-          document.webkitExitFullscreen();
-        } else if (document?.msExitFullscreen) {
-          // IE/Edge
-          document.msExitFullscreen();
-        }
+      if (
+        !document.fullscreenElement &&
+        !document.webkitFullscreenElement &&
+        !document.mozFullScreenElement &&
+        !document.msFullscreenElement
+      ) {
+        return;
+      }
+
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        await document.mozCancelFullScreen();
+      } else if (document.webkitExitFullscreen) {
+        await document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        await document.msExitFullscreen();
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error exiting fullscreen:", error);
     }
   };
 
-  const onFullScreen = () => {
-    setIsFullScreen((prev) => !prev);
+  const onFullScreen = async () => {
+    if (isFullScreen) {
+      await closeFullscreen();
+    } else {
+      const success = await openFullscreen();
+      if (!success) {
+        setIsFullScreen(false);
+      }
+    }
   };
 
   const showsErrorDialog = async (data) => {
@@ -285,17 +331,11 @@ export const DockPageContent = ({
       mapSensorStatusText(data?.errorCode?.toLowerCase()),
     )}`;
 
-    // await swal({
-    //   title: t("home:dialogs.device-error.title"),
-    //   text: errorContent,
-    //   icon: "error",
-    //   buttons: t("home:dialogs.device-error.ok"),
-    // });
-
     const errorCode = data?.errorCode;
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
-    if (!(berthId in errorDialogs) || errorDialogs?.[berthId] !== errorCode) {
+    // Only show if this specific error hasn't been shown yet
+    if (!(berthId in errorDialogs)) {
       dispatch(
         setCurrentErrorDialog({
           berthId,
@@ -303,12 +343,22 @@ export const DockPageContent = ({
         }),
       );
 
-      swal({
-        title: t("home:dialogs.device-error.title"),
-        text: errorContent,
-        icon: "error",
-        buttons: t("home:dialogs.device-error.ok"),
-      });
+      try {
+        await swal({
+          title: t("home:dialogs.device-error.title"),
+          text: errorContent,
+          icon: "error",
+          buttons: t("home:dialogs.device-error.ok"),
+        });
+      } finally {
+        // Clear only this specific error from the state
+        dispatch(
+          setCurrentErrorDialog({
+            berthId: null,
+            errorCode: null,
+          }),
+        );
+      }
     }
   };
 
@@ -326,23 +376,30 @@ export const DockPageContent = ({
         }),
       );
 
+      const buttons = {
+        cancel: t("dock:dialogs.stop-recording.cancel"),
+        available: {
+          text: t("dock:dialogs.stop-recording.available"),
+          value: "available",
+        },
+      };
+
+      // Only show mooring option if not in DEPARTING status
+      if (berthData?.status?.id !== BERTH_STATUS.DEPARTING) {
+        buttons.mooring = {
+          text: t("dock:dialogs.stop-recording.mooring"),
+          value: "mooring",
+        };
+      }
+
       const value = await swal({
         title: t("home:dialogs.session-completed.title"),
         text: t("dock:dialogs.session-completed.message"),
         icon: "info",
-        buttons: {
-          cancel: t("dock:dialogs.stop-recording.cancel"),
-          available: {
-            text: t("dock:dialogs.stop-recording.available"),
-            value: "available",
-          },
-          mooring: {
-            text: t("dock:dialogs.stop-recording.mooring"),
-            value: "mooring",
-          },
-        },
+        buttons: buttons,
         showCloseButton: true,
       });
+      portsSocket?.off("COMPLETED_SESSION");
 
       switch (value) {
         case "available":
@@ -370,13 +427,13 @@ export const DockPageContent = ({
     };
 
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        setIsFullScreen(false);
-        closeFullscreen();
-      } else {
-        setIsFullScreen(true);
-        openFullscreen();
-      }
+      const isInFullscreen = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      );
+      setIsFullScreen(isInFullscreen);
     };
 
     handleResize();
@@ -428,32 +485,35 @@ export const DockPageContent = ({
         setShowsBerthingSettings(true);
       }
 
-      if (berthData?.status?.id === BERTH_STATUS.MOORING) {
-        setSensorAData({
-          speed: 0,
-          distance: 5,
-          status_id: NORMAL_STATUS_ID,
-          original_distance: 5,
-        });
+      // if (berthData?.status?.id === BERTH_STATUS.MOORING) {
+      //   setSensorAData({
+      //     speed: 0,
+      //     distance: 5,
+      //     status_id: NORMAL_STATUS_ID,
+      //     original_distance: 5,
+      //   });
 
-        setSensorBData({
-          speed: 0,
-          distance: 5,
-          status_id: NORMAL_STATUS_ID,
-          original_distance: 5,
-        });
+      //   setSensorBData({
+      //     speed: 0,
+      //     distance: 5,
+      //     status_id: NORMAL_STATUS_ID,
+      //     original_distance: 5,
+      //   });
 
-        setAngleData({
-          value: 0,
-          status_id: NORMAL_STATUS_ID,
-        });
-      }
+      //   setAngleData({
+      //     value: 0,
+      //     status_id: NORMAL_STATUS_ID,
+      //   });
+      // }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [berthData]);
 
   useEffect(() => {
+    if (socket && !socket.connected) {
+      socket.connect();
+    }
     if (socket) {
       socket?.on("connect", () => {
         socket.emit(
@@ -462,7 +522,6 @@ export const DockPageContent = ({
             berthId: id,
           }),
         );
-
         socket.on("data", (data) => {
           setLatestData(JSON.parse(data));
         });
@@ -479,6 +538,8 @@ export const DockPageContent = ({
         );
         socket.off("connect");
         socket.off("data");
+        socket.disconnect();
+        socket.close();
       }
     };
 
@@ -486,8 +547,11 @@ export const DockPageContent = ({
   }, [id, socket]);
 
   const isShipVisible = useMemo(() => {
-    // Still visualize the ship in the case of weak signal
-    const isMooring = berthData?.status?.id === BERTH_STATUS.MOORING;
+    // const isMooring = berthData?.status?.id === BERTH_STATUS.MOORING;
+
+    // if (isMooring) {
+    //   return true;
+    // }
 
     const leftNoErrors = !("left_sensor" in sensorErrors);
     const leftWeakSignal = sensorErrors["left_sensor"] === "weak_signal";
@@ -499,18 +563,7 @@ export const DockPageContent = ({
 
     const sensorsWorking = leftWorking && rightWorking;
 
-    if (isMooring) {
-      if (!gettingRTData) {
-        return true;
-      }
-    } else {
-      if (gettingRTData && sensorsWorking) {
-        return true;
-      }
-    }
-
-    return false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return gettingRTData && sensorsWorking;
   }, [berthData?.status?.id, gettingRTData, sensorErrors]);
 
   useEffect(() => {
@@ -526,27 +579,39 @@ export const DockPageContent = ({
       setSensorErrors(_sensorError);
 
       if (!sensorAHasErrors) {
-        const leftSpeed = latestData?.speed?.[sensorAId]?.value;
+        const leftDistance = latestData?.distance?.[sensorAId]?.value;
+        let leftSpeed = latestData?.speed?.[sensorAId]?.value;
+
+        // Convert null speed to 0 if distance exists
+        if (leftDistance != null && leftSpeed == null) {
+          leftSpeed = 0;
+        }
 
         setSensorAData({
           speed: leftSpeed,
-          distance: latestData?.distance?.[sensorAId]?.value,
+          distance: leftDistance,
           distance_status_id: latestData?.distance?.[sensorAId]?.alarm,
           speed_status_id: latestData?.speed?.[sensorAId]?.alarm,
-          original_distance: latestData?.distance?.[sensorAId]?.value,
+          original_distance: leftDistance,
         });
       }
 
       if (!sensorBHasErrors) {
-        const rightSpeed = latestData?.speed?.[sensorBId]?.value;
+        const rightDistance = latestData?.distance?.[sensorBId]?.value;
+        let rightSpeed = latestData?.speed?.[sensorBId]?.value;
+
+        // Convert null speed to 0 if distance exists
+        if (rightDistance != null && rightSpeed == null) {
+          rightSpeed = 0;
+        }
 
         setSensorBData({
           speed: rightSpeed,
-          distance: latestData?.distance?.[sensorBId]?.value,
+          distance: rightDistance,
           status_id: latestData?.distance?.[sensorBId]?.alarm,
           distance_status_id: latestData?.distance?.[sensorBId]?.alarm,
           speed_status_id: latestData?.speed?.[sensorBId]?.alarm,
-          original_distance: latestData?.distance?.[sensorBId]?.value,
+          original_distance: rightDistance,
         });
       }
 
@@ -562,46 +627,61 @@ export const DockPageContent = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [latestData]);
-
   useEffect(() => {
-    if (portsSocket) {
-      portsSocket?.on("connect", () => {
-        portsSocket.on(DialogType.DEVICE_ERROR, (data) => {
-          const parsedData = JSON.parse(data);
-          // const errorCode = parsedData?.errorCode;
-          // const berthId = `berth_${parsedData?.berth?.id}`;
+    if (!portsSocket) return;
 
-          // if (
-          //   !(berthId in errorDialogs) ||
-          //   errorDialogs?.[berthId] !== errorCode
-          // ) {
+    let currentErrors = new Set();
+
+    const handleCompletedSession = (data) => {
+      try {
+        const parsedData = JSON.parse(data);
+        showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
+      } catch (error) {
+        console.error("Error handling completed session:", error);
+      }
+    };
+    const handleDeviceError = (data) => {
+      try {
+        const parsedData = JSON.parse(data);
+        const errorKey = `${parsedData?.berth?.id}_${parsedData?.sessionId}_${parsedData?.errorCode}`;
+
+        // Only show error if we haven't shown it yet
+        if (!currentErrors.has(errorKey)) {
+          currentErrors.add(errorKey);
           showsErrorDialog(parsedData);
-          //   dispatch(
-          //     setCurrentErrorDialog({
-          //       berthId,
-          //       errorCode,
-          //     }),
-          //   );
-          // }
-        });
+        }
+      } catch (error) {
+        console.error("Error handling device error:", error);
+      }
+    };
 
-        portsSocket.on(DialogType.COMPLETED_SESSION, (data) => {
-          const parsedData = JSON.parse(data);
-          const berthId = `berth_${parsedData?.berth?.id}_${parsedData?.sessionId}`;
+    portsSocket.on("COMPLETED_SESSION", handleCompletedSession);
+    portsSocket.on("DEVICE_ERROR", handleDeviceError);
 
-          if (!(berthId in sessionCompleteDialogs)) {
-            showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
-          }
-        });
-      });
+    const handleConnect = () => {
+      portsSocket.emit("join", JSON.stringify({ berthId: id }));
+    };
+    portsSocket.on("connect", handleConnect);
+
+    if (portsSocket.connected) {
+      handleConnect();
     }
 
     return () => {
-      clearPortsSocket();
+      currentErrors.clear();
+      portsSocket.off("COMPLETED_SESSION", handleCompletedSession);
+      portsSocket.off("DEVICE_ERROR", handleDeviceError);
+      portsSocket.off("connect", handleConnect);
     };
+  }, [portsSocket, id]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [errorDialogs, sessionCompleteDialogs, portsSocket]);
+  useEffect(() => {
+    return () => {
+      // Clear dialogs when component unmounts
+      dispatch(resetErrorDialog());
+      dispatch(resetSessionCompleteDialog());
+    };
+  }, [dispatch]);
 
   if (
     berthData?.status?.id === BERTH_STATUS.AVAILABLE &&
@@ -617,12 +697,22 @@ export const DockPageContent = ({
       <Box
         className={styles.container}
         style={{
-          gridTemplateColumns: isFullScreen ? "1fr" : `1fr ${SIDEBAR_WIDTH}px`,
+          gridTemplateColumns: isFullScreen
+            ? "1fr"
+            : isSidebarOpen
+              ? `1fr ${SIDEBAR_WIDTH}px`
+              : "1fr 0px",
         }}
       >
         <Box className={styles.main} ref={mainRef}>
           <VisualizationV2
-            width={isFullScreen ? screenWidth : screenWidth - SIDEBAR_WIDTH}
+            width={
+              isFullScreen
+                ? screenWidth
+                : isSidebarOpen
+                  ? screenWidth - SIDEBAR_WIDTH
+                  : screenWidth - 0
+            }
             height={screenHeight}
             sensorAData={sensorAData}
             sensorBData={sensorBData}
@@ -637,7 +727,7 @@ export const DockPageContent = ({
             distanceToLeft={berthData?.distanceFender}
             // distanceToRight={berthData?.distanceToRight}
             zoom={zoom}
-            isMooring={berthData?.status?.id === BERTH_STATUS.MOORING}
+            // isMooring={berthData?.status?.id === BERTH_STATUS.MOORING}
             gettingRTData={gettingRTData}
             sensorAHasErrors={sensorErrors?.left_sensor}
             sensorBHasErrors={sensorErrors?.right_sensor}
@@ -646,6 +736,7 @@ export const DockPageContent = ({
             }
             sensorErrors={sensorErrors}
             isShipVisible={isShipVisible}
+            sidebarCollapsed={!isSidebarOpen}
           />
 
           <Compass direction={berthData.directionCompass} />
@@ -697,70 +788,81 @@ export const DockPageContent = ({
         </Box>
 
         {!isFullScreen && (
-          <Box className={styles.sideBar}>
-            <Box>
-              <ProfileInformation />
+          <Box className={styles.sideBar} style={{ position: "relative" }}>
+            <IconButton
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              style={{ position: "absolute", left: -40, top: screenHeight / 2 }}
+            >
+              {isSidebarOpen ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+            </IconButton>
+            {isSidebarOpen && (
+              <>
+                <Box>
+                  <ProfileInformation />
 
-              <Divider />
-            </Box>
-
-            <SidebarMainContainer screenHeight={screenHeight}>
-              <Box p={2}>
-                <Widget />
-              </Box>
-
-              <Box>
-                <BerthWidget berthData={berthData} />
-              </Box>
-
-              {berthData?.status?.id === 2 && (
-                <>
                   <Divider />
-
-                  {true ? (
-                    <AlarmHistoryOptimizedTable
-                      onClickSettings={() => setShowsAlarmSetting(true)}
-                      pastData={pastData}
-                      hasPastData={hasPastData}
-                      realtimeData={realtimeData}
-                      hasRealtimeData={hasRealtimeData}
-                      sensorAToFender={berthData?.distanceToLeft || 0}
-                      sensorBToFender={berthData?.distanceToRight || 0}
-                    />
-                  ) : (
-                    <AlarmHistoryTable
-                      berthId={berthData?.id}
-                      berthStatus={berthData?.status?.id}
-                      hasData={gettingRTData}
-                      latestData={latestData}
-                      onClickSettings={() => setShowsAlarmSetting(true)}
-                      sensorAId={berthData?.leftDevice?.id}
-                      sensorBId={berthData?.rightDevice?.id}
-                      sensorAToFender={berthData?.distanceToLeft || 0}
-                      sensorBToFender={berthData?.distanceToRight || 0}
-                    />
-                  )}
-                </>
-              )}
-            </SidebarMainContainer>
-
-            {berthData?.status?.id !== BERTH_STATUS.AVAILABLE &&
-              berthData?.status?.id !== BERTH_STATUS.MOORING && (
-                <Box mt="auto">
-                  <Divider />
-
-                  <Box p={2}>
-                    <Button
-                      onClick={triggerStopRecording}
-                      className="custom-danger-button"
-                      style={{ width: "100%" }}
-                    >
-                      <StopIcon size="small" style={{ color: "white" }} />
-                      <span>{t("dock:stop-recording")}</span>
-                    </Button>
-                  </Box>
                 </Box>
-              )}
+
+                <SidebarMainContainer screenHeight={screenHeight}>
+                  <Box p={2}>
+                    <Widget />
+                  </Box>
+
+                  <Box>
+                    <BerthWidget berthData={berthData} />
+                  </Box>
+
+                  {berthData?.status?.id === 2 && (
+                    <>
+                      <Divider />
+
+                      {true ? (
+                        <AlarmHistoryOptimizedTable
+                          onClickSettings={() => setShowsAlarmSetting(true)}
+                          pastData={pastData}
+                          hasPastData={hasPastData}
+                          realtimeData={realtimeData}
+                          hasRealtimeData={hasRealtimeData}
+                          sensorAToFender={berthData?.distanceToLeft || 0}
+                          sensorBToFender={berthData?.distanceToRight || 0}
+                        />
+                      ) : (
+                        <AlarmHistoryTable
+                          berthId={berthData?.id}
+                          berthStatus={berthData?.status?.id}
+                          hasData={gettingRTData}
+                          latestData={latestData}
+                          onClickSettings={() => setShowsAlarmSetting(true)}
+                          sensorAId={berthData?.leftDevice?.id}
+                          sensorBId={berthData?.rightDevice?.id}
+                          sensorAToFender={berthData?.distanceToLeft || 0}
+                          sensorBToFender={berthData?.distanceToRight || 0}
+                        />
+                      )}
+                    </>
+                  )}
+                </SidebarMainContainer>
+
+                {berthData?.status?.id !== BERTH_STATUS.AVAILABLE &&
+                  berthData?.status?.id !== BERTH_STATUS.MOORING &&
+                  hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT) && (
+                    <Box mt="auto">
+                      <Divider />
+
+                      <Box p={2}>
+                        <Button
+                          onClick={triggerStopRecording}
+                          className="custom-danger-button"
+                          style={{ width: "100%" }}
+                        >
+                          <StopIcon size="small" style={{ color: "white" }} />
+                          <span>{t("dock:stop-recording")}</span>
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
+              </>
+            )}
           </Box>
         )}
 
@@ -769,13 +871,14 @@ export const DockPageContent = ({
           zoom={zoom}
           onZoom={setZoom}
           left={
-            isFullScreen
+            isFullScreen || !isSidebarOpen
               ? screenWidth - BUTTONS_RIGHT_MARGIN
               : screenWidth - BUTTONS_RIGHT_MARGIN - SIDEBAR_WIDTH
           }
           bottom={150}
           onClickSettings={() => setShowsDetailSettings(true)}
           onFullScreen={onFullScreen}
+          isFullScreen={isFullScreen}
         />
         {/* )} */}
       </Box>

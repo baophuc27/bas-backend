@@ -1,6 +1,7 @@
 import { alarmDao, recordDao, recordHistoryDao } from '@bas/database/dao';
 import { AlarmDataUnit, RecordFilter, RecordHistoryQueryParams } from './typing';
 import { RecordDetailDto } from '@bas/database/dto/response/record-detail.dto';
+import { RecordData } from '@bas/database/dto/request/record-sync-dto';
 import * as objectMapper from 'object-mapper';
 import { recordAggregateMapper, recordDetailMapper } from '@bas/database/mapper/record-mapper';
 import { Transaction } from 'sequelize';
@@ -15,8 +16,12 @@ import {
 } from '@bas/database/mapper/record-history-mapper';
 import { BadRequestException } from '@bas/api/errors';
 import { internalErrorCode, RecordSyncStatus } from '@bas/constant';
+import { filterRecordHistories, applySensorStatusRules } from './filter-data-service';
 
 export const findAll = async (recordFilter: RecordFilter) => {
+  if (!recordFilter.orgId) {
+    throw new BadRequestException('orgId is required');
+  }
   const result = await recordDao.findAll(recordFilter);
 
   const data = result.rows.map((row) => {
@@ -29,13 +34,97 @@ export const findAll = async (recordFilter: RecordFilter) => {
   };
 };
 
-export const getAggregatesByRecordId = async (recordId: number) => {
-  const result = await recordDao.getAggregatesByRecordId(recordId);
+export const syncDataApp = async (data: RecordData[]) => {
+  if (data.length == 0) {
+    return {
+      count: 0,
+      "msg": "No data to sync"
+    }
+  }
+  const recordId = data[0].recordId;
+  const orgId = data[0].orgId;
+  const recordExist = await recordDao.getRecordById(recordId, orgId);
+  if (!recordExist) {
+    throw new BadRequestException('Record not found', internalErrorCode.INVALID_INPUT);
+  }
+  if (!recordExist.endTime) {
+    throw new BadRequestException('Record is not ended', internalErrorCode.INVALID_INPUT);
+  }
+  const syncStatus = recordExist.syncStatus = RecordSyncStatus.SUCCESS;
+  await recordDao.updateStatus(recordId, orgId, syncStatus);
+  return {
+    count: data.length,
+    "msg": "Sync data success"
+  }
 
-  const aggregates = objectMapper.merge(
-    result.aggregates[0]?.dataValues || {},
-    recordAggregateMapper
-  );
+}
+
+export const getAggregatesByRecordId = async (recordId: number, orgId: number) => {
+  const result = await recordDao.getAggregatesByRecordId(recordId, orgId);
+
+  let maxAngle = 0;
+  let minAngle = Infinity;
+  let sumAngle = 0;
+
+  let maxLeftSpeed = 0;
+  let minLeftSpeed = Infinity;
+  let sumLeftSpeed = 0;
+
+  let maxRightSpeed = 0;
+  let minRightSpeed = Infinity;
+  let sumRightSpeed = 0;
+
+  let count = 0;
+
+  if (result.chartData && result.chartData.length > 0) {
+    result.chartData.forEach(record => {
+      const filteredRecord = applySensorStatusRules(record);
+
+      const angle = parseFloat((filteredRecord as any).angle);
+      if (!isNaN(angle)) {
+        maxAngle = Math.max(maxAngle, angle);
+        minAngle = Math.min(minAngle, angle);
+        sumAngle += angle;
+      }
+
+      const leftSpeed = parseFloat((filteredRecord as any).leftSpeed);
+      if (!isNaN(leftSpeed)) {
+        maxLeftSpeed = Math.max(maxLeftSpeed, leftSpeed);
+        minLeftSpeed = Math.min(minLeftSpeed, leftSpeed);
+        sumLeftSpeed += leftSpeed;
+      }
+
+      const rightSpeed = parseFloat((filteredRecord as any).rightSpeed);
+      if (!isNaN(rightSpeed)) {
+        maxRightSpeed = Math.max(maxRightSpeed, rightSpeed);
+        minRightSpeed = Math.min(minRightSpeed, rightSpeed);
+        sumRightSpeed += rightSpeed;
+      }
+
+      count++;
+    });
+  }
+
+  const avgAngle = count > 0 ? parseFloat((sumAngle / count).toFixed(2)) : 0;
+  const avgLeftSpeed = count > 0 ? parseFloat((sumLeftSpeed / count).toFixed(2)) : 0;
+  const avgRightSpeed = count > 0 ? parseFloat((sumRightSpeed / count).toFixed(2)) : 0;
+
+  if (minAngle === Infinity) minAngle = 0;
+  if (minLeftSpeed === Infinity) minLeftSpeed = 0;
+  if (minRightSpeed === Infinity) minRightSpeed = 0;
+
+  const aggregates = {
+    maxAngle: parseFloat(maxAngle.toFixed(2)),
+    minAngle: parseFloat(minAngle.toFixed(2)),
+    avgAngle,
+    maxLeftSpeed: parseFloat(maxLeftSpeed.toFixed(2)),
+    minLeftSpeed: parseFloat(minLeftSpeed.toFixed(2)),
+    avgLeftSpeed,
+    maxRightSpeed: parseFloat(maxRightSpeed.toFixed(2)),
+    minRightSpeed: parseFloat(minRightSpeed.toFixed(2)),
+    avgRightSpeed
+  };
+
   return {
     data: {
       aggregates,
@@ -43,11 +132,13 @@ export const getAggregatesByRecordId = async (recordId: number) => {
   };
 };
 
-export const getChartByRecordId = async (recordId: number) => {
-  const result = await recordDao.getChartByRecordId(recordId);
+export const getChartByRecordId = async (recordId: number, orgId: number) => {
+  const result = await recordDao.getChartByRecordId(recordId, orgId);
 
   const chart = result?.chart?.map((recordHistory) => {
-    return objectMapper.merge(recordHistory, recordHistoryChartMapper);
+    // Apply sensor status rules using the new service
+    const filteredHistory = applySensorStatusRules(recordHistory);
+    return objectMapper.merge(filteredHistory, recordHistoryChartMapper);
   });
   return {
     data: {
@@ -58,13 +149,20 @@ export const getChartByRecordId = async (recordId: number) => {
 
 export const getRecordHistoryByRecordId = async (
   recordId: number,
+  orgId: number,
   recordHistoryQueryParams: RecordHistoryQueryParams
 ) => {
-  const result = await recordDao.getRecordHistoryByRecordId(recordId, recordHistoryQueryParams);
+  const result = await recordDao.getRecordHistoryByRecordId(
+    recordId,
+    orgId,
+    recordHistoryQueryParams
+  );
 
   const record = objectMapper.merge(result.record || {}, recordDetailMapper);
   const recordHistories = result.recordHistories.map((recordHistory) => {
-    return objectMapper.merge(recordHistory, recordHistoryMapper);
+    // Apply sensor status rules using the new service
+    const filteredHistory = applySensorStatusRules(recordHistory);
+    return objectMapper.merge(filteredHistory, recordHistoryMapper);
   });
 
   return {
@@ -76,26 +174,88 @@ export const getRecordHistoryByRecordId = async (
   };
 };
 
-export const getRecordHistoryByRecordIdWithoutPagination = async (recordId: number) => {
-  const result = await recordDao.findAllWithoutPagination(recordId);
+export const getRecordHistoryByRecordIdWithoutPagination = async (
+  recordId: number,
+  orgId: number
+) => {
+  const result = await recordDao.findAllWithoutPagination(recordId, orgId);
 
   const record = objectMapper.merge(result.record || {}, recordDetailMapper);
   const recordHistories = result.recordHistories.map((recordHistory) => {
-    return objectMapper.merge(recordHistory, recordHistoryMapper);
+    // Apply sensor status rules using the new service
+    const filteredHistory = applySensorStatusRules(recordHistory);
+    return objectMapper.merge(filteredHistory, recordHistoryMapper);
   });
 
-  const resultAggregates = await recordDao.getAggregatesByRecordId(recordId);
-
-  const aggregates = objectMapper.merge(
-    resultAggregates.aggregates[0]?.dataValues || {},
-    recordAggregateMapper
-  );
-
-  const resultChart = await recordDao.getChartByRecordId(recordId);
-
+  // Get chart data
+  const resultChart = await recordDao.getChartByRecordId(recordId, orgId);
   const chart = resultChart?.chart?.map((recordHistory) => {
-    return objectMapper.merge(recordHistory, recordHistoryChartMapper);
+    const filteredHistory = applySensorStatusRules(recordHistory);
+    return objectMapper.merge(filteredHistory, recordHistoryChartMapper);
   });
+
+  let maxAngle = 0;
+  let minAngle = Infinity;
+  let sumAngle = 0;
+
+  let maxLeftSpeed = 0;
+  let minLeftSpeed = Infinity;
+  let sumLeftSpeed = 0;
+
+  let maxRightSpeed = 0;
+  let minRightSpeed = Infinity;
+  let sumRightSpeed = 0;
+
+  let count = 0;
+
+  if (resultChart?.chart && resultChart.chart.length > 0) {
+    resultChart.chart.forEach(record => {
+      const filteredRecord = applySensorStatusRules(record);
+
+      const angle = parseFloat((filteredRecord as any).angle);
+      if (!isNaN(angle)) {
+        maxAngle = Math.max(maxAngle, angle);
+        minAngle = Math.min(minAngle, angle);
+        sumAngle += angle;
+      }
+
+      const leftSpeed = parseFloat((filteredRecord as any).leftSpeed);
+      if (!isNaN(leftSpeed)) {
+        maxLeftSpeed = Math.max(maxLeftSpeed, leftSpeed);
+        minLeftSpeed = Math.min(minLeftSpeed, leftSpeed);
+        sumLeftSpeed += leftSpeed;
+      }
+
+      const rightSpeed = parseFloat((filteredRecord as any).rightSpeed);
+      if (!isNaN(rightSpeed)) {
+        maxRightSpeed = Math.max(maxRightSpeed, rightSpeed);
+        minRightSpeed = Math.min(minRightSpeed, rightSpeed);
+        sumRightSpeed += rightSpeed;
+      }
+
+      count++;
+    });
+  }
+
+  const avgAngle = count > 0 ? parseFloat((sumAngle / count).toFixed(2)) : 0;
+  const avgLeftSpeed = count > 0 ? parseFloat((sumLeftSpeed / count).toFixed(2)) : 0;
+  const avgRightSpeed = count > 0 ? parseFloat((sumRightSpeed / count).toFixed(2)) : 0;
+
+  if (minAngle === Infinity) minAngle = 0;
+  if (minLeftSpeed === Infinity) minLeftSpeed = 0;
+  if (minRightSpeed === Infinity) minRightSpeed = 0;
+
+  const aggregates = {
+    maxAngle: parseFloat(maxAngle.toFixed(2)),
+    minAngle: parseFloat(minAngle.toFixed(2)),
+    avgAngle,
+    maxLeftSpeed: parseFloat(maxLeftSpeed.toFixed(2)),
+    minLeftSpeed: parseFloat(minLeftSpeed.toFixed(2)),
+    avgLeftSpeed,
+    maxRightSpeed: parseFloat(maxRightSpeed.toFixed(2)),
+    minRightSpeed: parseFloat(minRightSpeed.toFixed(2)),
+    avgRightSpeed
+  };
 
   return {
     ...record,
@@ -105,32 +265,37 @@ export const getRecordHistoryByRecordIdWithoutPagination = async (recordId: numb
   };
 };
 
-export const remove = async (id: number) => {
-  const recordExist = await recordDao.getRecordById(id);
+export const remove = async (id: number, orgId: number) => {
+  const recordExist = await recordDao.getRecordById(id, orgId);
   if (!recordExist?.endTime) {
     throw new BadRequestException('Record is not ended yet', internalErrorCode.INVALID_INPUT);
   }
-  return await recordDao.remove(id);
+  return await recordDao.remove(id, orgId);
 };
 
-export const getCurrentRecord = async (berthId: number, t?: Transaction) => {
-  return recordDao.getCurrentRecord(berthId, t);
+export const getCurrentRecord = async (berthId: number, orgId: number, t?: Transaction) => {
+  return recordDao.getCurrentRecord(berthId, orgId, t);
 };
 
 export const createRecord = async (data: any, t?: Transaction) => {
   return recordDao.createRecord(data, t);
 };
 
-export const endRecord = async (recordId: number, t?: Transaction) => {
-  return recordDao.endRecord(recordId, t);
+export const endRecord = async (
+  recordId: number,
+  orgId: number,
+  t?: Transaction
+) => {
+  return recordDao.endRecord(recordId, orgId, t);
 };
 
-export const getRecordById = async (recordId: number) => {
-  return recordDao.getRecordByIdAndNotEnd(recordId);
+export const getRecordById = async (recordId: number, orgId: number) => {
+  return recordDao.getRecordByIdAndNotEnd(recordId, orgId);
 };
 
 export const findLatestRecord = async (
   berthId: number,
+  orgId: number,
   startTime: Date,
   endTime: Date,
   raw?: boolean
@@ -138,17 +303,24 @@ export const findLatestRecord = async (
   //   get data history 24h last
   const recordHistory = await recordHistoryService.getAllRecordHistoryBetweenTime(
     berthId,
+    orgId,
     startTime,
     endTime
   );
-  const records = await recordDao.findRecordByIds(recordHistory.map((record) => record.recordId));
+  const records = await recordDao.findRecordByIds(
+    recordHistory.map((record) => record.recordId),
+    orgId
+  );
   if (!raw) {
     return recordHistory.length > 0 ? await convertToAlarmData(recordHistory, records) : [];
   } else {
     return recordHistory.map((frame) => {
-      const record = records.find((record) => record.id === frame.recordId);
+      // Apply sensor status rules using the new service
+      const filteredFrame = applySensorStatusRules(frame);
+
+      const record = records.find((record) => record.id === filteredFrame.recordId);
       return objectMapper.merge(
-        frame,
+        filteredFrame,
         recordHistoryMapperReverse(
           record?.berth?.leftDevice?.id || 1,
           record?.berth?.rightDevice?.id || 2
@@ -267,25 +439,28 @@ const convertToAlarmData = async (frames: RecordHistory[], records?: Record[]) =
 };
 
 const extractAlarmData = (alarmData: RecordHistory, type: string, side?: number): AlarmDataUnit => {
+  // Apply sensor status rules using the new service
+  const filteredAlarmData = applySensorStatusRules(alarmData);
+
   switch (type) {
     case 'speed':
       if (side === SIDE.LEFT) {
         return {
-          startTime: alarmData.time,
-          value: alarmData.leftSpeed,
-          alarm: alarmData.LSpeedAlarm,
-          zone: alarmData.LSpeedZone,
-          recordId: alarmData.recordId,
+          startTime: filteredAlarmData.time,
+          value: filteredAlarmData.leftSpeed,
+          alarm: filteredAlarmData.LSpeedAlarm,
+          zone: filteredAlarmData.LSpeedZone,
+          recordId: filteredAlarmData.recordId,
           type: 'speed',
           side: SIDE.LEFT,
         };
       } else {
         return {
-          startTime: alarmData.time,
-          value: alarmData.rightSpeed,
-          alarm: alarmData.RSpeedAlarm,
-          zone: alarmData.RSpeedZone,
-          recordId: alarmData.recordId,
+          startTime: filteredAlarmData.time,
+          value: filteredAlarmData.rightSpeed,
+          alarm: filteredAlarmData.RSpeedAlarm,
+          zone: filteredAlarmData.RSpeedZone,
+          recordId: filteredAlarmData.recordId,
           type: 'speed',
           side: SIDE.RIGHT,
         };
@@ -293,39 +468,39 @@ const extractAlarmData = (alarmData: RecordHistory, type: string, side?: number)
     case 'distance':
       if (side === SIDE.LEFT) {
         return {
-          startTime: alarmData.time,
-          value: alarmData.leftDistance,
-          alarm: alarmData.LDistanceAlarm,
-          zone: alarmData.LDistanceZone,
-          recordId: alarmData.recordId,
+          startTime: filteredAlarmData.time,
+          value: filteredAlarmData.leftDistance,
+          alarm: filteredAlarmData.LDistanceAlarm,
+          zone: filteredAlarmData.LDistanceZone,
+          recordId: filteredAlarmData.recordId,
           type: 'distance',
           side: SIDE.LEFT,
         };
       } else {
         return {
-          startTime: alarmData.time,
-          value: alarmData.rightDistance,
-          alarm: alarmData.RDistanceAlarm,
-          zone: alarmData.RDistanceZone,
-          recordId: alarmData.recordId,
+          startTime: filteredAlarmData.time,
+          value: filteredAlarmData.rightDistance,
+          alarm: filteredAlarmData.RDistanceAlarm,
+          zone: filteredAlarmData.RDistanceZone,
+          recordId: filteredAlarmData.recordId,
           type: 'distance',
           side: SIDE.RIGHT,
         };
       }
     default:
       return {
-        startTime: alarmData.time,
-        value: alarmData.angle,
-        alarm: alarmData.angleAlarm,
-        zone: alarmData.angleZone,
-        recordId: alarmData.recordId,
+        startTime: filteredAlarmData.time,
+        value: filteredAlarmData.angle,
+        alarm: filteredAlarmData.angleAlarm,
+        zone: filteredAlarmData.angleZone,
+        recordId: filteredAlarmData.recordId,
         type: 'angle',
       };
   }
 };
 
-export const sync = async (recordId: number) => {
-  const result = await recordDao.findAllWithoutPagination(recordId);
+export const sync = async (recordId: number, orgId: number) => {
+  const result = await recordDao.findAllWithoutPagination(recordId, orgId);
 
   if (!result) {
     throw new BadRequestException('Record not found', internalErrorCode.INVALID_INPUT);
@@ -343,7 +518,9 @@ export const sync = async (recordId: number) => {
     },
     frame:
       result.recordHistories.map((recordHistory) => {
-        return objectMapper.merge(recordHistory, recordHistoryMapper);
+        // Apply sensor status rules using the new service
+        const filteredHistory = applySensorStatusRules(recordHistory);
+        return objectMapper.merge(filteredHistory, recordHistoryMapper);
       }) || [],
     berthInformation: {
       ...result.record.berth?.dataValues,
@@ -352,9 +529,10 @@ export const sync = async (recordId: number) => {
       ...result.record.vessel?.dataValues,
     },
   };
+  console.log("Payload", payload);
   const sync = await cloudService.syncRecordToCloud(payload);
-  const status = sync ? RecordSyncStatus.SUCCESS : RecordSyncStatus.FAILED;
-  await recordDao.updateStatus(recordId, status);
+  const status = RecordSyncStatus.PENDING;
+  await recordDao.updateStatus(recordId, orgId, status);
 
   return sync;
 };

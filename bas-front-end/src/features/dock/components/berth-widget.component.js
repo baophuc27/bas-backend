@@ -19,6 +19,9 @@ export const BerthWidget = ({ berthData }) => {
   const [isMinimized, setIsMinimized] = useState(true);
   const navigate = useNavigate();
 
+  // Set false to hide the berth length row, true to show it.
+  const showBerthLength = false;
+
   const onToggleMinimize = () => setIsMinimized((prev) => !prev);
 
   return (
@@ -106,13 +109,15 @@ export const BerthWidget = ({ berthData }) => {
                 </TableCell>
                 <TableCell style={{ maxWidth: 30 }}>m</TableCell>
               </TableRow>
-              <TableRow className={berthWidgetStyle.berthRow}>
-                <TableCell style={{ maxWidth: 100, padding: "12px 16px" }}>
-                  {t("berth:parameter_berth_layout.berth_length")}
-                </TableCell>
-                <TableCell style={{ maxWidth: 30 }}>240</TableCell>
-                <TableCell style={{ maxWidth: 30 }}>m</TableCell>
-              </TableRow>
+              {showBerthLength && (
+                <TableRow className={berthWidgetStyle.berthRow}>
+                  <TableCell style={{ maxWidth: 100, padding: "12px 16px" }}>
+                    {t("berth:parameter_berth_layout.berth_length")}
+                  </TableCell>
+                  <TableCell style={{ maxWidth: 30 }}>74</TableCell>
+                  <TableCell style={{ maxWidth: 30 }}>m</TableCell>
+                </TableRow>
+              )}
             </TableHead>
           </Table>
         </TableContainer>

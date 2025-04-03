@@ -32,22 +32,14 @@ const addOrgIdToQuery = (options: any) => {
  */
 export function setupSequelizeHooks(sequelize: Sequelize) {
   // Hook cho các truy vấn tìm kiếm (find)
-  sequelize.addHook('beforeFind', (options: any) => {
-    addOrgIdToQuery(options);
-  });
+  sequelize.addHook('beforeFind', (options: any) => {});
 
   // Hook cho các truy vấn thêm mới (create)
-  sequelize.addHook('beforeCreate', (instance: any) => {
-    addOrgIdToInstance(instance);
-  });
+  sequelize.addHook('beforeCreate', (instance: any) => {});
 
   // Hook cho các truy vấn cập nhật (update)
-  sequelize.addHook('beforeUpdate', (instance: any) => {
-    addOrgIdToInstance(instance);
-  });
+  sequelize.addHook('beforeUpdate', (instance: any) => {});
 
   // Hook cho upsert (create or update)
-  sequelize.addHook('beforeSave', (instance: any) => {
-    addOrgIdToInstance(instance);
-  });
+  sequelize.addHook('beforeSave', (instance: any) => {});
 }

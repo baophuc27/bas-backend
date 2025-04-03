@@ -1,4 +1,5 @@
 import { BerthStatus, getBerthStatusMessages } from '@bas/constant/berth-status';
+import { create } from 'lodash';
 
 export const berthDetailMapper = {
   id: 'id',
@@ -25,6 +26,8 @@ export const berthDetailMapper = {
   'rightDevice.name': 'rightDevice.name',
   'rightDevice.realValue': 'rightDevice.realValue',
   'rightDevice.status': 'rightDevice.status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   distanceToLeft: 'distanceToLeft',
   distanceToRight: 'distanceToRight',
   status: {

@@ -24,7 +24,8 @@ export const ListPageContent = (t, language) => {
         align: "left",
         width: 165,
         sortable: true,
-        renderCell: (params) => moment(params).format("DD-MM-YYYY HH:mm:ss:SSS"),
+        renderCell: (params) =>
+          moment(params).format("DD-MM-YYYY HH:mm:ss:SSS"),
       },
       {
         field: "endTime",
@@ -80,7 +81,7 @@ export const ListPageContent = (t, language) => {
       viewDetail: (
         <img src={ViewDetailIcon} alt="View Detail" width={24} height={24} />
       ),
-      resync: <img src={ResyncIcon} alt="Resync" width={20} height={23} />,
+      // resync: <img src={ResyncIcon} alt="Resync" width={20} height={23} />,
       replay: <img src={ReplayIcon} alt="Replay" width={24} height={24} />,
       delete: <img src={DeleteIcon} alt="Delete" width={24} height={24} />,
     },

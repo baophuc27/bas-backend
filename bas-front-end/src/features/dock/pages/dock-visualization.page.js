@@ -1,21 +1,25 @@
-import AngleIcon from "assets/images/angle.svg";
-import DistanceIcon from "assets/images/distance.svg";
-import SpeedIcon from "assets/images/speed.svg";
-import { BERTH_STATUS } from "common/constants/berth.constant";
-import { useQuery } from "common/hooks";
-import { BerthService, UserManagementService } from "common/services";
-import { isEmpty } from "lodash";
-import moment from "moment";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import socketIOClient from "socket.io-client";
+import swal from "sweetalert";
+import moment from "moment";
+import { isEmpty } from "lodash";
+
+import AngleIcon from "assets/images/angle.svg";
+import DistanceIcon from "assets/images/distance.svg";
+import SpeedIcon from "assets/images/speed.svg";
+
+import { useQuery } from "common/hooks";
+import { BerthService } from "common/services";
+import { BERTH_STATUS } from "common/constants/berth.constant";
+
+import { DockPageContent } from "./dock-content.page";
 import AlarmSettingDialog from "../components/alarm-setting-dialog/alarm-setting-dialog.component";
 import BerthingSettingDialogComponent from "../components/berthing-setting-dialog/berthing-setting-dialog.component";
 import { AlarmStatusColor, NORMAL_STATUS_ID } from "../constants/alarm-status";
 import { formatValue, getUnit } from "../helpers";
-import { DockPageContent } from "./dock-content.page";
+import { useSocket } from "../hooks/use-socket";
 
 const AlarmTypeIcon = {
   ANGLE: AngleIcon,
@@ -27,228 +31,287 @@ export const DockVisualizationPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
-  const [updatedBerth, setUpdatedBerth] = useState({});
+  const query = useQuery();
+
   const [berth, setBerth] = useState({});
+  const [updatedBerth, setUpdatedBerth] = useState({});
+  const [pastData, setPastData] = useState([]);
+  const [hasPastData, setHasPastData] = useState(false);
+  const [lastPortMessage, setLastPortMessage] = useState(null); // Add this line
+
   const [showsDetailSettings, setShowsDetailSettings] = useState(false);
   const [showsBerthingSettings, setShowsBerthingSettings] = useState(false);
   const [showsAlarmSetting, setShowsAlarmSetting] = useState(false);
-  const [socket, setSocket] = useState(null);
-  const [deviceSocket, setDeviceSocket] = useState(null);
-  const [socketData, setSocketData] = useState(null);
+
   const alarmSettingRef = useRef(null);
-  const query = useQuery();
-  const [pastData, setPastData] = useState([]);
-  const [hasPastData, setHasPastData] = useState(false);
-  const [portsSocket, setPortsSocket] = useState(null);
 
-  const initSocket = async () => {
-    try {
-      const resp = await UserManagementService.getSocketAccessToken();
+  const {
+    basSocket,
+    deviceSocket,
+    portsSocket,
+    socketData,
+    joinDockSockets,
+    leaveDockSockets,
+    pauseDeviceData,
+    resumeDeviceData,
+    pauseBasData,
+    resumeBasData,
+    pausePortsData,
+    resumePortsData,
+    lastDataTimestamp,
+  } = useSocket(id);
 
-      if (resp?.data?.success) {
-        const newSocket = socketIOClient.io(
-          `${process.env.REACT_APP_API_BASE_URL}/bas-realtime`,
-          {
-            extraHeaders: {
-              authorization: resp.data?.accessToken,
-            },
-          },
-        );
+  const [isDialogShowing, setIsDialogShowing] = useState(false);
 
-        const newDeviceSocket = socketIOClient.io(
-          `${process.env.REACT_APP_API_BASE_URL}/device-realtime`,
-          {
-            extraHeaders: {
-              authorization: resp.data?.accessToken,
-            },
-            query: {
-              berthId: id,
-            },
-          },
-        );
-
-        const newPortsSocket = socketIOClient.io(
-          `${process.env.REACT_APP_API_BASE_URL}/port-events`,
-          {
-            extraHeaders: {
-              authorization: resp.data?.accessToken,
-            },
-          },
-        );
-
-        setSocket(newSocket);
-        setDeviceSocket(newDeviceSocket);
-        setPortsSocket(newPortsSocket);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
+  /**
+   * Handle opening/closing dialogs
+   */
   const onCloseBerthingSettings = ({ forcesBack = false }) => {
     setShowsBerthingSettings(false);
-
-    if (forcesBack === true) {
+    if (forcesBack) {
       navigate("/");
     }
   };
 
-  const fetchBerthDetail = async (id) => {
-    try {
-      const response = await BerthService.getDetail(id);
+  const onCloseAlarmSettings = () => setShowsAlarmSetting(false);
+  const onCloseDetailSettings = () => setShowsDetailSettings(false);
+  const onRefetchAlarmData = () => alarmSettingRef.current?.fetchData?.();
 
+  /**
+   * Fetch the Berth details from your API
+   */
+  const fetchBerthDetail = async (berthId) => {
+    try {
+      const response = await BerthService.getDetail(berthId);
       if (!response?.data?.success) {
         toast.error(response?.data?.message ?? "Error");
         return;
       }
-
-      setBerth(response?.data?.data);
-      setUpdatedBerth(response?.data?.data);
+      setBerth(response.data.data);
+      setUpdatedBerth(response.data.data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const onCloseAlarmSettings = () => setShowsAlarmSetting(false);
-
-  const onCloseDetailSettings = () => setShowsDetailSettings(false);
-
-  const onRefetchAlarmData = () => alarmSettingRef.current?.fetchData();
-
-  const fetchPastData = async (id, updatedBerth) => {
+  /**
+   * Fetch past data (e.g., alarm records) within last 2 hours
+   */
+  const fetchPastData = async (berthId, berthInfo) => {
     try {
       const response = await BerthService.getLatestRecords(
-        id,
-        moment()?.subtract(2, "hours")?.format("YYYY-MM-DD HH:mm:ss"),
-        moment()?.format("YYYY-MM-DD HH:mm:ss"),
+        berthId,
+        moment().subtract(0.5, "hours").format("YYYY-MM-DD HH:mm:ss"),
+        moment().format("YYYY-MM-DD HH:mm:ss"),
       );
-
       if (response?.data?.success) {
         let records = [];
-        let recordsCount = 0;
-
-        for (let record of response?.data?.record) {
-          if (record?.alarm && record?.alarm !== NORMAL_STATUS_ID) {
+        let count = 0;
+        for (let record of response.data.record) {
+          if (
+            record?.alarm &&
+            record.alarm !== NORMAL_STATUS_ID &&
+            record.endTime
+          ) {
             let type = record?.type?.toUpperCase();
-            let value = record?.value;
+            let value = formatValue(Math.abs(record.value));
 
-            // if (type === "DISTANCE" && record?.side === 1) {
-            //   value = Math.max(value - updatedBerth?.distanceToLeft, 0);
-            // }
-
-            // if (type === "DISTANCE" && record?.side === 2) {
-            //   value = Math.max(value - updatedBerth?.distanceToRight, 0);
-            // }
-
-            value = formatValue(Math.abs(value));
-
-            if (record?.endTime) {
-              records.push({
-                type,
-                value: `${value}${getUnit(record?.type)}`,
-                zone: record?.zone,
-                sensor: record?.side
-                  ? record?.side === 1
-                    ? t("alarm:left")
-                    : t("alarm:right")
-                  : "-",
-                startTime: moment(record?.startTime).format("HH:mm:ss:SSS"),
-                endTime: record?.endTime
-                  ? moment(record?.endTime).format("HH:mm:ss:SSS")
-                  : "-",
-                alarmColor: AlarmStatusColor[record?.alarm],
-                iconType: AlarmTypeIcon[record?.type?.toUpperCase()],
-              });
-
-              recordsCount += 1;
-            }
+            records.push({
+              type,
+              value: `${value}${getUnit(record.type)}`,
+              zone: record.zone,
+              sensor: record.side
+                ? record.side === 1
+                  ? t("alarm:left")
+                  : t("alarm:right")
+                : "-",
+              startTime: moment(record.startTime).format("HH:mm:ss:SSS"),
+              endTime: moment(record.endTime).format("HH:mm:ss:SSS"),
+              alarmColor: AlarmStatusColor[record.alarm],
+              iconType: AlarmTypeIcon[type],
+            });
+            count++;
           }
         }
-
-        if (recordsCount > 0) {
+        if (count > 0) {
           setPastData(records);
           setHasPastData(true);
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Failed to fetch past data", error);
+    }
   };
 
+  /**
+   * On mount (and whenever `id` changes), fetch berth detail,
+   * join the dock sockets, and resume device data.
+   */
   useEffect(() => {
-    if (!id) return;
+    if (id) {
+      fetchBerthDetail(id);
+      setTimeout(() => {
+        joinDockSockets(id, "bas");
+        joinDockSockets(id, "ports");
+      }, 100);
+      // Remove these lines since we'll control them in the dialog
+      // resumeDeviceData();
+      resumeBasData();
+      resumePortsData();
+    }
 
-    initSocket();
-    fetchBerthDetail(id);
-
+    return () => {
+      // leaveDockSockets(id);
+      // Remove this line since we'll control it in the dialog
+      // pauseDeviceData();
+      pauseBasData();
+      pausePortsData();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  /**
+   * Whenever `updatedBerth` is set, fetch past data.
+   */
   useEffect(() => {
     if (!isEmpty(updatedBerth)) {
       fetchPastData(id, updatedBerth);
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, updatedBerth]);
 
-  useEffect(() => {
-    // listen /device-realtime
-    if (deviceSocket) {
-      deviceSocket?.on("connect", () => {
-        deviceSocket.emit(
-          "join",
-          JSON.stringify({
-            berthId: id,
-          }),
-        );
-
-        deviceSocket.on("device", (data) => {
-          const newData = JSON.parse(data);
-          setSocketData(newData);
-        });
-      });
-    }
-
-    return () => {
-      if (deviceSocket) {
-        deviceSocket.emit(
-          "leave",
-          JSON.stringify({
-            berthId: id,
-          }),
-        );
-        deviceSocket.off("connect");
-        deviceSocket.off("device");
-      }
-    };
-  }, [id, deviceSocket]);
-
+  /**
+   * Sync `berth` with `updatedBerth`. If status changes to AVAILABLE,
+   * navigate back to home.
+   */
   useEffect(() => {
     if (JSON.stringify(updatedBerth) !== JSON.stringify(berth)) {
       setBerth(updatedBerth);
-
       if (updatedBerth?.status?.id === BERTH_STATUS.AVAILABLE) {
         navigate("/");
       }
     }
+  }, [updatedBerth, berth, navigate]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [updatedBerth]);
+  /**
+   * Periodically re-check the berth status from server every 10s.
+   * If it changes from your local state, show a SweetAlert and navigate if needed.
+   */
+  useEffect(() => {
+    let isChecking = false;
+    const interval = setInterval(async () => {
+      if (isDialogShowing || isChecking) return;
 
+      isChecking = true;
+      try {
+        const response = await BerthService.getDetail(id);
+        if (response?.data?.success && response?.data?.data) {
+          const newData = response.data.data;
+          if (berth?.status?.id !== newData?.status?.id) {
+            setIsDialogShowing(true);
+            setTimeout(() => {
+              swal({
+                title: t("dock:dialogs.status-changed.title"),
+                text: t("dock:dialogs.status-changed.message"),
+                icon: "warning",
+                buttons: {
+                  ok: {
+                    text: t("dock:dialogs.status-changed.ok"),
+                    value: true,
+                  },
+                },
+              }).then(() => {
+                setIsDialogShowing(false);
+                setShowsBerthingSettings(false);
+                setShowsAlarmSetting(false);
+                setShowsDetailSettings(false);
+
+                if (newData?.status?.id === BERTH_STATUS.AVAILABLE) {
+                  navigate("/");
+                } else if (
+                  [
+                    BERTH_STATUS.BERTHING,
+                    BERTH_STATUS.DEPARTING,
+                    BERTH_STATUS.MOORING,
+                  ].includes(newData?.status?.id)
+                ) {
+                  window.location.reload();
+                }
+              });
+            }, 3000); // 3 second delay
+          }
+        }
+      } catch (error) {
+        // console.error("Failed to check berth status:", error);
+      }
+      isChecking = false;
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [berth?.status?.id, id, navigate, t, isDialogShowing]);
+
+  useEffect(() => {
+    return () => {
+      setShowsBerthingSettings(false);
+      setShowsAlarmSetting(false);
+      setShowsDetailSettings(false);
+      setIsDialogShowing(false);
+      if (swal.getState().isOpen) {
+        swal.close();
+      }
+    };
+  }, []);
+
+  // Add this effect to monitor port socket messages
+  useEffect(() => {
+    if (portsSocket) {
+      portsSocket.on("message", (data) => {
+        console.log("Port socket message received:", data);
+        setLastPortMessage(new Date().toISOString());
+      });
+
+      return () => {
+        // portsSocket.off("message");
+      };
+    }
+  }, [portsSocket]);
+
+  // Add this effect to check for stale port data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (lastPortMessage) {
+        const timeSinceLastMessage =
+          Date.now() - new Date(lastPortMessage).getTime();
+        if (timeSinceLastMessage > 30000) {
+          // 30 seconds
+          console.warn("No port socket messages received for 30 seconds");
+          // Optionally show a warning to the user
+          toast.warning(t("dock:warnings.no-port-data"));
+        }
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [lastPortMessage, t]);
+
+  /**
+   * Render the main Dock visualization page
+   */
   return (
     <>
       <DockPageContent
-        socket={socket}
+        socket={basSocket}
         id={id}
         berth={berth}
         setShowsBerthingSettings={setShowsBerthingSettings}
         setShowsDetailSettings={setShowsDetailSettings}
         setShowsAlarmSetting={setShowsAlarmSetting}
-        optimized={query.get("optimized") === "true" ? true : false}
+        optimized={query.get("optimized") === "true"}
         pastData={pastData}
         hasPastData={hasPastData}
         portsSocket={portsSocket}
       />
 
+      {/* Berthing Settings Dialog */}
       <BerthingSettingDialogComponent
         open={showsBerthingSettings}
         handleClose={onCloseBerthingSettings}
@@ -256,8 +319,11 @@ export const DockVisualizationPage = () => {
         setData={setUpdatedBerth}
         socketData={socketData}
         refetchAlarmData={onRefetchAlarmData}
+        pauseDeviceData={pauseDeviceData}
+        resumeDeviceData={resumeDeviceData}
       />
 
+      {/* Alarm Settings Dialog */}
       <AlarmSettingDialog
         ref={alarmSettingRef}
         open={showsAlarmSetting}

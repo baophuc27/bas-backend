@@ -4,11 +4,10 @@ import { getOneUserById } from '@bas/database/dao/user-dao';
 import { NextFunction, Request, Response } from 'express';
 import { Forbidden, Unauthorized } from '@bas/api/errors';
 import { revokeTokenService } from '@bas/service';
-import { AsyncContext } from '@bas/utils/AsyncContext'; // Import Async Context
+import { AsyncContext } from '@bas/utils/AsyncContext';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    orgId?: number;
     identification: {
       userId: string;
       roleId: number;
@@ -30,27 +29,18 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
       return next(new Unauthorized('Unauthorized'));
     }
 
-    // Kiểm tra token có bị thu hồi
     if (revokeTokenService.isTokenRevoked(token)) {
-      console.warn('[Authorization] Token revoked');
       return next(new Forbidden('Token revoked', internalErrorCode.TOKEN_EXPIRES));
     }
 
-    // Xác minh token
-    const { userId } = verifyToken(token);
-    if (!userId) {
-      console.error('[Authorization] Token verification failed');
-      return next(new Unauthorized('Unauthorized'));
-    }
 
-    // Lấy thông tin người dùng
+    const { userId } = verifyToken(token);
     const user = await getOneUserById(userId);
     if (!user) {
       console.warn('[Authorization] User not found');
       return next(new Unauthorized('Unauthorized'));
     }
 
-    // Gắn thông tin vào req.identification
     req.identification = {
       userId: user.id,
       permissions: user.permission,
@@ -60,7 +50,7 @@ export const authorization = async (req: Request, res: Response, next: NextFunct
       originalId: user.originalId,
     };
 
-    console.log(`[Authorization] User authenticated: ${user.fullName} (orgId: ${user.orgId})`);
+    // console.log(`[Authorization] User authenticated: ${user.fullName} (orgId: ${user.orgId})`);
 
     AsyncContext.run(
       {

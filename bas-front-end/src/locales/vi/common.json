@@ -22,7 +22,9 @@
     "no": "Không",
     "add": "Thêm Mới",
     "delete_all": "Xóa Tất Cả",
-    "management": "Quản Lý"
+    "management": "Quản Lý",
+    "reload": "Tải Lại",
+    "loading": "Đang Tải..."
   },
   "menu": {
     "sections": {
@@ -43,7 +45,8 @@
       "log-out": "Đăng Xuất",
       "berth_management": "Quản lý Bến",
       "port-info": "Thông Tin Cảng",
-      "alarm-history": "Lịch Sử Cảnh Báo"
+      "alarm-history": "Lịch Sử Cảnh Báo",
+      "data-app-management": "Quản lý Ứng dụng Dữ liệu"
     }
   },
   "language": {
@@ -119,7 +122,7 @@
   "role": {
     "admin": "Quản Lý",
     "config": "Cấu Hình",
-    "viewer": "Xem Dữ Liệu"
+    "viewer": "Người Xem"
   },
   "player": {
     "loading": "Đang tải dữ liệu"

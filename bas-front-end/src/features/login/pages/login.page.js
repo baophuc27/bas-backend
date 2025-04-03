@@ -58,7 +58,7 @@ export const LoginPage = (props) => {
   };
 
   if (isLoggedIn) {
-    return <Navigate to="/dashboard/record-management" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (

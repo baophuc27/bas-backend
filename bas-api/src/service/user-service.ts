@@ -6,11 +6,10 @@ import { internalErrorCode } from '@bas/constant';
 import { AVATAR_FOLDER_PATH_REGEX } from '@bas/constant/path';
 import { baseDao, refreshTokenDao, userDao } from '@bas/database/dao';
 import User, { UserInput } from '@bas/database/models/user-model';
-
 import { UserQueryParams, UserUpdatePayload } from '@bas/service/typing';
 import { removeTokenByUserId } from '@bas/database/dao/refresh-token-dao';
 
-const DEFAULT_REFRESH_TERM = 604800000;
+const DEFAULT_REFRESH_TERM = 30 * 24 * 60 * 60 * 1000;
 
 const createUser = async (payload: UserInput, transaction?: any) => {
   return await User.create(payload, {
@@ -45,7 +44,6 @@ const removeTokenByUser = async (userId: string) => {
 
 const updateUserById = async (id: string, payload: UserUpdatePayload, transaction?: any) => {
   const { email, phone } = payload;
-  // check email and phone is unique
   return baseDao.updateModel(User, id, payload, transaction);
 };
 
@@ -56,6 +54,14 @@ const getAllUsers = async (params?: UserQueryParams) => {
 const getUserById = async (id: string) => {
   return await userDao.getOneUserById(id);
 };
+
+const getUserByUsername = async (username: string) => {
+  return await userDao.getOneUserByUsername(username);
+};
+
+const setUserActiveStatus = async (username: string, status: boolean) => {
+  return await userDao.setActiveStatus(username, status);
+}
 
 const deleteAccountById = async (id: string) => {
   const user: User | null = await userDao.getOneUserById(id);
@@ -83,18 +89,23 @@ const generateRefreshToken = async (user: User, ipAddress: string, transaction?:
     {
       token: randomString(),
       userId: user.id,
-      expires: new Date(Date.now() + (REFRESH_TERM ? DEFAULT_REFRESH_TERM : +REFRESH_TERM)),
+      expires: new Date(Date.now() + (+REFRESH_TERM || DEFAULT_REFRESH_TERM)),
       createdByIp: ipAddress,
     },
     transaction
   );
 };
+
+
 const getRefreshToken = async (token: string, ip: string) => {
   const refreshToken = await refreshTokenDao.findOneByTokenAndIp(token, ip);
   console.log({ refreshToken, token, ip });
-  if (!refreshToken || !refreshToken.isActive) throw new InternalException('Invalid token');
+  if (!refreshToken || !refreshToken.isActive)
+    throw new InternalException('Invalid token');
   return refreshToken;
 };
+
+
 
 const revokeToken = async (token: string, revokedByIpAddress: string) => {
   const refreshToken = await getRefreshToken(token, revokedByIpAddress);
@@ -106,9 +117,11 @@ const revokeToken = async (token: string, revokedByIpAddress: string) => {
   await refreshToken.save();
 };
 
+
 const cleanupToken = async () => {
   return await refreshTokenDao.removeUnusedToken();
 };
+
 
 const refreshUserToken = async (token: string, ipAddress: string, transaction?: any) => {
   const refreshToken = await getRefreshToken(token, ipAddress);
@@ -133,20 +146,9 @@ const refreshUserToken = async (token: string, ipAddress: string, transaction?: 
   };
 };
 
+
 const findUserByRole = async (role: string) => {
   return await userDao.findUserByRole(role);
-};
-
-const getOrgInformationUser = async (userId: string) => {
-  const user = await userDao.getOneUserById(userId);
-  if (!user) {
-    throw new BadRequestException('User not found');
-  }
-  return {
-    name: user.orgName,
-    logo: user.orgLogo,
-    // ...include other organization fields if needed...
-  };
 };
 
 export {
@@ -163,5 +165,9 @@ export {
   updateUserInformation,
   generateAccessTokenForSocket,
   findUserByRole,
-  getOrgInformationUser,
+  setUserActiveStatus,
+  getUserByUsername,
 };
+function getPem() {
+  throw new Error('Function not implemented.');
+}

@@ -22,10 +22,11 @@ interface UserAttributes {
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
+  isActive?: boolean;
 }
 
-export interface UserInput extends Optional<UserAttributes, 'id'> {}
-export interface UserOutput extends Required<UserAttributes> {}
+export interface UserInput extends Optional<UserAttributes, 'id'> { }
+export interface UserOutput extends Required<UserAttributes> { }
 
 class User extends Model<UserAttributes, UserInput> implements UserAttributes {
   public id!: string;
@@ -37,12 +38,11 @@ class User extends Model<UserAttributes, UserInput> implements UserAttributes {
   public fullName!: string;
   public permission!: string;
   public orgId!: number;
-
   public avatar?: string;
   public orgName?: string;
   public orgLogo?: string;
   public originalId!: number;
-
+  public isActive!: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date | null;
@@ -105,6 +105,11 @@ User.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+    }
   },
   {
     timestamps: true,

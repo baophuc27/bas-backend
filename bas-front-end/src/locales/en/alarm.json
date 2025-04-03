@@ -35,7 +35,7 @@
     "delete_success": "Delete alarm successfully!",
     "delete_failed": "Failed to delete alarm!",
     "error": "Error",
-    "delete_all_success": "Delete all successfully!",
+    "delete_all_success": "Delete all alarm successfully!",
     "delete_all_error": "Failed to delete all!"
   },
   "dialog": {

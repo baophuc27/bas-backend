@@ -1,0 +1,57 @@
+{
+    "page-title" : {
+        "list" : "Data App Management",
+        "detail" : "Data App Detail"
+    },
+    "type":{
+        "fixed" : "Fixed",
+        "dynamic": "Dynamic"
+    },
+    "general_information": {
+        "general_information": "General Information",
+        "data_app_name": "Display Name",
+        "data_app_status": "Status",
+        "code": "Code",
+        "created_time": "Created Time",
+        "last_data_active": "Last Data Active",
+        "last_heartbeat": "Last Heartbeat",
+        "berth" : "Berth Occupying",
+        "enter_name" : "Enter Display Name",
+        "type" : "Data App Type"
+    },
+    "empty" : "Empty",
+    "update_success" : "Update Data App Success",
+    "update_failed" : "Update Data App Failed",
+    "create_success" : "Create New Data App Success",
+    "create_failed" : "Create Data App Failed",
+    "generate_code_failed" : "Generate code failed",
+    "update_failed_by_occupied_berth": "This berth is occupied by a fixed data app.",
+    "generate_new_code" : "Generate New Code",
+    "dialog" : {
+        "delete_title" : "Delete data app",
+        "delete_description" : "Are you sure you want to delete?"
+    },
+    "messages": {
+        "delete_success": "Delete data app successfully!",
+        "delete_failed": "Failed to delete data app!",
+        "error": "Error",
+        "fetch_error" : "Fetch data failed"
+      },
+    "create_new" : "Create New Data App",
+    "data_app_information" : {
+        "selected_data_app" : "Selected Data App",
+        "status_inactive" : "INACTIVE",
+        "status_disconnected" : "DISCONNECTED",
+        "status_have_heartbeat" : "HAVE HEARTBEAT",
+        "status_normal" : "NORMAL",
+        "select_data_app" : "Select Data App"
+    },
+    "berthing" : {
+        "update_success" : "Update Data App Success",
+        "update_failed" : "Update Data App Failed"
+    },
+    "note": {
+        "type_required" : "Please select a berth for fixed data app"
+    }
+    
+}

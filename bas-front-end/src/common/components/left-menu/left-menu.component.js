@@ -1,5 +1,5 @@
 import { IconButton } from "@material-ui/core";
-import { ChevronLeft } from "@material-ui/icons";
+import { ChevronLeft, ChevronRight, KeyboardReturn } from "@material-ui/icons";
 import { usePermission } from "common/hooks";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -82,14 +82,16 @@ export const LeftMenu = (props) => {
           ))}
         </div>
 
-        <Link
-          to="/"
+        <div
           className={`${classes.backLink} ${
             collapse && classes.backLinkCollapse
           }`}
         >
-          {collapse ? t("common:back") : t("common:button.back-to-map")}
-        </Link>
+          <Link to="/">
+            <KeyboardReturn />
+            {!collapse && t("common:button.back-to-map")}
+          </Link>
+        </div>
       </div>
     </div>
   );

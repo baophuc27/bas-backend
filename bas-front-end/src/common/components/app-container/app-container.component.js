@@ -2,9 +2,9 @@ import { HabourService } from "common/services";
 import { BerthService } from "common/services/berth.service";
 import { CommonService } from "common/services/common.service";
 import { UserManagementService } from "common/services/user-management.service";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import {
   setBerths,
   setBerthStatuses,
@@ -13,96 +13,146 @@ import {
 import { setHabourData } from "redux/slices/habour.slice";
 import { setOrganizationData } from "redux/slices/organization.slice";
 
+const MAX_RETRIES = 1;
+const TIMEOUT_DURATION = 1000;
+
 export const AppContainer = (props) => {
   const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state) => state?.user);
-  const [isInitialLoad, setIsInitialLoad] = useState(false);
 
-  const fetchOrganizationData = async () => {
-    try {
-      const response = await CommonService.getOrganizationData();
-      if (response?.data?.success) {
-        dispatch(setOrganizationData(response?.data?.data));
-      }
-    } catch (error) {
-      console.error("Error fetching organization data:", error);
-    }
+  const [loading, setLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [reloadCountdown, setReloadCountdown] = useState(null);
+  const abortControllerRef = useRef(null);
+
+  const spinnerStyle = {
+    width: "40px",
+    height: "40px",
+    border: "4px solid #ccc",
+    borderTop: "4px solid #3498db",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
   };
 
-  const fetchHabourData = async () => {
-    try {
-      const response = await HabourService.getData();
-      if (response?.data?.success) {
-        dispatch(setHabourData(response?.data?.data));
-      }
-    } catch (error) {
-      console.error("Error fetching habour data:", error);
-    }
+  const fetchWithTimeout = async (promise) => {
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Request timeout")), TIMEOUT_DURATION);
+    });
+    return Promise.race([promise, timeoutPromise]);
   };
 
-  const fetchBerthStatuses = async () => {
-    try {
-      const response = await BerthService.getStatuses();
-      if (response?.data?.success) {
-        dispatch(setBerthStatuses(response?.data?.data));
-      }
-    } catch (error) {
-      console.error("Error fetching berth statuses:", error);
-    }
-  };
+  const fetchData = async () => {
+    if (retryCount >= MAX_RETRIES) {
+      setLoading(false);
+      setErrorMessage("Page will reload in 1 seconds...");
+      setReloadCountdown(1);
 
-  const fetchUserRoles = async () => {
-    try {
-      const response = await UserManagementService.getAllRoles();
-      if (response?.data?.success) {
-        dispatch(setUserRoles(response?.data?.data));
-      }
-    } catch (error) {
-      console.error("Error fetching user roles:", error);
-    }
-  };
+      const countdownInterval = setInterval(() => {
+        setReloadCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            window.location.reload();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-  const fetchBerths = async () => {
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    abortControllerRef.current = new AbortController();
+
     try {
-      const response = await BerthService.getAll();
-      if (response?.data?.success) {
-        dispatch(setBerths(response?.data?.data));
-      }
+      const promises = [
+        CommonService.getOrganizationData(abortControllerRef.current.signal),
+        HabourService.getData(abortControllerRef.current.signal),
+        BerthService.getStatuses(abortControllerRef.current.signal),
+        UserManagementService.getAllRoles(abortControllerRef.current.signal),
+        BerthService.getAll(abortControllerRef.current.signal),
+      ];
+
+      const responses = await fetchWithTimeout(Promise.all(promises));
+
+      const [org, harbour, berthStatuses, userRoles, berths] = responses;
+
+      if (org?.data?.success) dispatch(setOrganizationData(org.data.data));
+      if (harbour?.data?.success) dispatch(setHabourData(harbour.data.data));
+      if (berthStatuses?.data?.success)
+        dispatch(setBerthStatuses(berthStatuses.data.data));
+      if (userRoles?.data?.success) dispatch(setUserRoles(userRoles.data.data));
+      if (berths?.data?.success) dispatch(setBerths(berths.data.data));
+
+      setRetryCount(0);
     } catch (error) {
-      console.error("Error fetching berths:", error);
+      if (error.name === "AbortError") return;
+
+      console.error("Error fetching data:", error);
+      setErrorMessage(error.message || "Failed to load data");
+      setRetryCount((prev) => prev + 1);
+
+      if (retryCount < MAX_RETRIES - 1) {
+        setTimeout(() => {
+          fetchData();
+        }, 1000);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Tải dữ liệu ban đầu khi trang được tải
-    const initialLoad = async () => {
-      await fetchOrganizationData();
-      await fetchHabourData();
-      await fetchBerthStatuses();
-      await fetchBerths();
-      setIsInitialLoad(true);
-    };
-
-    initialLoad();
-  }, []); // Chạy một lần khi trang tải
-
-  useEffect(() => {
-    // Reload lại dữ liệu sau khi đăng nhập
     if (isLoggedIn) {
-      fetchOrganizationData();
-      fetchUserRoles();
+      fetchData();
     }
-  }, [isLoggedIn]); // Theo dõi isLoggedIn
 
-  if (!isInitialLoad) {
-    // Hiển thị trạng thái loading khi chưa hoàn thành tải dữ liệu ban đầu
-    return <div>Loading...</div>;
-  }
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]);
 
-  // if (!isLoggedIn) {
-  //   // Chuyển hướng nếu chưa đăng nhập
-  //   return <Navigate to="/auth/login" replace />;
-  // }
-
-  return <Outlet />;
+  return (
+    <>
+      {loading ? (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+          }}
+        >
+          <div style={spinnerStyle}></div>
+          <span style={{ marginLeft: "12px" }}>
+            Loading{".".repeat(retryCount + 1)}
+          </span>
+          {errorMessage && (
+            <div style={{ color: "red", marginTop: "10px" }}>
+              {errorMessage}
+              {reloadCountdown && (
+                <div style={{ marginTop: "5px" }}>
+                  Reloading in {reloadCountdown} seconds...
+                </div>
+              )}
+            </div>
+          )}
+          {retryCount > 0 && retryCount < MAX_RETRIES && (
+            <div style={{ marginTop: "5px" }}>
+              Retry attempt {retryCount} of {MAX_RETRIES}
+            </div>
+          )}
+        </div>
+      ) : (
+        <Outlet />
+      )}
+    </>
+  );
 };

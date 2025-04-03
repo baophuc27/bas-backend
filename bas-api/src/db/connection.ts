@@ -5,7 +5,7 @@ const sequelizeConnection = new Sequelize(DB_NAME, DB_USERNAME, DB_PASSWORD, {
   host: DB_HOST,
   dialect: 'postgres',
   port: DB_PORT ? +DB_PORT : 5432,
-  logging: APP_NAME === 'local' ? console.log : false, // Chỉ log khi ở môi trường local
+  logging: false,
   pool: {
     max: 20,
     min: 0,

@@ -1,4 +1,11 @@
-import { Avatar, Box, Grid } from "@material-ui/core";
+import {
+  Avatar,
+  Box,
+  Grid,
+  IconButton,
+  Tooltip,
+  Button,
+} from "@material-ui/core";
 import { HomeLayout } from "common/components";
 import { mapSensorStatusText } from "common/constants/berth.constant";
 import {
@@ -19,7 +26,10 @@ import socketIOClient from "socket.io-client";
 import swal from "sweetalert";
 import { BerthCard } from "../components";
 import styles from "./home.style.module.css";
-
+import { usePermission } from "common/hooks";
+import { FEATURES } from "common/constants/feature.constant";
+import { ACTIONS } from "common/constants/permission.constant";
+import { useNavigate } from "react-router-dom";
 const DialogType = {
   DEVICE_ERROR: "DEVICE_ERROR",
   COMPLETED_SESSION: "COMPLETED_SESSION",
@@ -30,10 +40,16 @@ export const HomePage = (props) => {
   const [berths, setBerths] = useState([]);
   const [habour, setHabour] = useState({});
   const [socket, setSocket] = useState(null);
+  const [isReloadDisabled, setIsReloadDisabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
+  const { hasPermission } = usePermission();
+  const navigate = useNavigate();
   const { errorDialogs, sessionCompleteDialogs } = useSelector(
     (state) => state?.dialog,
   );
+  const [isErrorDialogShowing, setIsErrorDialogShowing] = useState(false);
+  const [isCompleteDialogShowing, setIsCompleteDialogShowing] = useState(false);
 
   const fetchHabourData = async () => {
     try {
@@ -48,7 +64,6 @@ export const HomePage = (props) => {
   const fetchBerths = async () => {
     try {
       const response = await BerthService.getAll();
-
       if (response?.data?.success) {
         setBerths(response?.data?.data);
       }
@@ -83,11 +98,11 @@ export const HomePage = (props) => {
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
 
-        if (response?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        // if (response?.data?.isSync === true) {
+        //   notify("success", t("dock:messages.sync-success"));
+        // } else {
+        //   notify("error", t("dock:messages.sync-error"));
+        // }
       }
     } catch (error) {
       notify("error", t("dock:messages.stop-error"));
@@ -97,15 +112,14 @@ export const HomePage = (props) => {
   const onResetSession = async (id) => {
     try {
       const response = await BerthService.reset(id);
-
       if (response?.data?.success) {
         notify("success", t("dock:messages.stop-success"));
 
-        if (response?.data?.data?.isSync === true) {
-          notify("success", t("dock:messages.sync-success"));
-        } else {
-          notify("error", t("dock:messages.sync-error"));
-        }
+        // if (response?.data?.data?.isSync === true) {
+        //   notify("success", t("dock:messages.sync-success"));
+        // } else {
+        //   notify("error", t("dock:messages.sync-error"));
+        // }
       }
     } catch (error) {
       notify("error", t("dock:messages.stop-error"));
@@ -113,7 +127,8 @@ export const HomePage = (props) => {
   };
 
   const showsErrorDialog = async (data) => {
-    // ${i18n?.language?.includes("en") ? data?.berth?.nameEn : data?.berth?.name}
+    if (isErrorDialogShowing) return;
+
     let errorContent = `[${data?.berth?.name}] ${t(
       mapSensorStatusText(data?.errorCode?.toLowerCase()),
     )}`;
@@ -135,25 +150,36 @@ export const HomePage = (props) => {
         }),
       );
 
+      setIsErrorDialogShowing(true);
       await swal({
         title: t("home:dialogs.device-error.title"),
         text: errorContent,
         icon: "error",
         buttons: t("home:dialogs.device-error.ok"),
       });
+      setIsErrorDialogShowing(false);
     }
   };
 
   const showsCompleteSessionDialog = async (completeDialogs, data) => {
+    if (isCompleteDialogShowing) return;
+
     const berthId = `berth_${data?.berth?.id}_${data?.sessionId}`;
 
-    if (!(berthId in completeDialogs)) {
+    if (
+      !(berthId in completeDialogs) &&
+      hasPermission(FEATURES.BERTH_DASHBOARD, ACTIONS.EDIT)
+    ) {
+      // const canProceed = await checkBerthStatus(data?.berth?.id);
+      // if (!canProceed) return;
+
       dispatch(
         setCurrentSessionCompleteDialog({
           berthId,
         }),
       );
 
+      setIsCompleteDialogShowing(true);
       const value = await swal({
         title: t("home:dialogs.session-completed.title"),
         text: t("home:dialogs.session-completed.message", {
@@ -173,6 +199,7 @@ export const HomePage = (props) => {
         },
         showCloseButton: true,
       });
+      setIsCompleteDialogShowing(false);
 
       switch (value) {
         case "available":
@@ -190,58 +217,133 @@ export const HomePage = (props) => {
   };
 
   useEffect(() => {
-    initSocket();
+    return () => {
+      setIsErrorDialogShowing(false);
+      setIsCompleteDialogShowing(false);
+      if (swal.getState().isOpen) {
+        swal.close();
+      }
+    };
+  }, []);
+
+  const cleanupSocket = (socket) => {
+    if (socket) {
+      socket.off("connect");
+      socket.off(DialogType.DEVICE_ERROR);
+      socket.off(DialogType.COMPLETED_SESSION);
+      socket.disconnect();
+      socket.close();
+    }
+  };
+
+  useEffect(() => {
+    // initSocket();
     fetchBerths();
     fetchHabourData();
 
+    return () => {
+      cleanupSocket(socket);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (socket) {
-      socket?.on("connect", () => {
-        socket.on(DialogType.DEVICE_ERROR, (data) => {
-          const parsedData = JSON.parse(data);
-          showsErrorDialog(parsedData);
-        });
+    // if (socket) {
+    //   socket?.on("connect", () => {
+    //     socket.on(DialogType.DEVICE_ERROR, (data) => {
+    //       const parsedData = JSON.parse(data);
+    //       showsErrorDialog(parsedData);
+    //     });
 
-        socket.on(DialogType.COMPLETED_SESSION, (data) => {
-          const parsedData = JSON.parse(data);
-          const berthId = `berth_${parsedData?.berth?.id}_${parsedData?.sessionId}`;
+    //     socket.on(DialogType.COMPLETED_SESSION, (data) => {
+    //       const parsedData = JSON.parse(data);
+    //       const berthId = `berth_${parsedData?.berth?.id}_${parsedData?.sessionId}`;
 
-          if (!(berthId in sessionCompleteDialogs)) {
-            showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
+    //       if (!(berthId in sessionCompleteDialogs)) {
+    //         showsCompleteSessionDialog(sessionCompleteDialogs, parsedData);
+    //       }
+    //     });
+    //   });
+    // }
+
+    const checkBerthsStatus = async () => {
+      try {
+        const response = await BerthService.getAll();
+        if (response?.data?.success && response?.data?.data) {
+          const newBerthsData = response.data.data;
+          let hasStatusChange = false;
+
+          newBerthsData.forEach((newBerthData) => {
+            const currentBerth = berths.find((b) => b.id === newBerthData.id);
+
+            if (
+              currentBerth &&
+              currentBerth?.status?.id !== newBerthData?.status?.id
+            ) {
+              const berthName = i18next.language.includes("en")
+                ? newBerthData.nameEn || newBerthData.name
+                : newBerthData.name;
+
+              const oldStatus = i18next.language.includes("en")
+                ? currentBerth?.status?.nameEn
+                : currentBerth?.status?.name;
+              const newStatus = i18next.language.includes("en")
+                ? newBerthData?.status?.nameEn
+                : newBerthData?.status?.name;
+
+              notify(
+                "info",
+                t("dock:messages.status-changed", {
+                  berthName,
+                  oldStatus,
+                  newStatus,
+                }),
+              );
+
+              hasStatusChange = true;
+            }
+          });
+
+          if (hasStatusChange) {
+            await fetchBerths();
+            Promise.all([fetchBerths(), fetchHabourData()]).finally(() => {
+              setTimeout(() => {
+                setIsLoading(false);
+                setIsReloadDisabled(false);
+              }, 500);
+            });
           }
-        });
-      });
-    }
+        }
+      } catch (error) {}
+    };
+
+    const interval = setInterval(checkBerthsStatus, 5000);
 
     return () => {
-      if (socket) {
-        socket.off("connect");
-        socket.off(DialogType.DEVICE_ERROR);
-        socket.off(DialogType.COMPLETED_SESSION);
-      }
+      clearInterval(interval);
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [errorDialogs, sessionCompleteDialogs, socket]);
+  }, [errorDialogs, sessionCompleteDialogs, socket, berths]);
 
   return (
     <HomeLayout>
       <Box className={styles.container}>
-        <Box className={styles.habourDetails}>
-          <Avatar
-            src="/images/icons/anchor.png"
-            className={styles.habourIcon}
-            alt="Habour Icon"
-          />
-
-          <Box>
-            <Box className={styles.habourName}>
-              {i18next.language.includes("en") ? habour?.nameEn : habour?.name}
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box className={styles.habourDetails}>
+            <Avatar
+              src="/images/icons/anchor.png"
+              className={styles.habourIcon}
+              alt="Habour Icon"
+            />
+            <Box>
+              <Box className={styles.habourName}>
+                {i18next.language.includes("en")
+                  ? habour?.nameEn
+                  : habour?.name}
+              </Box>
+              <Box className={styles.habourAddress}>{habour?.address}</Box>
             </Box>
-            <Box className={styles.habourAddress}>{habour?.address}</Box>
           </Box>
         </Box>
 

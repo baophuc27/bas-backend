@@ -6908,4 +6908,3 @@ var DateRangePickerExporter = function (props) {
 
 exports.DateRangePicker = DateRangePickerExporter;
 exports.DateRangePickerComponent = DateRangePicker;
-//# sourceMappingURL=index.js.map

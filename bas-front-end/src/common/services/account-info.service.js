@@ -16,4 +16,8 @@ export const AccountInfoService = {
       },
     });
   },
+  checkActiveStatus() {
+    const url = ROOT_PATH;
+    return authAxiosClient.get(url);
+  },
 };

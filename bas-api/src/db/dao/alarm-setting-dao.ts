@@ -1,22 +1,8 @@
 import { Op, Transaction } from 'sequelize';
 import { AlarmSetting, Berth } from '../models';
 import { AlarmSettingUpdateDto } from '../dto/request/alarm-setting-update-dto';
-import { AsyncContext } from '@bas/utils/AsyncContext';
-
-const addOrgIdToConditions = () => {
-  const context = AsyncContext.getContext();
-  if (!context?.orgId) {
-    console.warn('[ALARM-SETTING] No orgId found in context.');
-    // throw new Error('orgId is required but not found in context');
-    return { orgId: 0 };
-  }
-  return { orgId: context.orgId };
-};
-
-const orgCondition = addOrgIdToConditions();
 
 const findSetting = async (conditions: object) => {
-  const orgCondition = addOrgIdToConditions();
   const results = await AlarmSetting.findAll({
     include: [
       {
@@ -26,7 +12,7 @@ const findSetting = async (conditions: object) => {
         attributes: ['id', 'name', 'orgId'],
       },
     ],
-    where: { ...conditions, ...orgCondition },
+    where: { ...conditions },
     order: [
       ['alarmZone', 'asc'],
       ['id', 'asc'],
@@ -37,24 +23,30 @@ const findSetting = async (conditions: object) => {
 };
 
 const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions(); // Lấy orgId động
-  let operator = undefined;
-  if (alarmSettingDto.alarmType === 'distance') {
-    operator = Number.isFinite(alarmSettingDto.value) ? '>=' : '>';
-  } else {
-    operator = Number.isFinite(alarmSettingDto.value) ? '<=' : '<';
+  let operator = alarmSettingDto.operator;
+
+  // Parse value to number if it's a string
+  const numericValue = typeof alarmSettingDto.value === 'string' ?
+    parseFloat(alarmSettingDto.value) : alarmSettingDto.value;
+
+  // Assign default operator if not provided
+  if (!operator) {
+    if (alarmSettingDto.alarmType === 'distance') {
+      operator = '>=';
+    } else {
+      operator = '<=';
+    }
   }
 
   return await AlarmSetting.update(
     {
-      value: Number.isFinite(alarmSettingDto.value) ? alarmSettingDto.value : null,
-      message: alarmSettingDto.message ? alarmSettingDto.message : null,
+      value: numericValue,
+      message: alarmSettingDto.message ?? null,
       operator: operator,
     },
     {
       where: {
         id: alarmSettingDto.id,
-        ...orgCondition,
       },
       ...(t && { transaction: t }),
       returning: true,
@@ -62,8 +54,12 @@ const updateSetting = async (alarmSettingDto: AlarmSettingUpdateDto, t?: Transac
   );
 };
 
-const updateDefaultValue = async (defaultValue: number, berthId: number, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions();
+const updateDefaultValue = async (
+  defaultValue: number,
+  berthId: number,
+  orgId: number,
+  t?: Transaction
+) => {
   return await AlarmSetting.update(
     {
       defaultValue,
@@ -73,7 +69,7 @@ const updateDefaultValue = async (defaultValue: number, berthId: number, t?: Tra
         berthId,
         alarmType: 'distance',
         alarmZone: 'zone_1',
-        ...orgCondition,
+        orgId,
       },
       ...(t && { transaction: t }),
       returning: true,
@@ -81,12 +77,11 @@ const updateDefaultValue = async (defaultValue: number, berthId: number, t?: Tra
   );
 };
 
-const findByAllConditions = async (ids: number[]) => {
-  const orgCondition = addOrgIdToConditions();
+const findByAllConditions = async (ids: number[], orgId: number) => {
   const results = await AlarmSetting.findAll({
     where: {
       id: ids,
-      ...orgCondition,
+      orgId: orgId,
     },
     order: [
       ['alarmZone', 'asc'],
@@ -98,11 +93,11 @@ const findByAllConditions = async (ids: number[]) => {
 
 const getNextRecord = async (
   id: number,
+
   alarmZone: string,
   alarmSensor: string,
   alarmType: string
 ) => {
-  const orgCondition = addOrgIdToConditions();
   const result = await AlarmSetting.findOne({
     where: {
       id: {
@@ -111,7 +106,6 @@ const getNextRecord = async (
       alarmZone,
       alarmType,
       alarmSensor,
-      ...orgCondition,
     },
     order: [['id', 'ASC']],
   });
@@ -125,7 +119,6 @@ const getPreviousRecord = async (
   alarmSensor: string,
   alarmType: string
 ) => {
-  const orgCondition = addOrgIdToConditions();
   const result = await AlarmSetting.findOne({
     where: {
       id: {
@@ -134,7 +127,6 @@ const getPreviousRecord = async (
       alarmZone,
       alarmType,
       alarmSensor,
-      ...orgCondition,
     },
     order: [['id', 'DESC']],
   });
@@ -143,11 +135,9 @@ const getPreviousRecord = async (
 };
 
 const findByBerthId = async (berthId: number) => {
-  const orgCondition = addOrgIdToConditions();
   return await AlarmSetting.findAll({
     where: {
       berthId,
-      ...orgCondition,
     },
     order: [['id', 'DESC']],
   });
@@ -157,7 +147,6 @@ export const resetValueAlarmSetting = async (
   alarmSettingDto: AlarmSettingUpdateDto,
   t?: Transaction
 ) => {
-  const orgCondition = addOrgIdToConditions(); // Lấy orgId động
   return await AlarmSetting.update(
     {
       message: alarmSettingDto.message,
@@ -172,7 +161,6 @@ export const resetValueAlarmSetting = async (
     {
       where: {
         id: alarmSettingDto.id,
-        ...orgCondition,
       },
       ...(t && { transaction: t }),
       returning: true,
@@ -180,12 +168,16 @@ export const resetValueAlarmSetting = async (
   );
 };
 
-const createAlarmSetting = async (berthId: number, alarmSettingDto: any, t?: Transaction) => {
-  const orgCondition = addOrgIdToConditions();
+const createAlarmSetting = async (
+  berthId: number,
+  orgId: number,
+  alarmSettingDto: any,
+  t?: Transaction
+) => {
   return await AlarmSetting.create(
     {
-      orgId: orgCondition.orgId,
-      berthId,
+      orgId: orgId,
+      berthId: berthId,
       message: alarmSettingDto.message,
       alarmSensor: alarmSettingDto.alarmSensor,
       alarmType: alarmSettingDto.alarmType,
@@ -207,7 +199,6 @@ export const findAlarmSettingByBerthIds = async (berthIds: number[]) => {
       berthId: {
         [Op.in]: berthIds,
       },
-      ...orgCondition,
     },
   });
 };

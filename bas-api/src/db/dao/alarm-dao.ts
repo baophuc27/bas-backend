@@ -5,19 +5,6 @@ import { AlarmQueryParams, createAlarmPayload } from '@bas/service/typing';
 import { alarmStatus } from '@bas/constant';
 import { sequelizeConnection } from '../index';
 import { InternalException } from '@bas/api/errors';
-import { AsyncContext } from '@bas/utils/AsyncContext';
-
-const addOrgIdToConditions = () => {
-  const context = AsyncContext.getContext();
-  if (!context?.orgId) {
-    console.warn('[ALARM] No orgId found in context.');
-    // throw new Error('orgId is required but not found in context');
-    return { orgId: 0 };
-  }
-  return { orgId: context.orgId };
-};
-
-const orgCondition = addOrgIdToConditions();
 
 const SIDE = {
   LEFT: 1,
@@ -26,6 +13,7 @@ const SIDE = {
 
 export const getAlarmTypeLatest = async (
   recordId: number,
+  orgId: number,
   type: string,
   alarm: number,
   side?: number | null,
@@ -33,12 +21,12 @@ export const getAlarmTypeLatest = async (
 ): Promise<any> => {
   const alarmTypeSameLatest = await Alarm.findOne({
     where: {
-      ...orgCondition,
       type,
       alarm,
       side,
       // endTime: null,
       '$record.id$': recordId,
+      '$record.orgId$': orgId,
     },
     include: [
       {
@@ -55,17 +43,18 @@ export const getAlarmTypeLatest = async (
 
 export const doneAlarmTypeLatest = async (
   recordId: number,
+  orgId: number,
   type: string,
   side?: number | null,
   t?: Transaction
 ): Promise<any> => {
   const alarmTypeSameLatest = await Alarm.findOne({
     where: {
-      ...orgCondition,
       type,
       side,
       // endTime: null,
       '$record.id$': recordId,
+      '$record.orgId$': orgId,
     },
     include: [
       {
@@ -89,9 +78,9 @@ export const createRecordAlarm = async (
   t?: Transaction
 ): Promise<any> => {
   try {
-    const orgCondition = addOrgIdToConditions();
     const recordHistoryItem = await getAlarmTypeLatest(
       recordAlarm.recordId,
+      recordAlarm.orgId,
       recordAlarm.type,
       recordAlarm.alarm,
       recordAlarm.side,
@@ -101,10 +90,17 @@ export const createRecordAlarm = async (
       return;
     }
 
-    await doneAlarmTypeLatest(recordAlarm.recordId, recordAlarm.type, recordAlarm.side, t);
+    await doneAlarmTypeLatest(
+      recordAlarm.recordId,
+      recordAlarm.orgId,
+      recordAlarm.type,
+      recordAlarm.side,
+      t
+    );
     return await Alarm.create(
       {
-        orgId: orgCondition.orgId,
+        orgId: recordAlarm.orgId,
+        berthId: recordAlarm.berthId,
         startTime: new Date(),
         recordId: recordAlarm.recordId,
         value: recordAlarm.value,
@@ -129,10 +125,11 @@ export const createAlarmFromDataPoint = async (
   sensorIds: { left: number; right: number }
 ) => {
   try {
-    const orgCondition = addOrgIdToConditions();
     const record = await Record.findOne({
       where: {
         id: +data.recordId,
+        berthId: +data.berthId,
+        orgId: +data.orgId,
       },
     });
 
@@ -142,7 +139,8 @@ export const createAlarmFromDataPoint = async (
 
     if (data.angleAlarm && data.angleAlarm > alarmStatus.OPERATOR) {
       await createRecordAlarm({
-        orgId: orgCondition.orgId,
+        orgId: data.orgId,
+        berthId: data.berthId,
         message: undefined,
         zone: data.angleZone,
         recordId: data.recordId,
@@ -154,12 +152,13 @@ export const createAlarmFromDataPoint = async (
         sensorId: null,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'angle', null);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'angle', null);
     }
 
     if (data.LDistanceAlarm && data.LDistanceAlarm > alarmStatus.WARNING) {
       await createRecordAlarm({
-        orgId: orgCondition.orgId,
+        orgId: data.orgId,
+        berthId: data.berthId,
         message: undefined,
         zone: data.LDistanceZone,
         recordId: data.recordId,
@@ -171,12 +170,13 @@ export const createAlarmFromDataPoint = async (
         sensorId: sensorIds.left,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'distance', SIDE.LEFT);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'distance', SIDE.LEFT);
     }
 
     if (data.LSpeedAlarm && data.LSpeedAlarm > alarmStatus.OPERATOR) {
       await createRecordAlarm({
-        orgId: orgCondition.orgId,
+        orgId: data.orgId,
+        berthId: data.berthId,
         message: undefined,
         zone: data.LSpeedZone,
         recordId: data.recordId,
@@ -188,12 +188,13 @@ export const createAlarmFromDataPoint = async (
         sensorId: sensorIds.left,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'speed', SIDE.LEFT);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'speed', SIDE.LEFT);
     }
 
     if (data.RDistanceAlarm && data.RDistanceAlarm > alarmStatus.WARNING) {
       await createRecordAlarm({
-        orgId: orgCondition.orgId,
+        orgId: data.orgId,
+        berthId: data.berthId,
         message: undefined,
         zone: data.RDistanceZone,
         recordId: data.recordId,
@@ -205,12 +206,13 @@ export const createAlarmFromDataPoint = async (
         sensorId: sensorIds.right,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'distance', SIDE.RIGHT);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'distance', SIDE.RIGHT);
     }
 
     if (data.RSpeedAlarm && data.RSpeedAlarm > alarmStatus.OPERATOR) {
       await createRecordAlarm({
-        orgId: orgCondition.orgId,
+        orgId: data.orgId,
+        berthId: data.berthId,
         message: undefined,
         zone: data.RSpeedZone,
         recordId: data.recordId,
@@ -222,51 +224,47 @@ export const createAlarmFromDataPoint = async (
         sensorId: sensorIds.right,
       });
     } else {
-      await doneAlarmTypeLatest(data.recordId, 'speed', SIDE.RIGHT);
+      await doneAlarmTypeLatest(data.recordId, data.orgId, 'speed', SIDE.RIGHT);
     }
   } catch (e: any) {
     console.log(e);
   }
 };
 
-export const getAlarmById = async (id: number) => {
+export const getAlarmById = async (id: number, orgId: number) => {
   return await Alarm.findOne({
     where: {
       id,
-      ...orgCondition,
+      orgId,
     },
   });
 };
 
-export const deleteAlarmById = async (id: number) => {
-  const orgCondition = addOrgIdToConditions();
+export const deleteAlarmById = async (id: number, orgId: number) => {
   return await Alarm.destroy({
     where: {
       id,
-      ...orgCondition,
+      orgId,
     },
     force: true,
   });
 };
 
-export const deleteALlAlarm = async () => {
-  const orgCondition = addOrgIdToConditions();
+export const deleteALlAlarm = async (orgId: number) => {
   return await Alarm.destroy({
     where: {
-      ...orgCondition,
+      orgId,
     },
     force: true,
   });
 };
 
+
 export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
-  const { berth, type, alarm, search, page, amount, order, mode } = params;
+  console.log('params',params);
+  const { berth, type, alarm, search, page, amount, order, mode, withoutPagination } = params;
 
-  const orgCondition = addOrgIdToConditions();
-
-  const whereConditions: any = {
-    ...orgCondition,
-  };
+  const whereConditions: any = {};
 
   if (berth) {
     whereConditions['$record.berthId$'] = berth;
@@ -313,10 +311,10 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
     },
   ];
 
-  let orderConditions: any = [[order ?? 'id', mode?.toUpperCase() ?? 'DESC']];
+  let orderConditions: any = [[order || 'id', mode?.toUpperCase() || 'DESC']];
 
   if (order === 'sessionId') {
-    orderConditions = [[{ model: Record, as: 'record' }, order, mode?.toUpperCase() ?? 'DESC']];
+    orderConditions = [[{ model: Record, as: 'record' }, order, mode?.toUpperCase() || 'DESC']];
   }
 
   if (order === 'berth.nameEn') {
@@ -325,7 +323,7 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
         { model: Record, as: 'record' },
         { model: Berth, as: 'berth' },
         'nameEn',
-        mode?.toUpperCase() ?? 'DESC',
+        mode?.toUpperCase() || 'DESC',
       ],
     ];
   }
@@ -336,12 +334,12 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
         { model: Record, as: 'record' },
         { model: Berth, as: 'berth' },
         'name',
-        mode?.toUpperCase() ?? 'DESC',
+        mode?.toUpperCase() || 'DESC',
       ],
     ];
   }
 
-  return await Alarm.findAndCountAll({
+  let options: any = {
     attributes: [
       'id',
       'recordId',
@@ -374,11 +372,17 @@ export const getAllAlarmByParams = async (params: AlarmQueryParams) => {
     ],
     where: whereConditions,
     include: joinConditions,
-    limit: amount || 10,
-    offset: (page || 0) * (amount || 10),
     order: orderConditions,
-  });
+  };
+
+  if (!withoutPagination) {
+    options.limit = amount || 10;
+    options.offset = (page || 0) * (amount || 10);
+  }
+
+  return await Alarm.findAndCountAll(options);
 };
+
 
 export const endAllAlarm = async (recordId: number, t?: Transaction) => {
   await Record.update(
@@ -406,17 +410,21 @@ export const endAllAlarm = async (recordId: number, t?: Transaction) => {
     }
   );
 };
-export const findLatestAlarm = async (berthId: number, startTime: Date, endTime: Date) => {
+export const findLatestAlarm = async (
+  berthId: number,
+  orgId: number,
+  startTime: Date,
+  endTime: Date
+) => {
   try {
-    const orgCondition = addOrgIdToConditions();
     const data = await Alarm.findAll({
       where: {
-        ...orgCondition,
         startTime: {
           [Op.gte]: startTime,
           [Op.lte]: endTime,
         },
         '$record.berthId$': berthId,
+        '$record.orgId$': orgId,
       },
       include: [
         {

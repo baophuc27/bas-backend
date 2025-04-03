@@ -66,7 +66,8 @@ const generalData = (recordData: any, lang?: string) => {
 };
 
 const formatValue = (value: number) => {
-  return value?.toFixed(2) ?? '--';
+  if (value === null || value === undefined) return '--';
+  return value.toFixed(2);
 };
 
 const findLatestDataPoint = (start: any, end: any, rangeData: any[]) => {
@@ -150,22 +151,27 @@ const chartOption = (data: any, prefix: string) => {
 };
 
 const historyData = (recordData: any) => {
-  return recordData?.recordHistories.map((item: any) => ({
-    time: moment(item?.time).format('DD-MM-YYYY HH:mm:ss:SSS'),
-    zone:
-      Math.min(
-        item?.angleZone,
-        item?.LSpeedZone,
-        item?.RSpeedZone,
-        item?.LDistanceZone,
-        item?.RDistanceZone
-      ) || '--',
-    leftDistance: formatValue(item?.leftDistance),
-    leftSpeed: formatValue(item?.leftSpeed),
-    rightDistance: formatValue(item?.rightDistance),
-    rightSpeed: formatValue(item?.rightSpeed),
-    angle: item?.angle ? formatValue(Math.abs(item?.angle)) : '--',
-  }));
+  return recordData?.recordHistories.map((item: any) => {
+    const leftSensorInvalid = item?.leftStatus === 2;
+    const rightSensorInvalid = item?.rightStatus === 2;
+
+    return {
+      time: moment(item?.time).format('DD-MM-YYYY HH:mm:ss:SSS'),
+      zone:
+        Math.min(
+          item?.angleZone,
+          item?.LSpeedZone,
+          item?.RSpeedZone,
+          item?.LDistanceZone,
+          item?.RDistanceZone
+        ) || '--',
+      leftDistance: leftSensorInvalid ? '-' : formatValue(item?.leftDistance),
+      leftSpeed: leftSensorInvalid ? '-' : formatValue(item?.leftSpeed),
+      rightDistance: rightSensorInvalid ? '-' : formatValue(item?.rightDistance),
+      rightSpeed: rightSensorInvalid ? '-' : formatValue(item?.rightSpeed),
+      angle: leftSensorInvalid || rightSensorInvalid ? '-' : (item?.angle ? formatValue(Math.abs(item?.angle)) : '--'),
+    };
+  });
 };
 
 const getImageData = (chatData: any, prefix: string) => {

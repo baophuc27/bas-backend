@@ -20,10 +20,21 @@ export const dialogSlice = createSlice({
 
       state["sessionCompleteDialogs"][berthId] = true;
     },
+
+    resetErrorDialog: (state) => {
+      state.errorDialogs = {};
+    },
+    resetSessionCompleteDialog: (state) => {
+      state.sessionCompleteDialogs = {};
+    },
   },
 });
 
-export const { setCurrentErrorDialog, setCurrentSessionCompleteDialog } =
-  dialogSlice.actions;
+export const {
+  setCurrentErrorDialog,
+  setCurrentSessionCompleteDialog,
+  resetErrorDialog,
+  resetSessionCompleteDialog,
+} = dialogSlice.actions;
 
 export default dialogSlice.reducer;

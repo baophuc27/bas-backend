@@ -41,7 +41,7 @@ RUN chmod +x /app/wait-for-it.sh
 
 
 # Expose the port that the app will run on
-EXPOSE 8008
+EXPOSE 8000
 
 
 # Start the app

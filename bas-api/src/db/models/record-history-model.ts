@@ -7,19 +7,20 @@ interface RecordHistoryAttributes {
   recordId: number;
   time: Date;
 
-  orgId: number; // Add this
+  orgId: number;
+  berthId: number;
 
-  leftDistance?: number| null;
-  leftSpeed?: number| null;
-  rightDistance?: number| null;
-  rightSpeed?: number| null;
-  angle?: number| null;
+  leftDistance?: number | null;
+  leftSpeed?: number | null;
+  rightDistance?: number | null;
+  rightSpeed?: number | null;
+  angle?: number | null;
 
-  angleZone?: number| null;
-  LSpeedZone?: number| null;
-  LDistanceZone?: number| null;
-  RDistanceZone?: number| null;
-  RSpeedZone?: number| null;
+  angleZone?: number | null;
+  LSpeedZone?: number | null;
+  LDistanceZone?: number | null;
+  RDistanceZone?: number | null;
+  RSpeedZone?: number | null;
 
   leftStatus?: number; // 0 : dis , 1 : con , 2 : fail
   rightStatus?: number; // 0 : dis , 1 : con , 2 : fail
@@ -47,20 +48,20 @@ class RecordHistory
   public id!: number;
   public recordId!: number;
   public time!: Date;
-
+  public berthId!: number;
   public orgId!: number;
 
   public leftSpeed?: number | null;
-  public leftDistance?: number| null;
-  public rightSpeed?: number| null;
-  public rightDistance?: number| null;
-  public angle?: number| null;
+  public leftDistance?: number | null;
+  public rightSpeed?: number | null;
+  public rightDistance?: number | null;
+  public angle?: number | null;
 
-  public angleZone?: number| null;
-  public LSpeedZone?: number| null;
-  public RSpeedZone?: number| null;
-  public LDistanceZone?: number| null;
-  public RDistanceZone?: number| null;
+  public angleZone?: number | null;
+  public LSpeedZone?: number | null;
+  public RSpeedZone?: number | null;
+  public LDistanceZone?: number | null;
+  public RDistanceZone?: number | null;
 
   public RDistanceAlarm?: number | null;
   public LDistanceAlarm?: number | null;
@@ -71,7 +72,7 @@ class RecordHistory
   public leftStatus!: number;
   public rightStatus!: number;
 
-  public record ?: Record;
+  public record?: Record;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -88,6 +89,10 @@ RecordHistory.init(
     recordId: {
       type: DataTypes.INTEGER,
       allowNull: true,
+    },
+    berthId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
     time: {
       type: DataTypes.DATE,
@@ -173,24 +178,17 @@ RecordHistory.init(
     tableName: 'RecordHistory',
     schema: 'bas',
     hooks: {
-      beforeCreate: (recordHistory: any) => {
-        if (!recordHistory.orgId) {
-          throw new Error('orgId is required but missing in payload.');
-        }
-      }
     },
     indexes: [
       {
         fields: ['time'],
-      }
+      },
     ],
   }
 );
 
 // event time is index
 
-RecordHistory.addScope('defaultScope', {
-
-})
+RecordHistory.addScope('defaultScope', {});
 
 export default RecordHistory;

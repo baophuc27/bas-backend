@@ -13,6 +13,10 @@
       "cancel": "Cancel",
       "mooring": "Mooring",
       "available": "Available"
+    },
+    "status-warning": {
+      "title": "Status Warning",
+      "message": "The berth status has been changed. Continue?"
     }
   },
   "messages": {

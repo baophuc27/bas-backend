@@ -34,13 +34,19 @@
       "cancel": "Cancel",
       "mooring": "Mooring",
       "available": "Available"
+    },
+    "status-changed": {
+      "title": "Status Changed",
+      "message": "The status has been changed. The page will be redirected.",
+      "ok": "OK"
     }
   },
   "messages": {
     "stop-success": "The recording has been saved successfully!",
     "stop-error": "Failed to stop the recording!",
     "sync-success": "The recording has been synced successfully!",
-    "sync-error": "Failed to sync the recording!"
+    "sync-error": "Failed to sync the recording!",
+    "status-changed": "Status of {{berthName}} has been changed from {{oldStatus}} to {{newStatus}}"
   },
   "hud": {
     "left-sensor": "Left Sensor",

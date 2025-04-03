@@ -6,6 +6,7 @@ const initialState = {
   address: "",
   description: "",
   logo_url: "",
+  orgId: "",
 };
 
 export const organizationSlice = createSlice({
@@ -32,6 +33,9 @@ export const organizationSlice = createSlice({
       if (action?.payload?.logo) {
         state["logo_url"] =
           "https://api.vnemisoft.com/" + action?.payload?.logo;
+      }
+      if (action?.payload?.orgId) {
+        state["orgId"] = action?.payload?.orgId;
       }
     },
   },

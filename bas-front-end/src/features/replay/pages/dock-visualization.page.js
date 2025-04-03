@@ -7,6 +7,7 @@ import { PlayerToolbar } from "../components";
 import { DockPageContent } from "./dock-content.page";
 
 const RECORDS_PER_PAGE = 1000;
+const PREFETCH_THRESHOLD = 0.8; // Prefetch when 80% through current page
 
 export const DockVisualizationPage = () => {
   const [searchParams] = useSearchParams();
@@ -24,6 +25,7 @@ export const DockVisualizationPage = () => {
   const pagesRef = useRef({});
   const sessionId = searchParams.get("sessionId");
   const [isLoadingChunk, setIsLoadingChunk] = useState(false);
+  const loadingPagesRef = useRef(new Set()); // Track pages being loaded
 
   const transformRecords = (records) => {
     let count = 0;
@@ -74,6 +76,40 @@ export const DockVisualizationPage = () => {
     };
   };
 
+  const fetchPageData = async (page) => {
+    if (pagesRef.current[page] || loadingPagesRef.current.has(page)) {
+      return;
+    }
+
+    loadingPagesRef.current.add(page);
+    try {
+      const params = {
+        page,
+        order: "asc",
+        amount: RECORDS_PER_PAGE,
+      };
+
+      const resp = await RecordManagementService.getDetail(sessionId, params);
+
+      if (resp?.data?.success) {
+        const records = resp?.data?.data?.recordHistories;
+        const { count, transformedRecords } = transformRecords(records);
+
+        pagesRef.current[page] = {
+          count,
+          items: transformedRecords,
+        };
+      }
+    } catch (error) {
+      console.error(`Error fetching page ${page}:`, error);
+    } finally {
+      loadingPagesRef.current.delete(page);
+      if (page === Math.floor(index / RECORDS_PER_PAGE)) {
+        setIsLoadingChunk(false);
+      }
+    }
+  };
+
   const fetchInitialData = async (id) => {
     try {
       const params = {
@@ -120,49 +156,31 @@ export const DockVisualizationPage = () => {
           items: transformedRecords,
         };
         setTotalRecords(total);
+
+        // Prefetch next page immediately
+        if (total > RECORDS_PER_PAGE) {
+          fetchPageData(1);
+        }
       }
     } catch (error) {}
   };
 
-  const fetchNextPageData = async (page) => {
-    try {
-      const params = {
-        page,
-        order: "asc",
-        amount: RECORDS_PER_PAGE,
-      };
-
-      const resp = await RecordManagementService.getDetail(sessionId, params);
-
-      if (resp?.data?.success) {
-        const records = resp?.data?.data?.recordHistories;
-        const { count, transformedRecords } = transformRecords(records);
-
-        setLatestData(first(transformedRecords));
-
-        pagesRef.current[page] = {
-          count,
-          items: transformedRecords,
-        };
-
-        let timer = setTimeout(() => {
-          setIsLoadingChunk(false);
-          clearTimeout(timer);
-        }, 3000);
-      }
-    } catch (error) {}
-  };
+  const fetchNextPageData = fetchPageData; // For backward compatibility
 
   const getDataPointData = (dataPointIndex) => {
     const page = Math.floor(dataPointIndex / RECORDS_PER_PAGE);
     const pageIndex = dataPointIndex % RECORDS_PER_PAGE;
 
     if (page in pagesRef.current) {
+      const isNearPageEnd = pageIndex > RECORDS_PER_PAGE * PREFETCH_THRESHOLD;
+      if (isNearPageEnd && totalRecords > (page + 1) * RECORDS_PER_PAGE) {
+        fetchPageData(page + 1);
+      }
       return pagesRef.current?.[page]?.["items"]?.[pageIndex];
     } else {
-      if (!isLoadingChunk) {
+      if (!loadingPagesRef.current.has(page)) {
         setIsLoadingChunk(true);
-        fetchNextPageData(page);
+        fetchPageData(page);
       }
     }
 
@@ -180,7 +198,7 @@ export const DockVisualizationPage = () => {
 
   const onReplay = () => {
     clearInterval(intervalRef.current);
-    setIsPlaying(false);
+    setIsPlaying(true);
     setIndex(0);
     setLatestData(pagesRef.current?.[0]?.["items"]?.[0]);
   };
@@ -189,6 +207,10 @@ export const DockVisualizationPage = () => {
     let newSpeedRate;
 
     if (speedRate === 2) {
+      newSpeedRate = 4;
+    } else if (speedRate === 4) {
+      newSpeedRate = 8;
+    } else if (speedRate === 8) {
       newSpeedRate = 1;
     } else if (speedRate === 1) {
       newSpeedRate = 1.5;
@@ -225,17 +247,27 @@ export const DockVisualizationPage = () => {
 
         if (dataPoint) {
           setLatestData(dataPoint);
-        }
 
-        if (index === totalRecords - 1) {
+          if (index === totalRecords - 1) {
+            clearInterval(intervalRef.current);
+            setIsPlaying(false);
+          } else {
+            setIndex((prev) => prev + 1);
+          }
+        } else if (isLoadingChunk) {
           clearInterval(intervalRef.current);
-          setIsPlaying(false);
-        } else {
-          setIndex((prev) => prev + 1);
         }
       }, 200 / speedRate);
 
       return () => clearInterval(intervalRef.current);
+    } else if (isPlaying && isLoadingChunk) {
+
+      const resumeTimer = setTimeout(() => {
+        if (!isLoadingChunk) {
+          setIsPlaying(true);
+        }
+      }, 100);
+      return () => clearTimeout(resumeTimer);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

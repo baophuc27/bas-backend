@@ -13,6 +13,10 @@
   font-weight: bold;
   font-size: 1.05rem;
   margin-bottom: 3px;
+  width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .userRole {

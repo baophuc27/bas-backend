@@ -9,7 +9,8 @@ import { getFromCache } from '@bas/utils/cache';
 const resetAlarmSetting = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { berthId } = req.params;
-    await alarmSettingService.resetDataAlarmSetting(+berthId);
+    const orgId = req.identification.orgId;
+    await alarmSettingService.resetDataAlarmSetting(+berthId, orgId);
 
     return res.success({});
   } catch (error: any) {
@@ -19,13 +20,13 @@ const resetAlarmSetting = async (req: Request, res: Response, next: NextFunction
 
 const getOrgInformation = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const orgId = req.identification.orgId;
+    const orgId = req.identification?.orgId;
     if (!orgId) {
-      throw new Error('User ID is missing');
+      throw new Error('User ID is missing or user is not authenticated');
     }
 
-    const cachedData = await getFromCache(orgId.toString());
-    if (!cachedData) {
+    const organization = await getFromCache(orgId.toString());
+    if (!organization) {
       const data = {
         ...organizationDefault,
         logo: APP_HOST.concat(organizationDefault.logo),
@@ -34,13 +35,11 @@ const getOrgInformation = async (req: Request, res: Response, next: NextFunction
       return res.success({ data });
     }
 
-    const organization = cachedData.user.organization;
     const data = {
       name: organization.nameVi,
       nameEn: organization.name,
       address: organization.address,
       description: organization.description,
-      // logo: APP_HOST.concat(organization.url_logo || organizationDefault.logo),
       logo: organization.url_logo,
     };
     console.log('Using organization from cache');

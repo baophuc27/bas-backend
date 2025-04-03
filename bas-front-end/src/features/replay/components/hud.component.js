@@ -42,9 +42,11 @@ export const Hud = ({
                 className={styles.dataValue}
                 style={{
                   color:
-                    sensorAData?.distance_status_id === NORMAL_STATUS_ID
-                      ? undefined
-                      : AlarmStatusColor[sensorAData?.distance_status_id],
+                    sensorAData?.distance < 0
+                      ? "red"
+                      : sensorAData?.distance_status_id === NORMAL_STATUS_ID
+                        ? undefined
+                        : AlarmStatusColor[sensorAData?.distance_status_id],
                 }}
               >
                 {hasData ? formatValue(sensorAData?.distance) : "--"}
@@ -97,9 +99,11 @@ export const Hud = ({
                 className={styles.dataValue}
                 style={{
                   color:
-                    sensorBData?.distance_status_id === NORMAL_STATUS_ID
-                      ? undefined
-                      : AlarmStatusColor[sensorBData?.distance_status_id],
+                    sensorBData?.distance < 0
+                      ? "red"
+                      : sensorBData?.distance_status_id === NORMAL_STATUS_ID
+                        ? undefined
+                        : AlarmStatusColor[sensorBData?.distance_status_id],
                 }}
               >
                 {hasData ? formatValue(sensorBData?.distance) : "--"}

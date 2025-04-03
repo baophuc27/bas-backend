@@ -31,6 +31,14 @@ export const ListPageContent = (t, language) => {
         sortable: true,
         renderCell: (params) => moment(params).format("DD-MM-YYYY"),
       },
+      {
+        field: "updatedAt",
+        headerName: t("berth:update_time"),
+        align: "left",
+        width: 165,
+        sortable: true,
+        renderCell: (params) => moment(params).format("DD-MM-YYYY"),
+      },
     ],
     actions: {
       edit: <EditIcon style={{ color: "#777777" }} />,

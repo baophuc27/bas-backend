@@ -22,6 +22,8 @@
     "dock_information": "Thông tin bến",
     "left_sensor": "Cảm biến trái",
     "right_sensor": "Cảm biến phải",
+    "left_sensor_id": "ID Cảm Biến Trái",
+    "right_sensor_id": "ID Cảm Biến Phải",
     "distance_from_left_sensor_to_fender": "Khoảng cách cảm biến trái với fender (m)",
     "distance_from_right_sensor_to_fender": "Khoảng cách cảm biến phải với fender (m)"
   },
@@ -37,6 +39,7 @@
     "list": "Quản Lý Bến"
   },
   "create_time": "Ngày tạo",
+  "update_time": "Ngày cập nhật",
   "messages": {
     "delete_success": "Xóa bến thành công!",
     "delete_failed": "Xóa bến thất bại!",

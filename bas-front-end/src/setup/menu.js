@@ -2,6 +2,7 @@ import { History } from "@material-ui/icons";
 import {
   Belt,
   BerthManagement,
+  DataApp,
   LogOut,
   Port,
   RecordManagement,
@@ -64,6 +65,13 @@ const menuItems = [
     icon: User,
     to: "/dashboard/account-info",
     common: true,
+  },
+  {
+    labelId: "common:menu.items.data-app-management",
+    icon: DataApp,
+    to: "/dashboard/data-app-management",
+    feature: FEATURES.BERTH_MANAGEMENT,
+    // common: true,
   },
   {
     labelId: "common:menu.items.log-out",

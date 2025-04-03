@@ -86,7 +86,7 @@ body .custom-button:hover {
 }
 body .light-button {
   color: #3699ff;
-  background-color: #e1f0ff;
+  background-color: #e1f0ff !important;
   border-color: transparent;
 }
 

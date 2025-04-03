@@ -26,8 +26,9 @@
       "distance": "Khoảng cách (m)",
       "speed": "Tốc độ (cm/s)",
       "angle": "Góc (°)",
-      "BERTHING": "Neo đậu",
-      "DEPARTING": "Rời bến"
+      "BERTHING": "Cập bến",
+      "DEPARTING": "Rời bến",
+      "MOORING": "Neo đậu"
     },
     "column": {
       "distance": "Khoảng cách",

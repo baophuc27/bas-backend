@@ -17,3 +17,13 @@ export const callLoginFunction = async (username: string, password: string) => {
     return null;
   }
 };
+
+export const checkActiveStatus = async () => {
+  try {
+    const { data } = await instance.get(controllerPath.BAS_VERSION + controllerPath.AUTH_PATH + controllerPath.ACTIVE);
+    return data.data || data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}

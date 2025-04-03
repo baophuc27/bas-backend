@@ -4,26 +4,20 @@ import { userDao } from '@bas/database/dao';
 import { getUserPermissions } from './permission-services';
 import { saveToCache } from '@bas/utils/cache';
 
-export const login = async (
-  username: string,
-  password: string,
-  ipAddress: string
-): Promise<any> => {
+export const login = async (username: string, password: string, ipAddress: string): Promise<any> => {
   try {
     if (!username || !password) {
       throw new BadRequestException('Username and password are required');
     }
     const data = await dataAppService.callLoginFunction(username, password);
-    console.log('data from callLoginFunction');
-    console.log(data);
-
+    // console.log(data);
     if (!data) {
       throw new BadRequestException('Invalid username or password');
     }
 
     const userPermissions = getUserPermissions(data.permission);
-
-    const user = await userDao.createUsers({
+    // console.log(userPermissions);
+    const user = (await userDao.createUsers({
       originalId: data.user.id,
       username: data.user.username,
       fullName: data.user.fullname,
@@ -36,18 +30,15 @@ export const login = async (
       orgId: data.user.organization.id,
       orgName: data.user.organization.name,
       orgLogo: data.user.organization.url_logo,
-    });
-
-    if (!user) {
+      isActive: true,
+    }));
+    // console.log(user);
+    if (user === null) {
       throw new BadRequestException('Invalid username or password');
     }
-
-    // Save the user data to cache using user.id as the key
-    saveToCache(data.user.organization.id.toString(), data, 3600);
-
+    saveToCache(data.user.organization.id.toString(), data.user.organization, 86400000);
     const token = userService.generateAccessToken(user);
     const refreshToken = await userService.generateRefreshToken(user, ipAddress);
-
     return {
       token: token,
       refreshToken: refreshToken.token,
@@ -63,8 +54,8 @@ export const login = async (
         orgId: user.orgId,
         orgName: user.orgName,
         orgLogo: user.orgLogo,
-        permission: userPermissions.systemPermissions.join(','),
-      },
+        permission: userPermissions.systemPermissions
+      }
     };
   } catch (error) {
     console.log(error);

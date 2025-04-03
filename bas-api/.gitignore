@@ -1,7 +1,7 @@
 /node_modules
 .vscode/settings.json
 build
-
+/.vscode
 public/*
 .env.*
 .env
@@ -9,3 +9,6 @@ public/*
 .idea
 
 ./redis_data
+
+# package-lock.json
+package-lock.json

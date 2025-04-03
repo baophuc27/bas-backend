@@ -20,6 +20,7 @@ interface AlarmAttributes {
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
+  berthId: number;
 
 }
 
@@ -43,6 +44,7 @@ class Alarm extends Model<AlarmAttributes, AlarmInput> implements AlarmAttribute
   public sensor?: Sensor;
   public record?: Record;
   public orgId!: number;
+  public berthId!: number;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -93,10 +95,13 @@ Alarm.init(
       allowNull: false,
     },
     orgId: {
-      // Cấu hình orgId
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    berthId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    }
   },
   {
     timestamps: true,

@@ -9,5 +9,6 @@ import Berth from './berth-model';
 import Record from './record-model';
 import AlarmSetting from './alarm-setting-model';
 import Alarm from './alarm-model';
+import DataApp from './data-app-model';
 
-export { User, Account, Role, RefreshToken, Harbor, Vessel, Berth, Record, Sensor, AlarmSetting, Alarm };
+export { User, Account, Role, RefreshToken, Harbor, Vessel, Berth, Record, Sensor, AlarmSetting, Alarm, DataApp };

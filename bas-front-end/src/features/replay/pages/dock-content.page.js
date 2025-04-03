@@ -13,7 +13,7 @@ import styles from "./dock.style.module.css";
 export const DockPageContent = ({ id, berth: berthData, latestData }) => {
   const navigate = useNavigate();
   const mainRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [dimensions, setDimensions] = useState({ width: 1000, height: 600 });
   const [sensorAData, setSensorAData] = useState({
     speed: 0,
     distance: 0,

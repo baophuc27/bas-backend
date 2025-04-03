@@ -56,11 +56,13 @@ export const Widget = (props) => {
             <iframe
               className="iframe-container"
               src={habour?.weatherWidgetUrl}
-              height={300}
-              width={250}
-              frameborder={0}
+              height={330}
+              width={280}
+              frameBorder={0}
+              scrolling="no"
               style={{
                 marginTop: 12,
+                overflow: "hidden",
               }}
             ></iframe>
             // </Box>

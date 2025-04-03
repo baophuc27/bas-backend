@@ -1,6 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {};
+const initialState = {
+  berthFormValues: {},
+};
 
 export const berthSlice = createSlice({
   name: "berth",
@@ -8,14 +10,16 @@ export const berthSlice = createSlice({
   reducers: {
     setStatuses: (state, action) => {
       const statuses = action?.payload;
-
       for (let status of statuses) {
         state[status?.id] = status;
       }
     },
+    setBerthFormValues: (state, action) => {
+      state.berthFormValues = action?.payload;
+    },
   },
 });
 
-export const { setStatuses } = berthSlice.actions;
+export const { setStatuses, setBerthFormValues } = berthSlice.actions;
 
 export default berthSlice.reducer;

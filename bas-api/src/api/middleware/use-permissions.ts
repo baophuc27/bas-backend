@@ -7,8 +7,8 @@ import { roleMatrix } from '@bas/constant/role-matrix';
 
 const roleMap = {
   [SystemRole.ADMIN]: 8,
-  [SystemRole.CONFIGURE]: 2,
-  [SystemRole.VIEW]: 3,
+  [SystemRole.CONFIGURE]: 9,
+  [SystemRole.VIEW]: 10,
 };
 
 export const usePermissions = (requiredPermissions: string[]) => {
@@ -37,16 +37,6 @@ export const usePermissions = (requiredPermissions: string[]) => {
           internalErrorCode.FORBIDDEN
         );
       }
-
-      // Debugging info to verify mapping and permissions
-      console.log(`Debugging Permissions:`, {
-        roleId,
-        systemRole,
-        userPermissions,
-        requiredPermissions,
-      });
-
-      // Check if the user has at least one of the required permissions
       const isAuthorized = requiredPermissions.some((perm) => userPermissions.includes(perm));
 
       if (!isAuthorized) {
